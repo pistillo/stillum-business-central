@@ -27,6 +27,63 @@ module.exports = {
             'phase1-storage',
           ],
         },
+        {
+          type: 'category',
+          label: 'Fase 2',
+          items: [
+            'phase-2',
+            'phase2-portal-ui',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 3',
+          items: [
+            'phase-3',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 4',
+          items: [
+            'phase-4',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 5',
+          items: [
+            'phase-5',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 6',
+          items: [
+            'phase-6',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 7',
+          items: [
+            'phase-7',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 8',
+          items: [
+            'phase-8',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Fase 9',
+          items: [
+            'phase-9',
+          ],
+        },
       ],
     },
     {
