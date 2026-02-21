@@ -1,6 +1,7 @@
 module.exports = {
   tutorialSidebar: [
     'intro',
+    'roadmap',
     {
       type: 'category',
       label: 'Architettura',
@@ -8,6 +9,7 @@ module.exports = {
         'architecture/architecture-overview',
         'architecture/architecture-components',
         'architecture/architecture-runtime',
+        'architecture/architecture-diagram',
       ],
     },
     {

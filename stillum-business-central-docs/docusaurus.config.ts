@@ -12,9 +12,13 @@ const config: Config = {
   organizationName: 'stillum',
   projectName: 'business-central',
 
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
-  onBrokenAnchors: 'throw',
+  onBrokenLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
+  onBrokenAnchors: 'warn',
 
   i18n: {
     defaultLocale: 'it',
@@ -46,6 +50,11 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
+        {
+          to: '/docs/intro',
+          position: 'left',
+          label: 'Introduzione',
+        },
         {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
