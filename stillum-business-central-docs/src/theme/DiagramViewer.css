@@ -1,0 +1,119 @@
+.diagram-viewer-container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-background-color);
+  margin: 2rem 0;
+}
+
+.diagram-viewer-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  border-radius: 0;
+  border: none;
+  background: var(--ifm-background-color);
+}
+
+.diagram-controls {
+  width: 100%;
+  height: 100%;
+}
+
+.diagram-toolbar {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--ifm-background-surface-color);
+  padding: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.diagram-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-800);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.diagram-button:hover {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-900);
+  transform: scale(1.05);
+}
+
+.diagram-button:active {
+  transform: scale(0.95);
+}
+
+.diagram-button svg {
+  stroke-width: 2;
+}
+
+.diagram-spacer {
+  width: 1px;
+  height: 24px;
+  background: var(--ifm-color-emphasis-300);
+  margin: 0 0.25rem;
+}
+
+.diagram-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+}
+
+.diagram-content img,
+.diagram-content svg {
+  max-width: none;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .diagram-viewer-container {
+    height: 400px;
+  }
+
+  .diagram-toolbar {
+    top: 0.5rem;
+    padding: 0.25rem;
+  }
+
+  .diagram-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .diagram-button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .diagram-content {
+    padding: 2rem;
+  }
+}
