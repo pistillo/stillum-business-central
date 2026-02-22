@@ -14,7 +14,7 @@ const config: Config = {
 
   onBrokenLinks: 'warn',
   markdown: {
-    mermaid: true,
+    mermaid: false, // false = blocchi come pre/code così mermaid-init.js li può trasformare
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },

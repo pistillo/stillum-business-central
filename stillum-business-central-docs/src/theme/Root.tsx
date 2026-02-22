@@ -5,7 +5,7 @@ export default function Root({ children }: { children: React.ReactNode }): JSX.E
   return (
     <>
       <Head>
-        <script src="/js/diagram.js" />
+        <script src="/js/mermaid-init.js" />
       </Head>
       {children}
     </>
