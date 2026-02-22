@@ -1,5 +1,5 @@
 import apiClient from './client'
-import { Artifact, ArtifactVersion, PaginatedResponse } from '@/lib/types'
+import { Artifact, PaginatedResponse } from '@/lib/types'
 
 export const getArtifacts = async (
   page: number = 0,

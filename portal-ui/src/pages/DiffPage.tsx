@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 export default function DiffPage() {
   const { id, versionId1, versionId2 } = useParams<{ id: string; versionId1: string; versionId2: string }>()
-  const { data: comparison, isLoading } = useCompareVersions(id || '')
+  const { data: comparison, isPending } = useCompareVersions(id || '')
   const { t } = useTranslation()
 
   return (
@@ -18,7 +18,7 @@ export default function DiffPage() {
           <CardTitle>Version {versionId1} vs {versionId2}</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isPending ? (
             <div className="text-center py-8">Loading comparison...</div>
           ) : (
             <div className="grid grid-cols-2 gap-4">

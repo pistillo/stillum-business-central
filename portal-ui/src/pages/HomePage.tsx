@@ -16,7 +16,7 @@ export default function HomePage() {
   const { user } = useAuth()
   const { data: draftsData, isLoading: draftsLoading } = useMyDrafts()
   const { data: publicationsData, isLoading: publicationsLoading } = useRecentPublications()
-  const { data: tasksData, isLoading: tasksLoading } = useMyTasks(0, 5)
+  const { data: tasksData } = useMyTasks(0, 5)
   const { t } = useTranslation()
 
   return (

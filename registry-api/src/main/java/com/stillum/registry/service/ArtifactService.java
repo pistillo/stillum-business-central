@@ -3,10 +3,14 @@ package com.stillum.registry.service;
 import com.stillum.registry.dto.*;
 import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.enums.ArtifactStatus;
+import com.stillum.registry.entity.enums.ArtifactType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -64,35 +68,42 @@ public class ArtifactService {
     public PagedResponse<ArtifactResponse> listArtifacts(UUID tenantId, SearchRequest request) {
         int page = request.page;
         int size = request.size;
-        
-        String query = "tenantId = ?1 and deleted = false";
-        Object[] params = {tenantId};
-        
+
+        // Build dynamic query with named parameters (no positional param bugs)
+        StringBuilder queryBuilder = new StringBuilder("tenantId = :tenantId and deleted = false");
+        Map<String, Object> params = new HashMap<>();
+        params.put("tenantId", tenantId);
+
         if (request.type != null) {
-            query += " and type = ?";
-            Object[] newParams = new Object[params.length + 1];
-            System.arraycopy(params, 0, newParams, 0, params.length);
-            newParams[params.length] = request.type;
-            params = newParams;
+            queryBuilder.append(" and type = :type");
+            params.put("type", request.type);
         }
-        
+
         if (request.status != null) {
-            query += " and status = ?";
-            Object[] newParams = new Object[params.length + 1];
-            System.arraycopy(params, 0, newParams, 0, params.length);
-            newParams[params.length] = request.status;
-            params = newParams;
+            queryBuilder.append(" and status = :status");
+            params.put("status", request.status);
         }
-        
+
+        if (request.area != null && !request.area.isBlank()) {
+            queryBuilder.append(" and area = :area");
+            params.put("area", request.area);
+        }
+
+        if (request.query != null && !request.query.isBlank()) {
+            queryBuilder.append(" and (lower(title) like :query or lower(description) like :query)");
+            params.put("query", "%" + request.query.toLowerCase() + "%");
+        }
+
+        String query = queryBuilder.toString();
         long count = Artifact.count(query, params);
         List<Artifact> artifacts = Artifact.find(query, params)
-            .page(page, size)
-            .list();
-        
+                .page(page, size)
+                .list();
+
         List<ArtifactResponse> responses = artifacts.stream()
-            .map(this::toArtifactResponse)
-            .toList();
-        
+                .map(this::toArtifactResponse)
+                .toList();
+
         return new PagedResponse<>(responses, page, size, count);
     }
 

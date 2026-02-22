@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
 import ProtectedRoute from '@/components/common/ProtectedRoute'

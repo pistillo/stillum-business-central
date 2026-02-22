@@ -3,8 +3,11 @@ package com.stillum.registry.service;
 import com.stillum.registry.entity.AuditLog;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -24,19 +27,17 @@ public class AuditService {
     }
 
     public List<AuditLog> getAuditLogs(UUID tenantId, String entityType, int page, int size) {
-        String query = "tenantId = ?1";
-        Object[] params = {tenantId};
-        
+        StringBuilder queryBuilder = new StringBuilder("tenantId = :tenantId");
+        Map<String, Object> params = new HashMap<>();
+        params.put("tenantId", tenantId);
+
         if (entityType != null && !entityType.isEmpty()) {
-            query += " and entityType = ?";
-            Object[] newParams = new Object[params.length + 1];
-            System.arraycopy(params, 0, newParams, 0, params.length);
-            newParams[params.length] = entityType;
-            params = newParams;
+            queryBuilder.append(" and entityType = :entityType");
+            params.put("entityType", entityType);
         }
-        
-        return AuditLog.find(query + " order by timestamp desc", params)
-            .page(page, size)
-            .list();
+
+        return AuditLog.find(queryBuilder.toString() + " order by timestamp desc", params)
+                .page(page, size)
+                .list();
     }
 }

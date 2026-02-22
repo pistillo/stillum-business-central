@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import StatusBadge from '@/components/common/StatusBadge'
 import Avatar from '@/components/ui/Avatar'
 import { formatDateIT } from '@/lib/utils'
-import { Edit, Trash2, Copy, Send } from 'lucide-react'
+import { Edit, Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export default function ArtifactDetailPage() {
