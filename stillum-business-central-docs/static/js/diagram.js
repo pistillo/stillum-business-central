@@ -163,6 +163,60 @@
         var contentWrapper = wrapper.querySelector('.diagram-content-wrapper');
         var buttons = wrapper.querySelectorAll('.diagram-button');
         var currentScale = 1;
+        var translateX = 0;
+        var translateY = 0;
+
+        function applyTransform() {
+          contentWrapper.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + currentScale + ')';
+        }
+
+        var isDragging = false;
+        var startX = 0, startY = 0, startTranslateX = 0, startTranslateY = 0;
+
+        function onPointerDown(e) {
+          if (e.button !== 0 && e.type !== 'touchstart') return;
+          e.preventDefault();
+          isDragging = true;
+          contentWrapper.classList.add('diagram-dragging');
+          startX = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+          startY = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
+          startTranslateX = translateX;
+          startTranslateY = translateY;
+        }
+
+        function onPointerMove(e) {
+          if (!isDragging) return;
+          e.preventDefault();
+          var x = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+          var y = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
+          translateX = startTranslateX + (x - startX);
+          translateY = startTranslateY + (y - startY);
+          applyTransform();
+        }
+
+        function onPointerUp() {
+          if (!isDragging) return;
+          isDragging = false;
+          contentWrapper.classList.remove('diagram-dragging');
+          document.removeEventListener('mousemove', onPointerMove);
+          document.removeEventListener('mouseup', onPointerUp);
+          document.removeEventListener('touchmove', onPointerMove, { passive: false });
+          document.removeEventListener('touchend', onPointerUp);
+        }
+
+        contentWrapper.addEventListener('mousedown', function(e) {
+          if (e.target.closest('.diagram-button')) return;
+          onPointerDown(e);
+          document.addEventListener('mousemove', onPointerMove);
+          document.addEventListener('mouseup', onPointerUp);
+        });
+
+        contentWrapper.addEventListener('touchstart', function(e) {
+          if (e.touches.length !== 1) return;
+          onPointerDown(e);
+          document.addEventListener('touchmove', onPointerMove, { passive: false });
+          document.addEventListener('touchend', onPointerUp);
+        }, { passive: true });
 
         contentWrapper.addEventListener('dblclick', function(e) {
           e.preventDefault();
@@ -176,13 +230,15 @@
             var action = this.getAttribute('data-action');
             if (action === 'zoom-in') {
               currentScale = Math.min(10, currentScale * 1.2);
-              contentWrapper.style.transform = 'scale(' + currentScale + ')';
+              applyTransform();
             } else if (action === 'zoom-out') {
               currentScale = Math.max(0.1, currentScale * 0.8);
-              contentWrapper.style.transform = 'scale(' + currentScale + ')';
+              applyTransform();
             } else if (action === 'reset') {
               currentScale = 1;
-              contentWrapper.style.transform = 'scale(1)';
+              translateX = 0;
+              translateY = 0;
+              applyTransform();
             } else if (action === 'fullscreen') {
               if (!document.fullscreenElement) {
                 container.requestFullscreen();
@@ -192,6 +248,8 @@
             }
           });
         });
+
+        applyTransform();
 
         document.addEventListener('fullscreenchange', function() {
           if (document.fullscreenElement) {

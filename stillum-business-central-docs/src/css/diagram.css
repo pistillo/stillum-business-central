@@ -83,9 +83,21 @@
   justify-content: center;
   align-items: center;
   padding: 4rem;
-  overflow: auto;
+  overflow: hidden;
   transform-origin: center center;
   transition: transform 0.2s ease;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.diagram-content-wrapper:active {
+  cursor: grabbing;
+}
+
+.diagram-content-wrapper.diagram-dragging {
+  transition: none;
+  cursor: grabbing;
 }
 
 .diagram-content-wrapper .mermaid {

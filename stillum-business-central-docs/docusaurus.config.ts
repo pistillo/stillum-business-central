@@ -13,13 +13,14 @@ const config: Config = {
   projectName: 'business-central',
 
   onBrokenLinks: 'warn',
+  onBrokenAnchors: 'warn',
+
   markdown: {
-    mermaid: false, // false = blocchi come pre/code così mermaid-init.js li può trasformare
+    mermaid: false,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
   },
-  onBrokenAnchors: 'warn',
 
   i18n: {
     defaultLocale: 'it',
@@ -51,7 +52,7 @@ const config: Config = {
       title: 'Stillum Business Central',
       logo: {
         alt: 'Stillum Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
         {

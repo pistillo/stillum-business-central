@@ -6,6 +6,7 @@
     var out = [];
     var containers = document.querySelectorAll('div[class*="language-mermaid"]');
     containers.forEach(function(div) {
+      if (div.getAttribute('data-mermaid-done')) return;
       var pre = div.querySelector('pre');
       var t = pre && pre.textContent && pre.textContent.trim();
       if (t && (t.indexOf('erDiagram') !== -1 || t.indexOf('graph') !== -1) && !seen.has(div)) {
@@ -16,12 +17,14 @@
     if (out.length > 0) return out;
     var pres = document.querySelectorAll('pre[class*="language-mermaid"]');
     pres.forEach(function(pre) {
+      var container = pre.closest('[class*="language-mermaid"]');
+      if (container && container.getAttribute('data-mermaid-done')) return;
       var t = pre.textContent && pre.textContent.trim();
       if (t && (t.indexOf('erDiagram') !== -1 || t.indexOf('graph') !== -1)) {
-        var container = pre.closest('[class*="language-mermaid"]') || pre.parentElement || pre;
-        if (!seen.has(container)) {
-          seen.add(container);
-          out.push({ container: container, pre: pre });
+        var c = container || pre.parentElement || pre;
+        if (!seen.has(c)) {
+          seen.add(c);
+          out.push({ container: c, pre: pre });
         }
       }
     });
@@ -35,15 +38,9 @@
 
   function transformCodeBlocksToMermaid() {
     var pairs = findMermaidContainers();
-    if (pairs.length === 0) {
-      loadDiagramJs();
-      return false;
-    }
+    if (pairs.length === 0) return false;
 
-    if (typeof mermaid === 'undefined') {
-      loadDiagramJs();
-      return false;
-    }
+    if (typeof mermaid === 'undefined') return false;
 
     mermaid.initialize({
       startOnLoad: false,
@@ -59,8 +56,13 @@
       div.className = 'mermaid';
       div.textContent = code;
       p.container.setAttribute('data-mermaid-done', '1');
-      p.container.parentNode.replaceChild(div, p.container);
+      if (p.container.parentNode) {
+        p.container.parentNode.replaceChild(div, p.container);
+      }
     });
+
+    var toRun = document.querySelectorAll('.mermaid');
+    if (toRun.length === 0) return true;
 
     mermaid.run({
       querySelector: '.mermaid',
@@ -92,7 +94,9 @@
       var script = document.createElement('script');
       script.src = MERMAID_CDN;
       script.async = false;
-      script.onload = runTransform;
+      script.onload = function() {
+        runTransform();
+      };
       script.onerror = function() {
         console.warn('Mermaid non caricato.');
         loadDiagramJs();
@@ -103,17 +107,32 @@
     }
   }
 
+  function tryInit() {
+    if (findMermaidContainers().length > 0) {
+      init();
+      return true;
+    }
+    loadDiagramJs();
+    return false;
+  }
+
   function scheduleInit() {
-    init();
+    tryInit();
+    var attempts = [500, 1500, 3000];
+    attempts.forEach(function(delay) {
+      setTimeout(function() {
+        if (document.querySelectorAll('.mermaid').length > 0) return;
+        if (findMermaidContainers().length > 0) init();
+      }, delay);
+    });
+    var observer = new MutationObserver(function() {
+      if (document.querySelectorAll('.mermaid').length > 0) return;
+      if (findMermaidContainers().length > 0) init();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
     setTimeout(function() {
-      if (findMermaidContainers().length > 0 && document.querySelectorAll('.mermaid').length === 0) {
-        if (typeof mermaid !== 'undefined') {
-          runTransform();
-        } else {
-          init();
-        }
-      }
-    }, 1500);
+      observer.disconnect();
+    }, 10000);
   }
 
   if (document.readyState === 'loading') {
