@@ -21,8 +21,6 @@ const config: Config = {
   },
   onBrokenAnchors: 'warn',
 
-  themes: ['@docusaurus/theme-mermaid'],
-
   i18n: {
     defaultLocale: 'it',
     locales: ['it'],
