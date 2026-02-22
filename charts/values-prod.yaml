@@ -1,0 +1,135 @@
+# Production environment values
+
+global:
+  environment: production
+  domain: stillum.com
+
+registryApi:
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    LOG_LEVEL: INFO
+    QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: validate
+
+publisher:
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    LOG_LEVEL: INFO
+    QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: validate
+
+runtimeGateway:
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    LOG_LEVEL: INFO
+    QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: validate
+
+portalUi:
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+    hosts:
+      - host: portal.stillum.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: stillum-portal-tls
+        hosts:
+          - portal.stillum.com
+
+database:
+  type: postgresql
+  host: postgres.production.svc.cluster.local
+  port: 5432
+  user: stillum
+  password: "{{ .Values.database.secretPassword }}"
+  ssl: true
+  pools:
+    registryApi:
+      name: stillum_registry
+      size: 20
+    publisher:
+      name: stillum_publisher
+      size: 20
+    gateway:
+      name: stillum_gateway
+      size: 20
+
+storage:
+  type: s3
+  bucket: stillum-bundles-prod
+  endpoint: s3.amazonaws.com
+  useSSL: true
+  region: us-east-1
+  credentials:
+    accessKey: "{{ .Values.storage.secretAccessKey }}"
+    secretKey: "{{ .Values.storage.secretKey }}"
+
+temporal:
+  enabled: true
+  server:
+    host: temporal.temporal.svc.cluster.local
+    port: 7233
+  database:
+    type: postgresql
+    host: postgres.production.svc.cluster.local
+    port: 5432
+    user: stillum
+    password: "{{ .Values.database.secretPassword }}"
+    dbName: stillum_temporal
+
+security:
+  keycloak:
+    enabled: true
+    realm: stillum
+    serverUrl: https://keycloak.stillum.com
+    internalServerUrl: http://keycloak.keycloak.svc.cluster.local:8080
+    publicClient: stillum-portal
+  cors:
+    enabled: true
+    allowedOrigins:
+      - "https://portal.stillum.com"
+
+config:
+  loglevel: INFO
+  timezone: UTC
+  language: en
+  maxUploadSize: 104857600
+  tokenExpiry: 3600
+  sessionTimeout: 1800
+
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  jaeger:
+    enabled: true
+
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention: 30

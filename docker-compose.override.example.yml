@@ -1,0 +1,39 @@
+# Docker Compose Override Example
+# Copy to docker-compose.override.yml and customize for local development
+
+version: '3.9'
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: your_secure_password
+    ports:
+      - "5432:5432"
+
+  registry-api:
+    environment:
+      QUARKUS_DATASOURCE_PASSWORD: your_secure_password
+      QUARKUS_LOG_LEVEL: DEBUG
+    ports:
+      - "8082:8080"
+
+  publisher:
+    environment:
+      QUARKUS_DATASOURCE_PASSWORD: your_secure_password
+      QUARKUS_LOG_LEVEL: DEBUG
+    ports:
+      - "8083:8080"
+
+  runtime-gateway:
+    environment:
+      QUARKUS_DATASOURCE_PASSWORD: your_secure_password
+      QUARKUS_LOG_LEVEL: DEBUG
+    ports:
+      - "8081:8080"
+
+  portal-ui:
+    environment:
+      VITE_API_URL: http://localhost:8082
+      VITE_RUNTIME_URL: http://localhost:8081
+    ports:
+      - "3000:80"

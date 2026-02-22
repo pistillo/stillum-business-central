@@ -1,0 +1,92 @@
+{
+  "realm": "stillum",
+  "enabled": true,
+  "displayName": "Stillum Business Portal",
+  "loginTheme": "keycloak",
+  "accountTheme": "keycloak",
+  "adminTheme": "keycloak",
+  "emailTheme": "keycloak",
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@stillum.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["realm-admin"]
+    },
+    {
+      "username": "user",
+      "email": "user@stillum.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator"
+      },
+      {
+        "name": "publisher",
+        "description": "Can publish artifacts"
+      },
+      {
+        "name": "executor",
+        "description": "Can execute workflows"
+      },
+      {
+        "name": "approver",
+        "description": "Can approve publications"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "stillum-portal",
+      "name": "Stillum Portal UI",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true
+    },
+    {
+      "clientId": "stillum-api",
+      "name": "Stillum API",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "api-secret-key",
+      "bearerTokens": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true
+    }
+  ]
+}

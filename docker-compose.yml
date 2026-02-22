@@ -1,0 +1,239 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: stillum-postgres
+    environment:
+      POSTGRES_USER: stillum
+      POSTGRES_PASSWORD: stillum123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stillum"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: stillum-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: minio server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: stillum-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/stillum-bundles;
+      /usr/bin/mc mb myminio/stillum-artifacts;
+      exit 0;
+      "
+    networks:
+      - stillum-net
+
+  temporal:
+    image: temporalio/auto-setup:1.24
+    container_name: stillum-temporal
+    environment:
+      DB: postgresql
+      DB_PORT: 5432
+      POSTGRES_USER: stillum
+      POSTGRES_PWD: stillum123
+      POSTGRES_SEEDS: postgres
+      TEMPORAL_BROADCAST_ADDRESS: temporal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "7233:7233"
+      - "6933:6933"
+    volumes:
+      - temporal-data:/var/lib/temporal
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7233/api/v1/namespaces"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  temporal-ui:
+    image: temporalio/ui:2.31.2
+    container_name: stillum-temporal-ui
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    depends_on:
+      temporal:
+        condition: service_healthy
+    ports:
+      - "8088:8080"
+    networks:
+      - stillum-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: stillum-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/stillum_keycloak
+      KC_DB_USERNAME: stillum
+      KC_DB_PASSWORD: stillum123
+      KC_DB_SCHEMA: public
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./scripts/keycloak-realm.json:/opt/keycloak/data/import/realm.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  registry-api:
+    build:
+      context: ./registry-api
+      dockerfile: Dockerfile
+    container_name: stillum-registry-api
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/stillum_registry
+      QUARKUS_DATASOURCE_USERNAME: stillum
+      QUARKUS_DATASOURCE_PASSWORD: stillum123
+      QUARKUS_HTTP_HOST: 0.0.0.0
+      QUARKUS_LOG_LEVEL: INFO
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    container_name: stillum-publisher
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/stillum_publisher
+      QUARKUS_DATASOURCE_USERNAME: stillum
+      QUARKUS_DATASOURCE_PASSWORD: stillum123
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_AWS_REGION: us-east-1
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: minioadmin
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: minioadmin
+      QUARKUS_HTTP_HOST: 0.0.0.0
+      QUARKUS_LOG_LEVEL: INFO
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  runtime-gateway:
+    build:
+      context: ./runtime-gateway
+      dockerfile: Dockerfile
+    container_name: stillum-runtime-gateway
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/stillum_gateway
+      QUARKUS_DATASOURCE_USERNAME: stillum
+      QUARKUS_DATASOURCE_PASSWORD: stillum123
+      STILLUM_TEMPORAL_SERVER_HOST: temporal
+      STILLUM_TEMPORAL_SERVER_PORT: 7233
+      QUARKUS_HTTP_HOST: 0.0.0.0
+      QUARKUS_LOG_LEVEL: INFO
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  portal-ui:
+    build:
+      context: ./portal-ui
+      dockerfile: Dockerfile
+    container_name: stillum-portal-ui
+    ports:
+      - "3000:80"
+    depends_on:
+      - registry-api
+      - publisher
+      - runtime-gateway
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  stillum-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  minio-data:
+  temporal-data:

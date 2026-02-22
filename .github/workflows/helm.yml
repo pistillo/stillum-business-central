@@ -1,0 +1,126 @@
+name: Helm Chart Release
+
+on:
+  push:
+    paths:
+      - 'charts/**'
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Lint Helm chart
+        run: |
+          helm lint charts/stillum-platform
+          helm lint charts/stillum-platform --strict
+
+      - name: Validate chart schema
+        run: |
+          helm template stillum charts/stillum-platform > /dev/null
+
+  package:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Package Helm chart
+        run: |
+          mkdir -p helm-packages
+          helm package charts/stillum-platform -d helm-packages
+
+      - name: Upload chart artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: helm-charts
+          path: helm-packages/
+
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download chart artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: helm-charts
+          path: helm-packages/
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: helm-packages/*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Helm OCI credentials
+        run: |
+          mkdir -p ~/.config/helm
+          echo "${{ secrets.HELM_REGISTRY_TOKEN }}" | helm registry login -u ${{ secrets.HELM_REGISTRY_USER }} --password-stdin oci://ghcr.io
+
+      - name: Push to OCI registry
+        run: |
+          for chart in helm-packages/*.tgz; do
+            helm push "$chart" oci://ghcr.io/${{ github.repository }}
+          done
+        if: secrets.HELM_REGISTRY_TOKEN != ''
+
+  deploy-to-dev:
+    needs: publish
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: development
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Deploy to development cluster
+        run: |
+          echo "${{ secrets.KUBECONFIG_DEV }}" > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          
+          helm upgrade --install stillum-platform charts/stillum-platform \
+            --namespace stillum-dev \
+            --create-namespace \
+            -f charts/values-dev.yaml \
+            --wait \
+            --timeout 5m
+        if: secrets.KUBECONFIG_DEV != ''

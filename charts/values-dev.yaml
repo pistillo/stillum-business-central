@@ -1,0 +1,61 @@
+# Development environment values
+
+global:
+  environment: development
+  domain: localhost
+
+registryApi:
+  replicaCount: 1
+  env:
+    LOG_LEVEL: DEBUG
+    QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: create
+
+publisher:
+  replicaCount: 1
+  env:
+    LOG_LEVEL: DEBUG
+    QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: create
+
+runtimeGateway:
+  replicaCount: 1
+  env:
+    LOG_LEVEL: DEBUG
+    QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: create
+
+portalUi:
+  replicaCount: 1
+  ingress:
+    enabled: false
+
+database:
+  host: postgres
+  port: 5432
+  user: stillum
+  password: stillum123
+  ssl: false
+
+storage:
+  endpoint: minio:9000
+  useSSL: false
+  credentials:
+    accessKey: minioadmin
+    secretKey: minioadmin
+
+temporal:
+  server:
+    host: temporal
+    port: 7233
+
+security:
+  keycloak:
+    enabled: true
+    serverUrl: http://keycloak:8080
+    internalServerUrl: http://keycloak:8080
+  cors:
+    enabled: true
+    allowedOrigins:
+      - "http://localhost:3000"
+      - "http://localhost"
+
+monitoring:
+  enabled: false
