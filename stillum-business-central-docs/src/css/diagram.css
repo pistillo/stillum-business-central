@@ -99,6 +99,125 @@
   display: block;
 }
 
+.diagram-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-600);
+  text-align: center;
+}
+
+/* Modale diagramma (doppio clic) */
+.diagram-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  animation: diagram-modal-fade 0.2s ease;
+}
+
+@keyframes diagram-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.diagram-modal {
+  display: flex;
+  flex-direction: column;
+  width: 95vw;
+  max-width: 100%;
+  height: 90vh;
+  max-height: 100%;
+  background: var(--ifm-background-color);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  animation: diagram-modal-scale 0.2s ease;
+}
+
+@keyframes diagram-modal-scale {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.diagram-modal-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--ifm-background-surface-color);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.diagram-modal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-800);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.diagram-modal-btn:hover {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-900);
+  transform: scale(1.05);
+}
+
+.diagram-modal-btn:active {
+  transform: scale(0.98);
+}
+
+.diagram-modal-btn svg {
+  stroke-width: 2;
+}
+
+.diagram-modal-spacer {
+  flex: 1;
+}
+
+.diagram-modal-content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 1rem;
+}
+
+.diagram-modal-scalable {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.diagram-modal-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.diagram-modal-clone {
+  display: block;
+}
+
+.diagram-modal-clone svg {
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
 @media (max-width: 768px) {
   .diagram-viewer-container {
     height: 400px;
@@ -121,5 +240,15 @@
 
   .diagram-content-wrapper {
     padding: 2rem;
+  }
+
+  .diagram-modal {
+    width: 100%;
+    height: 95vh;
+    border-radius: 0;
+  }
+
+  .diagram-modal-overlay {
+    padding: 0;
   }
 }

@@ -2,6 +2,7 @@ module.exports = {
   tutorialSidebar: [
     'intro',
     'roadmap',
+    'piano-di-sviluppo',
     {
       type: 'category',
       label: 'Fasi di Sviluppo',
