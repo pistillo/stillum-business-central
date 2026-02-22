@@ -97,6 +97,14 @@
     overlay.querySelector('.diagram-modal-reset').addEventListener('click', fitToView);
     overlay.querySelector('.diagram-modal-close').addEventListener('click', closeModal);
 
+    var modalContent = overlay.querySelector('.diagram-modal-content');
+    modalContent.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      var delta = e.deltaY > 0 ? -1 : 1;
+      var factor = e.ctrlKey || e.metaKey ? 1.15 : 1.2;
+      applyScale(modalScale * (delta > 0 ? factor : 1 / factor));
+    }, { passive: false });
+
     overlay.addEventListener('click', function(e) {
       if (e.target === overlay) closeModal();
     });

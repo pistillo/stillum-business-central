@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Head from '@docusaurus/Head';
 
-export default function Root({ children }: { children: React.ReactNode }): JSX.Element {
+interface RootProps {
+  children?: React.ReactNode;
+}
+
+export default function Root({ children }: RootProps): React.ReactElement {
   return (
     <>
-      <Head>
-        <script src="/js/mermaid-init.js" />
-      </Head>
+      <Head children={<script src="/js/mermaid-init.js" />} />
       {children}
     </>
   );
