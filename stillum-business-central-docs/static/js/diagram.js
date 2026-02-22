@@ -36,8 +36,10 @@
       '    <button type="button" class="diagram-modal-btn diagram-modal-close" title="Chiudi" aria-label="Chiudi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>',
       '  </div>',
       '  <div class="diagram-modal-content">',
-      '    <div class="diagram-modal-scalable">',
-      '      <div class="diagram-modal-inner"></div>',
+      '    <div class="diagram-modal-scroll-area">',
+      '      <div class="diagram-modal-scalable">',
+      '        <div class="diagram-modal-inner"></div>',
+      '      </div>',
       '    </div>',
       '  </div>',
       '</div>'
@@ -47,6 +49,8 @@
 
     var inner = overlay.querySelector('.diagram-modal-inner');
     var scalable = overlay.querySelector('.diagram-modal-scalable');
+    var scrollArea = overlay.querySelector('.diagram-modal-scroll-area');
+    var modalContent = overlay.querySelector('.diagram-modal-content');
     var clone = sourceMermaidDiv.cloneNode(true);
     clone.classList.add('diagram-modal-clone');
     inner.appendChild(clone);
@@ -70,23 +74,66 @@
       return Math.min(sx, sy);
     }
 
+    var modalTranslateX = 0;
+    var modalTranslateY = 0;
+
     function applyScale(scale) {
       modalScale = Math.max(minScale, Math.min(maxScale, scale));
       scaleToFit = computeScaleToFit();
       var w = svgW * modalScale;
       var h = svgH * modalScale;
-      scalable.style.width = w + 'px';
-      scalable.style.height = h + 'px';
+      scrollArea.style.width = w + 'px';
+      scrollArea.style.height = h + 'px';
+      scrollArea.style.minWidth = w + 'px';
+      scrollArea.style.minHeight = h + 'px';
+      scalable.style.transform = 'translate(' + modalTranslateX + 'px, ' + modalTranslateY + 'px)';
       inner.style.width = svgW + 'px';
       inner.style.height = svgH + 'px';
       inner.style.transform = 'scale(' + modalScale + ')';
       inner.style.transformOrigin = '0 0';
     }
 
+    function applyModalPan() {
+      scalable.style.transform = 'translate(' + modalTranslateX + 'px, ' + modalTranslateY + 'px)';
+    }
+
     function fitToView() {
       scaleToFit = computeScaleToFit();
+      modalTranslateX = 0;
+      modalTranslateY = 0;
       applyScale(scaleToFit);
     }
+
+    var modalDragging = false;
+    var modalStartX = 0, modalStartY = 0, modalStartTx = 0, modalStartTy = 0;
+
+    function onModalMove(e) {
+      if (!modalDragging) return;
+      e.preventDefault();
+      modalTranslateX = modalStartTx + (e.clientX - modalStartX);
+      modalTranslateY = modalStartTy + (e.clientY - modalStartY);
+      applyModalPan();
+    }
+    function onModalUp() {
+      if (!modalDragging) return;
+      modalDragging = false;
+      modalContent.style.cursor = '';
+      document.removeEventListener('mousemove', onModalMove);
+      document.removeEventListener('mouseup', onModalUp);
+    }
+
+    modalContent.addEventListener('mousedown', function(e) {
+      if (e.button !== 0 || e.target.closest('button')) return;
+      e.preventDefault();
+      modalDragging = true;
+      modalStartX = e.clientX;
+      modalStartY = e.clientY;
+      modalStartTx = modalTranslateX;
+      modalStartTy = modalTranslateY;
+      modalContent.style.cursor = 'grabbing';
+      document.addEventListener('mousemove', onModalMove);
+      document.addEventListener('mouseup', onModalUp);
+    });
 
     overlay.querySelector('.diagram-modal-zoom-in').addEventListener('click', function() {
       applyScale(modalScale * 1.25);
@@ -97,13 +144,15 @@
     overlay.querySelector('.diagram-modal-reset').addEventListener('click', fitToView);
     overlay.querySelector('.diagram-modal-close').addEventListener('click', closeModal);
 
-    var modalContent = overlay.querySelector('.diagram-modal-content');
-    modalContent.addEventListener('wheel', function(e) {
+    function onModalWheel(e) {
+      if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
+      e.stopPropagation();
       var delta = e.deltaY > 0 ? -1 : 1;
-      var factor = e.ctrlKey || e.metaKey ? 1.15 : 1.2;
+      var factor = 1.2;
       applyScale(modalScale * (delta > 0 ? factor : 1 / factor));
-    }, { passive: false });
+    }
+    modalContent.addEventListener('wheel', onModalWheel, { passive: false, capture: true });
 
     overlay.addEventListener('click', function(e) {
       if (e.target === overlay) closeModal();
@@ -137,6 +186,26 @@
   }
 
   function wrapMermaidDiagrams() {
+    if (!window.__diagramPreviewWheelRegistered) {
+      window.__diagramPreviewWheelRegistered = true;
+      document.addEventListener('wheel', function(e) {
+        if (!e.ctrlKey && !e.metaKey) return;
+        var container = e.target.closest('.diagram-viewer-container');
+        if (!container || !container._previewZoom) return;
+        if (document.getElementById('diagram-modal') && document.getElementById('diagram-modal').classList.contains('open')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var factor = 1.2;
+        var state = container._previewZoom.state;
+        if (e.deltaY < 0) {
+          state.currentScale = Math.min(10, state.currentScale * factor);
+        } else {
+          state.currentScale = Math.max(0.1, state.currentScale / factor);
+        }
+        container._previewZoom.applyTransform();
+      }, { passive: false, capture: true });
+    }
+
     document.querySelectorAll('div.mermaid').forEach(function(mermaidDiv) {
       var parent = mermaidDiv.parentElement;
       if (parent && !parent.classList.contains('diagram-viewer-wrapper')) {
@@ -159,24 +228,24 @@
           '      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>',
           '    </button>',
           '  </div>',
-          '  <div class="diagram-content-wrapper" title="Doppio clic per aprire in finestra ingrandita">',
+          '  <div class="diagram-content-wrapper" title="Trascina per spostare. Ctrl+rotellina per zoom. Doppio clic per finestra ingrandita">',
           '    ' + mermaidDiv.outerHTML,
           '  </div>',
           '</div>',
-          '<p class="diagram-hint">Doppio clic sul diagramma per ingrandirlo in una finestra</p>'
+          '<p class="diagram-hint">Trascina per spostare · Ctrl+rotellina per zoom · Doppio clic per aprire in finestra</p>'
         ].join('');
         parent.replaceChild(wrapper, mermaidDiv);
 
         var container = wrapper.querySelector('.diagram-viewer-container');
         var contentWrapper = wrapper.querySelector('.diagram-content-wrapper');
         var buttons = wrapper.querySelectorAll('.diagram-button');
-        var currentScale = 1;
-        var translateX = 0;
-        var translateY = 0;
+        var state = { currentScale: 1, translateX: 0, translateY: 0 };
 
         function applyTransform() {
-          contentWrapper.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + currentScale + ')';
+          contentWrapper.style.transform = 'translate(' + state.translateX + 'px, ' + state.translateY + 'px) scale(' + state.currentScale + ')';
         }
+
+        container._previewZoom = { state: state, applyTransform: applyTransform };
 
         var isDragging = false;
         var startX = 0, startY = 0, startTranslateX = 0, startTranslateY = 0;
@@ -188,8 +257,8 @@
           contentWrapper.classList.add('diagram-dragging');
           startX = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
           startY = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
-          startTranslateX = translateX;
-          startTranslateY = translateY;
+          startTranslateX = state.translateX;
+          startTranslateY = state.translateY;
         }
 
         function onPointerMove(e) {
@@ -197,8 +266,8 @@
           e.preventDefault();
           var x = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
           var y = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
-          translateX = startTranslateX + (x - startX);
-          translateY = startTranslateY + (y - startY);
+          state.translateX = startTranslateX + (x - startX);
+          state.translateY = startTranslateY + (y - startY);
           applyTransform();
         }
 
@@ -226,6 +295,7 @@
           document.addEventListener('touchend', onPointerUp);
         }, { passive: true });
 
+
         contentWrapper.addEventListener('dblclick', function(e) {
           e.preventDefault();
           var mermaidInWrapper = contentWrapper.querySelector('.mermaid');
@@ -237,15 +307,15 @@
             e.preventDefault();
             var action = this.getAttribute('data-action');
             if (action === 'zoom-in') {
-              currentScale = Math.min(10, currentScale * 1.2);
+              state.currentScale = Math.min(10, state.currentScale * 1.2);
               applyTransform();
             } else if (action === 'zoom-out') {
-              currentScale = Math.max(0.1, currentScale * 0.8);
+              state.currentScale = Math.max(0.1, state.currentScale * 0.8);
               applyTransform();
             } else if (action === 'reset') {
-              currentScale = 1;
-              translateX = 0;
-              translateY = 0;
+              state.currentScale = 1;
+              state.translateX = 0;
+              state.translateY = 0;
               applyTransform();
             } else if (action === 'fullscreen') {
               if (!document.fullscreenElement) {

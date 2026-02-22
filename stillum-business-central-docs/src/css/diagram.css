@@ -203,16 +203,29 @@
 .diagram-modal-content {
   flex: 1;
   overflow: auto;
+  min-height: 0;
+  padding: 1rem;
+  cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 0;
-  padding: 1rem;
+}
+
+.diagram-modal-scroll-area {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  /* width/height/min-width/min-height impostati via JS a ogni zoom */
 }
 
 .diagram-modal-scalable {
-  flex-shrink: 0;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: auto;
 }
 
 .diagram-modal-inner {
