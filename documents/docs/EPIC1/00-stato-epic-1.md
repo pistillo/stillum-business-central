@@ -1,0 +1,147 @@
+---
+id: epic1-stato
+title: Stato EPIC 1 – MVP Backend
+sidebar_label: Stato EPIC 1
+---
+
+# Stato EPIC 1 – MVP Backend
+
+**Obiettivo dell'EPIC:** Realizzare i servizi backend minimi per gestione artefatti (Registry API), pubblicazione (Publisher) e storage payload/bundle in contesto multi-tenant.
+
+**Contesto:** In questo worktree è già presente una base Quarkus per `registry-api` e `publisher`, oltre a Docker Compose, CI e documentazione di fase (es. `phase1-*`).
+
+**Stato complessivo:** **Parzialmente implementato** — la **Registry API** è già operativa per CRUD, versioni, dipendenze, search e presigned payload; il **Publisher** è ancora scaffolding (health). La base DB (Flyway, schema, indici, RLS) è presente ma la propagazione `app.current_tenant` via sessione non è ancora integrata in modo sistematico.
+
+---
+
+## Riepilogo per FEATURE
+
+| FEATURE | Stato | Note |
+|--------|--------|------|
+| **1.1** Registry API | 🟡 Parziale | CRUD artefatti/versioni, dipendenze, search e presigned payload presenti; mancano alcune parti (es. search full-text reale, filtro tag completo, environment API) |
+| **1.2** Publisher Service | 🔴 Mancante | Solo scaffolding + health; assenti publish, bundle, validazioni e audit |
+| **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; bundle non implementato |
+| **1.4** Database multi-tenant (RLS) | 🟡 Parziale | Migrazioni, indici e RLS presenti; manca verifica RLS end-to-end e uso sistematico `set_config` per request/transazione |
+
+---
+
+## Dettaglio per FEATURE e Task (EPIC 1)
+
+### FEATURE 1.1 – Registry API
+
+#### US-1.1.1 – CRUD Artefatti
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.1.1.1 | ✅ | Progetto Quarkus in `registry-api/` |
+| T-1.1.1.2 | ✅ | Migrazioni core in `registry-api/src/main/resources/db/migration/` (in particolare `V2__create_core_tables.sql`) |
+| T-1.1.1.3 | ✅ | `POST /api/tenants/{tenantId}/artifacts` in `com.stillum.registry.resource.ArtifactResource` |
+| T-1.1.1.4 | 🟡 | `GET /api/tenants/{tenantId}/artifacts` con filtri base; parametro `tag` non applicato in repository |
+| T-1.1.1.5 | 🟡 | `GET /api/tenants/{tenantId}/artifacts/{artifactId}` presente; verificare che includa elenco versioni nella response (dipende dai DTO) |
+| T-1.1.1.6 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}` |
+| T-1.1.1.7 | ✅ | `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}` (soft delete, status `RETIRED`) |
+| T-1.1.1.8 | 🟡 | `TenantContextFilter` imposta il tenant in context; non è collegato automaticamente a RLS (`set_config`) |
+| T-1.1.1.9 | ✅ | Test REST: `ArtifactResourceTest` |
+
+#### US-1.1.2 – Gestione Versioni
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.1.2.1 | ✅ | `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions` |
+| T-1.1.2.2 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` |
+| T-1.1.2.3 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` |
+| T-1.1.2.4 | 🟡 | `DELETE` bozza implementato; non risultano test specifici che blocchino `published` |
+| T-1.1.2.5 | 🟡 | Eccezione/guard presente; serve test esplicito e copertura completa dei path di update/delete |
+| T-1.1.2.6 | 🟡 | `ArtifactVersionResourceTest` copre creazione/lista/delete draft e update `payloadRef`; manca test immutabilità `published` |
+
+#### US-1.1.3 – Gestione Dipendenze
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.1.3.1 | ✅ | Tabella `dependency` in migrazione core |
+| T-1.1.3.2 | ✅ | `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` |
+| T-1.1.3.3 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` |
+| T-1.1.3.4 | ✅ | Risoluzione grafo + cicli in `DependencyService` |
+| T-1.1.3.5 | 🟡 | Test per cicli presenti (`DependencyServiceTest`); manca coverage end-to-end e casi “dipendenze mancanti” |
+
+#### US-1.1.4 – Ricerca e Discovery
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.1.4.1 | 🟡 | Endpoint `/api/tenants/{tenantId}/search/artifacts` presente; da verificare uso reale full-text Postgres |
+| T-1.1.4.2 | 🟡 | Filtri base presenti; `tag` non risulta supportato sull’endpoint search |
+| T-1.1.4.3 | ✅ | Indici GIN tags + FTS in `V3__create_indexes.sql` |
+| T-1.1.4.4 | 🔴 | Test specifici search non presenti |
+
+---
+
+### FEATURE 1.2 – Publisher Service
+
+#### US-1.2.1 – Validazione e pubblicazione artefatti
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.2.1.1 | ✅ | Progetto Quarkus in `publisher/` (health) |
+| T-1.2.1.2–T-1.2.1.13 | 🔴 | Mancanti: endpoint publish, validazioni, bundle, upload, publication, error handling, test |
+
+#### US-1.2.2 – Audit della pubblicazione
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.2.2.1 | ✅ | Tabella `audit_log` presente in migrazione core |
+| T-1.2.2.2–T-1.2.2.3 | 🔴 | Mancanti: scrittura audit e test |
+
+---
+
+### FEATURE 1.3 – Storage dei Payload
+
+#### US-1.3.1 – Upload e download dei payload
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.3.1.1 | ✅ | Client S3 configurato in `registry-api/src/main/resources/application.properties` |
+| T-1.3.1.2 | ✅ | Presigned upload `GET /api/tenants/{tenantId}/storage/upload-url` |
+| T-1.3.1.3 | ✅ | Presigned download `GET /api/tenants/{tenantId}/storage/download-url` |
+| T-1.3.1.4 | ✅ | Registrazione `payloadRef` via `PUT .../versions/{versionId}/payload-ref` |
+| T-1.3.1.5 | 🟡 | Controllo “tenant autenticato” non applicabile senza auth; path include `tenant-{tenantId}` |
+| T-1.3.1.6 | 🟡 | Dev Services S3 attive in test; mancano test integrazione upload/download contro MinIO/LocalStack |
+
+#### US-1.3.2 – Gestione bundle di pubblicazione
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.3.2.1–T-1.3.2.4 | 🔴 | Mancanti: upload/download bundle, immutabilità no-overwrite, test (helper path `bundleKey()` già presente) |
+
+---
+
+### FEATURE 1.4 – Database Multi-tenant
+
+| Task | Stato | Evidenza |
+|------|--------|----------|
+| T-1.4.1.1 | ✅ | Schema core in migrazioni Flyway |
+| T-1.4.1.2 | ✅ | RLS in `V4__create_rls_policies.sql` |
+| T-1.4.1.3 | 🟡 | Helper `RlsSessionInitializer` presente ma non invocato sistematicamente |
+| T-1.4.1.4 | ✅ | Indici in `V3__create_indexes.sql` |
+| T-1.4.1.5 | 🟡 | Test isolamento API presenti; manca verifica “RLS effettiva” a livello DB/sessione |
+| T-1.4.1.6 | ✅ | Seed dev data in `V5__seed_dev_data.sql` |
+
+---
+
+## Deliverable prodotti (in questo worktree)
+
+| Deliverable EPIC 1 | Dove si trova |
+|--------------------|---------------|
+| Migrazioni DB + indici + RLS + seed | `registry-api/src/main/resources/db/migration/` |
+| Registry API CRUD/versioni/dipendenze/search/presigned | `registry-api/src/main/java/com/stillum/registry/resource/` |
+| Test base Registry API | `registry-api/src/test/java/com/stillum/registry/` |
+| Docker Compose (PG + MinIO + Temporal) | `docker-compose.yml` |
+| CI build/test | `.github/workflows/ci.yml` |
+
+---
+
+## Azioni consigliate per completare EPIC 1
+
+1. Integrare la propagazione `app.current_tenant` (RLS) per request/transazione e aggiungere test che verifichino l’isolamento a livello DB.
+2. Completare Publisher: endpoint publish, validazioni, bundle+upload, persistenza `Publication` e scrittura `AuditLog`.
+3. Completare Storage bundle (upload/download, no-overwrite) e collegarlo al flusso publish.
+4. Allineare search all’indice full-text (Postgres) e completare filtri/tag e test.
