@@ -6,7 +6,7 @@ sidebar_label: Implementazione
 
 ## Scopo
 
-Questa pagina riassume come la Fase 1 (EPIC 1) è implementata nel worktree `suspicious-tharp`, evidenziando:
+Questa pagina riassume come la Fase 1 (EPIC 1) è implementata evidenziando:
 
 - endpoint principali già presenti,
 - configurazione DB e storage,
@@ -60,12 +60,21 @@ Le risorse sono montate sotto:
 
 ### RLS e tenant context
 
-Sono presenti due componenti complementari:
+Sono presenti componenti complementari per rendere l’isolamento multi-tenant enforced a livello DB:
 
 - `TenantContextFilter`: estrae `tenantId` dalla path e lo mette in `TenantContext`.
-- `RlsSessionInitializer`: imposta `app.current_tenant` sulla connessione DB usando `set_config(..., true)`.
+- `EnforceTenantRlsInterceptor` + `@EnforceTenantRls`: assicurano che, all’inizio di ogni transazione applicativa, venga invocata la propagazione del tenant verso PostgreSQL.
+- `RlsSessionInitializer`: imposta `app.current_tenant` usando `set_config(..., true)` (valido solo per la transazione corrente). Opzionalmente può eseguire `SET LOCAL ROLE <role>` se configurato.
 
-Perché l’RLS sia effettivamente “enforced”, `RlsSessionInitializer.propagate()` deve essere invocato in modo affidabile all’inizio di ogni operazione transazionale che accede al DB.
+Perché l’RLS sia effettivamente “enforced”, il `tenantId` deve essere impostato *dentro* la stessa transazione che esegue query/insert/update su tabelle con RLS.
+
+#### Configurazione (opzionale)
+
+- `stillum.rls.assume-role`: se valorizzata, il servizio esegue `SET LOCAL ROLE <role>` ad ogni transazione prima del `set_config`. Questo è utile soprattutto in test/DevServices, dove l’utente DB può essere superuser e quindi bypassare RLS.
+
+#### Test (DB-level)
+
+- È presente un test che verifica che la visibilità su `artifact` dipenda da `app.current_tenant` (e non solo dai filtri applicativi) e che RLS sia applicata tramite `SET LOCAL ROLE stillum_app`.
 
 ---
 
@@ -105,3 +114,24 @@ Nel worktree il servizio `publisher/` è presente come base Quarkus ma non imple
 
 - CI: workflow principale in `.github/workflows/ci.yml`.
 - Stack locale: `docker-compose.yml` include PostgreSQL, MinIO e Temporal.
+
+### Sequenza (request → DB) per enforcement RLS
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant F as TenantContextFilter
+  participant S as Service (@Transactional)
+  participant I as EnforceTenantRlsInterceptor
+  participant DB as PostgreSQL (RLS)
+
+  C->>F: HTTP /api/tenants/{tenantId}/...
+  F->>F: tenantId → TenantContext
+  C->>S: Invoca endpoint → metodo service
+  S->>I: Interceptor (aroundInvoke)
+  I->>DB: SET LOCAL ROLE stillum_app (opzionale)
+  I->>DB: SELECT set_config('app.current_tenant', tenantId, true)
+  I-->>S: proceed()
+  S->>DB: Query/Insert/Update
+  DB-->>S: Risultato filtrato da policy RLS
+```

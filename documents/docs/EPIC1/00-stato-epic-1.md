@@ -10,7 +10,7 @@ sidebar_label: Stato EPIC 1
 
 **Contesto:** In questo worktree è già presente una base Quarkus per `registry-api` e `publisher`, oltre a Docker Compose, CI e documentazione di fase (es. `phase1-*`).
 
-**Stato complessivo:** **Parzialmente implementato** — la **Registry API** è già operativa per CRUD, versioni, dipendenze, search e presigned payload; il **Publisher** è ancora scaffolding (health). La base DB (Flyway, schema, indici, RLS) è presente ma la propagazione `app.current_tenant` via sessione non è ancora integrata in modo sistematico.
+**Stato complessivo:** **Parzialmente implementato** — la **Registry API** è operativa per CRUD, versioni, dipendenze, search e presigned payload; il **Publisher** è ancora scaffolding (health). La base DB (Flyway, schema, indici, RLS) è presente e l’enforcement RLS per il `tenantId` è ora integrato in modo sistematico nel `registry-api` (impostazione `app.current_tenant` all’inizio delle transazioni + test DB-level).
 
 ---
 
@@ -21,7 +21,7 @@ sidebar_label: Stato EPIC 1
 | **1.1** Registry API | 🟡 Parziale | CRUD artefatti/versioni, dipendenze, search e presigned payload presenti; mancano alcune parti (es. search full-text reale, filtro tag completo, environment API) |
 | **1.2** Publisher Service | 🔴 Mancante | Solo scaffolding + health; assenti publish, bundle, validazioni e audit |
 | **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; bundle non implementato |
-| **1.4** Database multi-tenant (RLS) | 🟡 Parziale | Migrazioni, indici e RLS presenti; manca verifica RLS end-to-end e uso sistematico `set_config` per request/transazione |
+| **1.4** Database multi-tenant (RLS) | 🟢 Completa (per registry-api) | Migrazioni, indici e RLS presenti; enforcement sistematico (`set_config` per transazione) + hardening `FORCE ROW LEVEL SECURITY` + test che verifica RLS a livello DB |
 
 ---
 
@@ -40,7 +40,7 @@ sidebar_label: Stato EPIC 1
 | T-1.1.1.5 | 🟡 | `GET /api/tenants/{tenantId}/artifacts/{artifactId}` presente; verificare che includa elenco versioni nella response (dipende dai DTO) |
 | T-1.1.1.6 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}` |
 | T-1.1.1.7 | ✅ | `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}` (soft delete, status `RETIRED`) |
-| T-1.1.1.8 | 🟡 | `TenantContextFilter` imposta il tenant in context; non è collegato automaticamente a RLS (`set_config`) |
+| T-1.1.1.8 | ✅ | Tenant impostato in context e propagato automaticamente al DB (interceptor + `set_config('app.current_tenant', ...)`) |
 | T-1.1.1.9 | ✅ | Test REST: `ArtifactResourceTest` |
 
 #### US-1.1.2 – Gestione Versioni
@@ -120,9 +120,9 @@ sidebar_label: Stato EPIC 1
 |------|--------|----------|
 | T-1.4.1.1 | ✅ | Schema core in migrazioni Flyway |
 | T-1.4.1.2 | ✅ | RLS in `V4__create_rls_policies.sql` |
-| T-1.4.1.3 | 🟡 | Helper `RlsSessionInitializer` presente ma non invocato sistematicamente |
+| T-1.4.1.3 | ✅ | Propagazione `app.current_tenant` invocata sistematicamente per transazione (interceptor) |
 | T-1.4.1.4 | ✅ | Indici in `V3__create_indexes.sql` |
-| T-1.4.1.5 | 🟡 | Test isolamento API presenti; manca verifica “RLS effettiva” a livello DB/sessione |
+| T-1.4.1.5 | ✅ | Test isolamento DB-level: verifica che la visibilità dipenda da `app.current_tenant` e non dai filtri applicativi |
 | T-1.4.1.6 | ✅ | Seed dev data in `V5__seed_dev_data.sql` |
 
 ---
@@ -134,6 +134,7 @@ sidebar_label: Stato EPIC 1
 | Migrazioni DB + indici + RLS + seed | `registry-api/src/main/resources/db/migration/` |
 | Registry API CRUD/versioni/dipendenze/search/presigned | `registry-api/src/main/java/com/stillum/registry/resource/` |
 | Test base Registry API | `registry-api/src/test/java/com/stillum/registry/` |
+| Enforcement RLS sistematico + test DB-level | `registry-api/src/main/java/com/stillum/registry/filter/` e `registry-api/src/test/java/com/stillum/registry/it/` |
 | Docker Compose (PG + MinIO + Temporal) | `docker-compose.yml` |
 | CI build/test | `.github/workflows/ci.yml` |
 
@@ -141,7 +142,7 @@ sidebar_label: Stato EPIC 1
 
 ## Azioni consigliate per completare EPIC 1
 
-1. Integrare la propagazione `app.current_tenant` (RLS) per request/transazione e aggiungere test che verifichino l’isolamento a livello DB.
-2. Completare Publisher: endpoint publish, validazioni, bundle+upload, persistenza `Publication` e scrittura `AuditLog`.
-3. Completare Storage bundle (upload/download, no-overwrite) e collegarlo al flusso publish.
-4. Allineare search all’indice full-text (Postgres) e completare filtri/tag e test.
+1. Completare Publisher: endpoint publish, validazioni, bundle+upload, persistenza `Publication` e scrittura `AuditLog`.
+2. Completare Storage bundle (upload/download, no-overwrite) e collegarlo al flusso publish.
+3. Allineare search all’indice full-text (Postgres) e completare filtri/tag e test.
+4. Completare i task rimanenti Registry (filtro `tag` in list/search, immutabilità `published` con test dedicati, environment API se necessaria al publish).
