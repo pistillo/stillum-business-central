@@ -35,6 +35,7 @@ const config: Config = {
           sidebarPath: './sidebars.js',
           editUrl:
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          remarkPlugins: [[require('./plugins/remark-plantuml.js'), {}]],
         },
         blog: false,
         theme: {
