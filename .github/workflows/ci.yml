@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, feature/epic0-infra]
+    branches: [main, develop]
   pull_request:
-    branches: [main, develop, feature/epic0-infra]
+    branches: [main, develop]
 
 jobs:
   lint-frontend:
