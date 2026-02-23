@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -66,12 +64,11 @@ services:
     image: temporalio/auto-setup:1.24.2
     container_name: stillum-temporal
     environment:
-      DB: postgresql
+      DB: postgres12
       DB_PORT: "5432"
       POSTGRES_USER: ${POSTGRES_USER:-stillum}
       POSTGRES_PWD: ${POSTGRES_PASSWORD:-stillum123}
       POSTGRES_SEEDS: postgres
-      DYNAMIC_CONFIG_FILE_PATH: ""
     depends_on:
       postgres:
         condition: service_healthy
