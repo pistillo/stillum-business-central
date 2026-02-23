@@ -11,12 +11,12 @@ module.exports = {
           type: 'category',
           label: 'Setup e Fondamenta',
           items: [
-            'epic0-stato',
-            'epic0-obiettivo',
-            'epic0-requisiti',
-            'epic0-modello-dati',
-            'epic0-stack-tecnologico',
-            'epic0-ambiente-di-sviluppo',
+            'EPIC0/epic0-stato',
+            'EPIC0/epic0-obiettivo',
+            'EPIC0/epic0-requisiti',
+            'EPIC0/epic0-modello-dati',
+            'EPIC0/epic0-stack-tecnologico',
+            'EPIC0/epic0-ambiente-di-sviluppo',
           ],
         },
         {

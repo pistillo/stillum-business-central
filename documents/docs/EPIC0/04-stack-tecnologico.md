@@ -6,14 +6,14 @@ sidebar_label: Stack tecnologico
 
 ## Introduzione
 
-Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il progetto **Stillum Business Portal**. L'obiettivo è fornire una base coerente e sostenibile che possa evolvere con le fasi successive dello sviluppo. Nel codebase la scelta effettiva è **Java (Spring Boot)** per i microservizi backend.
+Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il progetto **Stillum Business Portal**. L'obiettivo è fornire una base coerente e sostenibile che possa evolvere con le fasi successive dello sviluppo. Nel codebase la scelta effettiva è **Java (Quarkus)** per i microservizi backend.
 
 ## Backend
 
 ### Linguaggi e framework
 
-- **Java (Spring Boot)** per i microservizi: `registry-api`, `publisher`, `runtime-gateway` (Maven, JDK 21).
-- **REST** per l'esposizione delle API verso la UI; gRPC resta opzionale per comunicazioni interne.
+- **Java (Quarkus)** per i microservizi: `registry-api`, `publisher`, `runtime-gateway` (Maven, JDK 21).
+- **REST** per l'esposizione delle API verso la UI; gRPC per comunicazioni interne.
 
 ### Database
 
@@ -23,7 +23,7 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il pr
 ### Orchestrazione dei workflow
 
 - **Temporal**: motore di orchestrazione per workflow duraturi, retry e compensazioni. Installato con persistence su PostgreSQL (Docker Compose e/o Helm).
-- **Temporal SDK Java** per worker e attività (vedi `runtime-gateway`).
+- **Temporal SDK Typescript** per worker e attività (vedi `runtime-gateway`).
 
 ### Storage dei payload
 
@@ -44,10 +44,10 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il pr
 
 ### Editor integrati
 
-- **bpmn.io**: editor BPMN 2.0.
-- **dmn.io**: editor DMN 1.3.
-- **StillumForms Editor**: moduli (JSON Schema + React).
-- **Editor Request**: contratti di servizio (JSON/schema).
+- **bpmn.io**: stillum-modeler BPMN 2.0.
+- **dmn.io**: stillum-modeler DMN 1.3.
+- **StillumForms Editor**: stillum-modeler (JSON Schema + React).
+- **Editor Request**: stillum-bruno (JSON/schema).
 
 ### Gestione dello stato
 

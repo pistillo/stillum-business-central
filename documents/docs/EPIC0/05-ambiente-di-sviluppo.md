@@ -96,8 +96,8 @@ Struttura attuale:
 ```
 stillum-business-central/
   portal-ui/        # frontend React (Vite, shadcn, Tailwind)
-  registry-api/     # API artefatti e versioni (Java/Spring Boot)
-  publisher/        # servizio di pubblicazione (Java/Spring Boot)
+  registry-api/     # API artefatti e versioni (Java/Quarkus)
+  publisher/        # servizio di pubblicazione (Java/Quarkus)
   runtime-gateway/  # interfaccia con Temporal (Java)
   docs/             # documentazione Docusaurus
   charts/           # Helm chart stillum-platform

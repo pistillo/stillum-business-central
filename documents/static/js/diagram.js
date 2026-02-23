@@ -346,11 +346,20 @@
     });
   }
 
+  // Esposto globalmente così mermaid-init può richiamarlo dopo il render dei diagrammi
+  window.__wrapMermaidDiagrams = wrapMermaidDiagrams;
+
+  function scheduleWrap() {
+    wrapMermaidDiagrams();
+    setTimeout(wrapMermaidDiagrams, 400);
+    setTimeout(wrapMermaidDiagrams, 1000);
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(wrapMermaidDiagrams, 800);
+      scheduleWrap();
     });
   } else {
-    setTimeout(wrapMermaidDiagrams, 800);
+    scheduleWrap();
   }
 })();

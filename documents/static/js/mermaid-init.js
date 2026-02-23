@@ -69,6 +69,13 @@
       suppressErrors: true
     }).then(function() {
       loadDiagramJs();
+      // Applica subito il sistema zoom/dialog: diagram.js espone __wrapMermaidDiagrams
+      setTimeout(function() {
+        if (window.__wrapMermaidDiagrams) window.__wrapMermaidDiagrams();
+      }, 100);
+      setTimeout(function() {
+        if (window.__wrapMermaidDiagrams) window.__wrapMermaidDiagrams();
+      }, 600);
     }).catch(function() {
       loadDiagramJs();
     });
@@ -81,6 +88,10 @@
     var script = document.createElement('script');
     script.src = '/js/diagram.js';
     script.async = false;
+    script.onload = function() {
+      // Appena diagram.js è caricato, applica wrap (i .mermaid sono già renderizzati)
+      if (window.__wrapMermaidDiagrams) window.__wrapMermaidDiagrams();
+    };
     document.head.appendChild(script);
   }
 
@@ -117,22 +128,30 @@
   }
 
   function scheduleInit() {
-    tryInit();
-    var attempts = [500, 1500, 3000];
+    // Ritardo iniziale per permettere a React (Docusaurus) di completare l'hydration:
+    // gli script app sono "defer" e sovrascrivono il DOM dopo DOMContentLoaded.
+    // Inizializzando subito i diagrammi verrebbero persi; aspettiamo 400–500 ms.
+    var initialDelay = 450;
+    var attempts = [0, 500, 1500, 3000].map(function(d) { return initialDelay + d; });
+
     attempts.forEach(function(delay) {
       setTimeout(function() {
         if (document.querySelectorAll('.mermaid').length > 0) return;
         if (findMermaidContainers().length > 0) init();
+        else if (delay === attempts[attempts.length - 1]) loadDiagramJs();
       }, delay);
     });
+
     var observer = new MutationObserver(function() {
       if (document.querySelectorAll('.mermaid').length > 0) return;
       if (findMermaidContainers().length > 0) init();
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
     setTimeout(function() {
       observer.disconnect();
-    }, 10000);
+    }, 12000);
   }
 
   if (document.readyState === 'loading') {

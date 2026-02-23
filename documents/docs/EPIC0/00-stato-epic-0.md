@@ -43,7 +43,7 @@ sidebar_label: Stato EPIC 0
 
 | Task | Stato | Evidenza nel codebase / docs |
 |------|--------|------------------------------|
-| T-0.2.1.1 | ✅ | Backend in **Java** (Spring Boot): `registry-api`, `publisher`, `runtime-gateway` (Maven) |
+| T-0.2.1.1 | ✅ | Backend in **Java** (Quarkus): `registry-api`, `publisher`, `runtime-gateway` (Maven) |
 | T-0.2.1.2 | ✅ | API REST per frontend; linee guida in [Stack tecnologico](./04-stack-tecnologico.md) |
 | T-0.2.1.3 | ✅ | JPA/Hibernate + Flyway in `registry-api` (`db/migration/`) |
 | T-0.2.1.4 | ✅ | PostgreSQL, MinIO/S3, Temporal in [Stack tecnologico](epic0-stack-tecnologico) e in repo |
