@@ -119,3 +119,36 @@ Quando il codice e l'infrastruttura saranno di nuovo presenti nel repository:
 4. **Keycloak** (opzionale): Aggiungere servizio Keycloak a `docker-compose.yml` e documentarlo in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo).
 
 In questo branch (solo documentazione) l'EPIC 0 è considerato **completato sul piano dei deliverable documentali**.
+
+---
+
+## Checklist deliverable EPIC 0 (rispetto al piano)
+
+Verifica che tutti gli output richiesti dal [Piano di Sviluppo](../piano-di-sviluppo#epic-0--setup-e-fondamenta) siano coperti:
+
+| Output richiesto dal piano | Dove si trova | OK |
+|----------------------------|---------------|-----|
+| **FEATURE 0.1** | | |
+| Verbale interviste / requisiti artefatti (T-0.1.1.1) | [Requisiti](epic0-requisiti) – sezione Artefatti, NFR | ✅ |
+| Diagramma stati pubblicazione (T-0.1.1.2) | [Requisiti](epic0-requisiti) – diagramma stati + testo ciclo di vita | ✅ |
+| Requisiti NFR multi-tenant, RBAC, audit, ambienti (T-0.1.1.3) | [Requisiti](epic0-requisiti) – sezioni dedicate + Non-functional | ✅ |
+| Documento requisiti finale (T-0.1.1.4) | [Requisiti](epic0-requisiti) | ✅ |
+| Lista entità con attributi (T-0.1.2.1) | [Modello dati](epic0-modello-dati) | ✅ |
+| Diagramma ER e relazioni (T-0.1.2.2) | [Modello dati](epic0-modello-dati) | ✅ |
+| Enumerazioni (T-0.1.2.3) | [Modello dati](epic0-modello-dati) – nelle entità | ✅ |
+| Documento modello dati (T-0.1.2.4) | [Modello dati](epic0-modello-dati) | ✅ |
+| **FEATURE 0.2** | | |
+| Scelta backend / ADR (T-0.2.1.1) | [Stack tecnologico](epic0-stack-tecnologico) – Backend | ✅ |
+| Strategia API REST (T-0.2.1.2) | [Stack tecnologico](epic0-stack-tecnologico) | ✅ |
+| ORM e migrazioni (T-0.2.1.3) | [Stack tecnologico](epic0-stack-tecnologico) – JPA, Flyway | ✅ |
+| PostgreSQL, MinIO, Temporal (T-0.2.1.4) | [Stack tecnologico](epic0-stack-tecnologico) | ✅ |
+| React, shadcn, Tailwind (T-0.2.2.1) | [Stack tecnologico](epic0-stack-tecnologico) – Frontend | ✅ |
+| State management (T-0.2.2.2) | [Stack tecnologico](epic0-stack-tecnologico) | ✅ |
+| Editor bpmn.io, dmn.io, StillumForms (T-0.2.2.3) | [Stato](epic0-stato) – stillum-modeler; [Stack](epic0-stack-tecnologico) | ✅ |
+| i18n e data fetching (T-0.2.2.4) | [Stack tecnologico](epic0-stack-tecnologico) | ✅ |
+| **FEATURE 0.3** | | |
+| Setup cluster / ambiente (T-0.3.1.x) | [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) – k3s, Docker Compose, Helm | ✅ |
+| Struttura repo e standard (T-0.3.2.x) | [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) | ✅ |
+| Pipeline CI (T-0.3.3.x) | [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) | ✅ |
+
+**Conclusione:** Sì, dell'EPIC 0 abbiamo tutto sul piano documentale. Tutti i deliverable indicati nel piano (requisiti, modello dati, stack, ambiente e CI) sono coperti dai documenti in questa cartella.

@@ -35,15 +35,32 @@ Questo documento definisce i requisiti iniziali della piattaforma **Stillum Busi
 
 1. **Bozza**: definizione iniziale modificabile.
 2. **In revisione**: la bozza è sottoposta a uno o più reviewer per approvazione.
-3. **Approvato**: la revisione è conclusa, l'artefatto è pronto per la pubblicazione.
-4. **Pubblicato**: versione immutabile rilasciata in un ambiente.
-5. **Ritirato**: l'artefatto non è più attivo, ma resta consultabile per audit.
+3. **Approvato**: la revisione è conclusa, l'artefatto è pronto per la pubblicazione formale (in particolare su PROD).
+4. **Pubblicato**: versione rilasciata in un ambiente; una stessa versione può essere pubblicata in più ambienti (es. prima QA, poi PROD).
+5. **Ritirato**: l'artefatto non è più attivo in un ambiente, ma resta consultabile per audit.
+
+Un artefatto può essere **pubblicato in un ambiente anche senza essere approvato**, con regole per ambiente: dalla **bozza** è consentita solo la pubblicazione su **DEV** (sviluppo e test); da **In revisione** è consentita la pubblicazione su **QA** (test pre-approvazione); la pubblicazione su **PROD** è riservata alle sole versioni **Approvate**, secondo policy configurabili per tenant/ambiente.
+
+Diagramma stati (pubblicazione e promozione):
+
+```mermaid
+stateDiagram-v2
+    [*] --> Bozza
+    Bozza --> In_revisione : invio in revisione
+    Bozza --> Pubblicato : pubblicazione solo su DEV
+    In_revisione --> Bozza : respinto
+    In_revisione --> Approvato : approvato
+    In_revisione --> Pubblicato : pubblicazione solo su QA
+    Approvato --> Pubblicato : pubblicazione su ambiente (es. PROD)
+    Pubblicato --> Ritirato : ritiro
+    Ritirato --> [*]
+```
 
 ### Ambienti e promozioni
 
 **Architetto:** Come devono essere gestiti gli ambienti (DEV/QA/PROD)?
 
-**Product Owner:** Ogni tenant avrà uno o più ambienti (tipicamente DEV, QA, PROD). Una pubblicazione dovrà specificare in quale ambiente avviene. Devono esistere meccanismi di promozione controllata (ad esempio da DEV a QA a PROD) con approvazioni. I tenant devono poter definire ambienti aggiuntivi se necessario.
+**Product Owner:** Ogni tenant avrà uno o più ambienti (tipicamente DEV, QA, PROD). Una pubblicazione dovrà specificare in quale ambiente avviene. Dalla **bozza** è consentita la pubblicazione **solo su DEV** (sviluppo e test). Da **In revisione** è consentita la pubblicazione **solo su QA** (test pre-approvazione). Su **PROD** si potrà richiedere che la versione sia in stato *Approvato*, con policy configurabili per tenant. Devono esistere meccanismi di promozione controllata (ad esempio da DEV a QA a PROD) con eventuali approvazioni. I tenant devono poter definire ambienti aggiuntivi se necessario.
 
 ### Ruoli e permessi
 
