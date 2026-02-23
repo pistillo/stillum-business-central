@@ -1,3 +1,51 @@
+/* ========== Adattamento diagrammi Mermaid al tema (light/dark) ========== */
+/* Colori neutri e linee visibili in entrambi i temi */
+.mermaid {
+  color: var(--ifm-font-color-base);
+}
+
+/* Dark theme: linee e bordi visibili (evitare nero su nero), colori neutri */
+html[data-theme='dark'] .mermaid svg [stroke],
+html[data-theme='dark'] .mermaid svg line,
+html[data-theme='dark'] .mermaid svg path,
+html[data-theme='dark'] .mermaid svg polygon,
+html[data-theme='dark'] .mermaid svg polyline,
+html[data-theme='dark'] .mermaid svg circle,
+html[data-theme='dark'] .mermaid svg rect,
+html[data-theme='dark'] .mermaid svg ellipse {
+  stroke: var(--ifm-color-emphasis-400) !important;
+}
+
+html[data-theme='dark'] .mermaid svg text,
+html[data-theme='dark'] .mermaid svg [fill] {
+  fill: var(--ifm-font-color-base) !important;
+}
+
+/* Nodi in dark: riempimento neutro per rettangoli/forme di sfondo */
+html[data-theme='dark'] .mermaid svg .node rect,
+html[data-theme='dark'] .mermaid svg .node circle,
+html[data-theme='dark'] .mermaid svg .node polygon,
+html[data-theme='dark'] .mermaid svg .cluster rect {
+  fill: var(--ifm-background-surface-color) !important;
+  stroke: var(--ifm-color-emphasis-400) !important;
+}
+
+/* Light theme: linee e testo neutri */
+html[data-theme='light'] .mermaid svg [stroke],
+html[data-theme='light'] .mermaid svg line,
+html[data-theme='light'] .mermaid svg path,
+html[data-theme='light'] .mermaid svg polygon,
+html[data-theme='light'] .mermaid svg polyline,
+html[data-theme='light'] .mermaid svg circle,
+html[data-theme='light'] .mermaid svg rect,
+html[data-theme='light'] .mermaid svg ellipse {
+  stroke: var(--ifm-color-emphasis-600) !important;
+}
+
+html[data-theme='light'] .mermaid svg text {
+  fill: var(--ifm-font-color-base) !important;
+}
+
 .diagram-viewer-wrapper {
   margin: 2rem 0;
 }

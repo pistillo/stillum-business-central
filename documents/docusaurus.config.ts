@@ -15,8 +15,10 @@ const config: Config = {
   onBrokenLinks: 'warn',
   onBrokenAnchors: 'warn',
 
+  // Modalità nativa Mermaid: blocchi ```mermaid renderizzati dal theme (bundle)
+  themes: ['@docusaurus/theme-mermaid'],
   markdown: {
-    mermaid: false,
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
@@ -76,6 +78,9 @@ const config: Config = {
     },
     prism: {
       additionalLanguages: ['bash', 'typescript', 'javascript'],
+    },
+    mermaid: {
+      theme: { light: 'neutral', dark: 'dark' },
     },
   } satisfies Preset.ThemeConfig,
 };

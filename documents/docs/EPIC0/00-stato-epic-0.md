@@ -51,7 +51,7 @@ sidebar_label: Stato EPIC 0
 | T-0.2.1.4 | ✅ | PostgreSQL, MinIO/S3, Temporal in [Stack tecnologico](epic0-stack-tecnologico) |
 | T-0.2.2.1 | ✅ | React, shadcn/ui, Tailwind documentati in [Stack tecnologico](epic0-stack-tecnologico) |
 | T-0.2.2.2 | ✅ | Gestione stato (Redux/Zustand) in [Stack tecnologico](epic0-stack-tecnologico) |
-| T-0.2.2.3 | 🟡 | Editor bpmn.io/dmn.io/StillumForms: da validare in fase implementativa |
+| T-0.2.2.3 | ✅ | Editor BPMN/DMN/StillumForms/Request: sviluppati nel progetto stillum-modeler |
 | T-0.2.2.4 | ✅ | i18n e data fetching in [Stack tecnologico](epic0-stack-tecnologico) |
 
 ---

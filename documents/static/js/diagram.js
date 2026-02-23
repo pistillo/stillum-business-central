@@ -208,7 +208,7 @@
 
     document.querySelectorAll('div.mermaid').forEach(function(mermaidDiv) {
       var parent = mermaidDiv.parentElement;
-      if (parent && !parent.classList.contains('diagram-viewer-wrapper')) {
+      if (parent && !parent.classList.contains('diagram-viewer-wrapper') && !mermaidDiv.closest('.diagram-viewer-container')) {
         var wrapper = document.createElement('div');
         wrapper.className = 'diagram-viewer-wrapper';
         wrapper.innerHTML = [
@@ -346,7 +346,7 @@
     });
   }
 
-  // Esposto globalmente così mermaid-init può richiamarlo dopo il render dei diagrammi
+  // Esposto globalmente per richiami esterni (es. dopo render Mermaid nativo)
   window.__wrapMermaidDiagrams = wrapMermaidDiagrams;
 
   function scheduleWrap() {
@@ -355,11 +355,33 @@
     setTimeout(wrapMermaidDiagrams, 1000);
   }
 
+  // Con modalità nativa Mermaid i diagrammi sono renderizzati da React dopo l'hydration.
+  // MutationObserver applica il wrap anche dopo navigazione SPA quando compaiono nuovi .mermaid.
+  function startMermaidObserver() {
+    var debounceTimer = 0;
+    function scheduleWrapDebounced() {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() {
+        debounceTimer = 0;
+        wrapMermaidDiagrams();
+      }, 150);
+    }
+    var observer = new MutationObserver(function(mutations) {
+      var hasAddedNodes = mutations.some(function(m) { return m.addedNodes.length > 0; });
+      if (hasAddedNodes) scheduleWrapDebounced();
+    });
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       scheduleWrap();
+      startMermaidObserver();
     });
   } else {
     scheduleWrap();
+    startMermaidObserver();
   }
 })();

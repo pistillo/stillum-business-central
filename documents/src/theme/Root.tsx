@@ -8,7 +8,8 @@ interface RootProps {
 export default function Root({ children }: RootProps): React.ReactElement {
   return (
     <>
-      <Head children={<script src="/js/mermaid-init.js" />} />
+      {/* Zoom/pan per diagrammi Mermaid (modalità nativa: i diagrammi sono renderizzati da @docusaurus/theme-mermaid) */}
+      <Head children={<script src="/js/diagram.js" />} />
       {children}
     </>
   );
