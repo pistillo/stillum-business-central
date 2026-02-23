@@ -42,4 +42,27 @@ public class StorageResource {
                 service.generateDownloadUrl(tenantId, artifactId, versionId);
         return Response.ok(resp).build();
     }
+
+    @GET
+    @Path("/bundle-upload-url")
+    public Response bundleUploadUrl(
+            @PathParam("tenantId") UUID tenantId,
+            @QueryParam("artifactId") UUID artifactId,
+            @QueryParam("versionId") UUID versionId,
+            @QueryParam("contentType") @DefaultValue("application/zip") String contentType) {
+        PresignedUrlResponse resp =
+                service.generateBundleUploadUrl(tenantId, artifactId, versionId, contentType);
+        return Response.ok(resp).build();
+    }
+
+    @GET
+    @Path("/bundle-download-url")
+    public Response bundleDownloadUrl(
+            @PathParam("tenantId") UUID tenantId,
+            @QueryParam("artifactId") UUID artifactId,
+            @QueryParam("versionId") UUID versionId) {
+        PresignedUrlResponse resp =
+                service.generateBundleDownloadUrl(tenantId, artifactId, versionId);
+        return Response.ok(resp).build();
+    }
 }

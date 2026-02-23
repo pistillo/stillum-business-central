@@ -2,6 +2,9 @@ package com.stillum.registry.resource;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -13,6 +16,9 @@ class ArtifactVersionResourceTest {
 
     static final String TENANT_ID = "00000000-0000-0000-0000-000000000001";
     static final String ARTIFACTS_PATH = "/api/tenants/" + TENANT_ID + "/artifacts";
+
+    @Inject
+    EntityManager em;
 
     private String createArtifact(String type, String title) {
         return given()
@@ -104,5 +110,55 @@ class ArtifactVersionResourceTest {
             .then()
             .statusCode(200)
             .body("payloadRef", is("tenant-x/artifacts/process/a/v2.xml"));
+    }
+
+    @Test
+    void updatePayloadRef_publishedVersion_returns409() {
+        String artifactId = createArtifact("PROCESS", "Artifact Update PayloadRef Published");
+        String versionId = createVersion(artifactId, "1.0.0");
+        markVersionPublished(versionId);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"payloadRef\":\"tenant-x/artifacts/process/a/v2.xml\"}")
+            .when()
+            .put(ARTIFACTS_PATH + "/" + artifactId + "/versions/" + versionId + "/payload-ref")
+            .then()
+            .statusCode(409);
+    }
+
+    @Test
+    void updateVersion_publishedVersion_returns409() {
+        String artifactId = createArtifact("PROCESS", "Artifact Update Version Published");
+        String versionId = createVersion(artifactId, "1.0.0");
+        markVersionPublished(versionId);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"payloadRef\":\"tenant-x/artifacts/process/a/v2.xml\"}")
+            .when()
+            .put(ARTIFACTS_PATH + "/" + artifactId + "/versions/" + versionId)
+            .then()
+            .statusCode(409);
+    }
+
+    @Test
+    void deleteVersion_published_returns409() {
+        String artifactId = createArtifact("REQUEST", "Artifact Delete Version Published");
+        String versionId = createVersion(artifactId, "1.0.0");
+        markVersionPublished(versionId);
+
+        given()
+            .when()
+            .delete(ARTIFACTS_PATH + "/" + artifactId + "/versions/" + versionId)
+            .then()
+            .statusCode(409);
+    }
+
+    @Transactional
+    void markVersionPublished(String versionId) {
+        em.createNativeQuery("UPDATE artifact_version SET state = 'PUBLISHED' WHERE id = :id")
+            .setParameter("id", java.util.UUID.fromString(versionId))
+            .executeUpdate();
     }
 }

@@ -2,6 +2,8 @@ package com.stillum.registry.service;
 
 import com.stillum.registry.dto.response.PresignedUrlResponse;
 import com.stillum.registry.exception.ArtifactNotFoundException;
+import com.stillum.registry.exception.ObjectAlreadyExistsException;
+import com.stillum.registry.exception.ObjectNotFoundException;
 import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
@@ -61,5 +63,43 @@ public class StorageService {
 
         String url = s3.generateDownloadPresignedUrl(s3.getArtifactsBucket(), version.payloadRef);
         return new PresignedUrlResponse(url, version.payloadRef, expirySeconds);
+    }
+
+    @Transactional
+    public PresignedUrlResponse generateBundleUploadUrl(
+            UUID tenantId, UUID artifactId, UUID versionId, String contentType) {
+        var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
+                .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+
+        versionRepo.findByIdAndArtifact(versionId, artifactId)
+                .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
+
+        String key = StoragePathBuilder.bundleKey(tenantId, artifact.type.name(), artifactId, versionId);
+
+        if (s3.exists(s3.getBundlesBucket(), key)) {
+            throw new ObjectAlreadyExistsException(key);
+        }
+
+        String url = s3.generateUploadPresignedUrl(s3.getBundlesBucket(), key, contentType);
+        return new PresignedUrlResponse(url, key, expirySeconds);
+    }
+
+    @Transactional
+    public PresignedUrlResponse generateBundleDownloadUrl(
+            UUID tenantId, UUID artifactId, UUID versionId) {
+        var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
+                .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+
+        versionRepo.findByIdAndArtifact(versionId, artifactId)
+                .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
+
+        String key = StoragePathBuilder.bundleKey(tenantId, artifact.type.name(), artifactId, versionId);
+
+        if (!s3.exists(s3.getBundlesBucket(), key)) {
+            throw new ObjectNotFoundException(key);
+        }
+
+        String url = s3.generateDownloadPresignedUrl(s3.getBundlesBucket(), key);
+        return new PresignedUrlResponse(url, key, expirySeconds);
     }
 }
