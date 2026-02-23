@@ -52,6 +52,12 @@ Le risorse sono montate sotto:
   - `GET /api/tenants/{tenantId}/storage/bundle-upload-url`
   - `GET /api/tenants/{tenantId}/storage/bundle-download-url`
 
+### Search (Postgres FTS baseline)
+
+La ricerca implementata usa Postgres full‑text search su titolo/descrizione e supporta filtri (type/status/area/tag) e paginazione.
+
+La copertura è verificata con test end‑to‑end dedicati sulla risorsa search.
+
 ---
 
 ## Database

@@ -45,4 +45,3 @@ CREATE INDEX idx_audit_time   ON audit_log(tenant_id, timestamp DESC);
 -- app_user
 CREATE INDEX idx_user_tenant ON app_user(tenant_id);
 CREATE INDEX idx_user_role   ON app_user(role_id);
-

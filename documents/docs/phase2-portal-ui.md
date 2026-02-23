@@ -9,11 +9,22 @@ Questa pagina dettaglia la progettazione del **Portal UI** per la Fase 2, evid
 
 ### Framework e librerie
 
-* **React**: utilizzato come libreria principale per la composizione dell’interfaccia.  Si consiglia l’uso di **Next.js** o un altro framework che faciliti routing e server‑side rendering per migliori performance e SEO.
-* **shadcn/ui**: libreria di componenti UI basata su Tailwind CSS.  Garantisce un look&feel moderno con componenti accessibili (bottoni, tabelle, modali, form, toast…).
-* **React Query o SWR**: per la gestione delle chiamate REST e la cache dei dati provenienti da Registry API e Publisher.  Permette di gestire lo stato di loading, error e refreshing con semplicità.
+* **React + Vite**: utilizzato come libreria principale e toolchain (build/dev server) per la composizione dell’interfaccia.
+* **React Router**: routing client‑side e protezione rotte.
+* **TanStack Query**: gestione delle chiamate REST e cache dei dati provenienti da Registry API e Publisher.
+* **OIDC (Keycloak)**: login tramite redirect OIDC (Authorization Code + PKCE) gestito da `oidc-client-ts`.
 * **bpmn-js / dmn-js / form editor**: i pacchetti bpmn.io e dmn.io vengono incapsulati in componenti React.  Per i form (StillumForms) e le request si utilizzeranno componenti custom basati su schemi JSON.
 * **i18next**: per supportare la localizzazione in più lingue (italiano, inglese, etc.).
+
+### Stato implementazione (Portal UI v0)
+
+Nel repository è presente una prima implementazione operativa (v0) che copre:
+
+* Routing, layout e route guard (autenticazione e selezione tenant).
+* Catalogo artefatti (lista con filtri base e paginazione).
+* Dettaglio artefatto (metadati + lista versioni).
+* Editor v0 “testuale” (textarea) con load/save tramite presigned URL e aggiornamento `payloadRef`.
+* Pubblicazione v0 (form semplice che invoca il Publisher e mostra l’esito).
 
 ### Struttura delle pagine
 
@@ -55,6 +66,19 @@ Per la prima versione dell’UI si prevede una **single sign‑on** tramite Keyc
 * Il portale è registrato come client OIDC in Keycloak.
 * L’utente viene rediretto a Keycloak per il login; al ritorno riceve un JWT che contiene ruoli e tenant disponibili.
 * La UI decodifica il JWT per ricavare i tenant e, se ce n’è più di uno, propone la pagina `select-tenant`.  Il token viene salvato in sessione e usato in ogni richiesta come header `Authorization: Bearer <token>`.
+
+#### Configurazione runtime (env)
+
+La Portal UI v0 usa variabili `VITE_*`:
+
+* `VITE_REGISTRY_API_BASE_URL` (default `http://localhost:8081/api`)
+* `VITE_PUBLISHER_API_BASE_URL` (default `http://localhost:8082/api`)
+* `VITE_OIDC_AUTHORITY` (issuer/realm Keycloak)
+* `VITE_OIDC_CLIENT_ID`
+* `VITE_OIDC_SCOPE` (default `openid profile email`)
+* `VITE_OIDC_REDIRECT_URI` (default `${window.location.origin}/oidc/callback`)
+
+Nota: l’estrazione dei tenant dal token è implementata in modo “tollerante” (supporta claim array come `tenants/tenantIds` o pattern in `groups`), con fallback a inserimento manuale del tenantId se assente.
 
 ## Considerazioni future
 

@@ -36,6 +36,11 @@ class PublishResourceTest {
         seedArtifactWithVersion(artifactId, versionId, payloadKey, "DRAFT");
         s3.uploadBytes(s3.getArtifactsBucket(), payloadKey, "<definitions/>".getBytes(), "application/xml");
 
+        long auditBefore = ((Number) em.createNativeQuery(
+                        "SELECT COUNT(*) FROM audit_log WHERE tenant_id = :tid AND action = 'PUBLISH_SUCCESS'")
+                .setParameter("tid", TENANT_ID)
+                .getSingleResult()).longValue();
+
         String publicationId = given()
             .contentType(ContentType.JSON)
             .body("{\"artifactId\":\"" + artifactId + "\",\"versionId\":\"" + versionId + "\",\"environmentId\":\"" + ENV_DEV + "\",\"notes\":\"r1\"}")
@@ -73,10 +78,11 @@ class PublishResourceTest {
             .getSingleResult();
         org.junit.jupiter.api.Assertions.assertEquals(1L, pubCount.longValue());
 
-        Number auditCount = (Number) em.createNativeQuery("SELECT COUNT(*) FROM audit_log WHERE tenant_id = :tid AND action = 'PUBLISH_SUCCESS'")
-            .setParameter("tid", TENANT_ID)
-            .getSingleResult();
-        org.junit.jupiter.api.Assertions.assertEquals(1L, auditCount.longValue());
+        long auditAfter = ((Number) em.createNativeQuery(
+                        "SELECT COUNT(*) FROM audit_log WHERE tenant_id = :tid AND action = 'PUBLISH_SUCCESS'")
+                .setParameter("tid", TENANT_ID)
+                .getSingleResult()).longValue();
+        org.junit.jupiter.api.Assertions.assertEquals(auditBefore + 1, auditAfter);
     }
 
     @Test
@@ -95,6 +101,11 @@ class PublishResourceTest {
 
         s3.uploadBytes(s3.getArtifactsBucket(), rootPayloadKey, "<definitions/>".getBytes(), "application/xml");
         s3.uploadBytes(s3.getArtifactsBucket(), depPayloadKey, "<definitions/>".getBytes(), "application/xml");
+
+        long auditBefore = ((Number) em.createNativeQuery(
+                        "SELECT COUNT(*) FROM audit_log WHERE tenant_id = :tid AND action = 'PUBLISH_FAILURE'")
+                .setParameter("tid", TENANT_ID)
+                .getSingleResult()).longValue();
 
         given()
             .contentType(ContentType.JSON)
@@ -115,10 +126,11 @@ class PublishResourceTest {
             .getSingleResult();
         org.junit.jupiter.api.Assertions.assertEquals(0L, pubCount.longValue());
 
-        Number auditCount = (Number) em.createNativeQuery("SELECT COUNT(*) FROM audit_log WHERE tenant_id = :tid AND action = 'PUBLISH_FAILURE'")
-            .setParameter("tid", TENANT_ID)
-            .getSingleResult();
-        org.junit.jupiter.api.Assertions.assertEquals(1L, auditCount.longValue());
+        long auditAfter = ((Number) em.createNativeQuery(
+                        "SELECT COUNT(*) FROM audit_log WHERE tenant_id = :tid AND action = 'PUBLISH_FAILURE'")
+                .setParameter("tid", TENANT_ID)
+                .getSingleResult()).longValue();
+        org.junit.jupiter.api.Assertions.assertEquals(auditBefore + 1, auditAfter);
     }
 
     @Transactional
@@ -156,4 +168,3 @@ class PublishResourceTest {
             .executeUpdate();
     }
 }
-

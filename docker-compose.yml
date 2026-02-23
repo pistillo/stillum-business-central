@@ -83,6 +83,28 @@ services:
       retries: 5
       start_period: 30s
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: stillum-keycloak
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
 networks:
   stillum-net:
     driver: bridge

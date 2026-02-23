@@ -32,6 +32,17 @@ module.exports = {
         },
         {
           type: 'category',
+          label: 'EPIC 2 – Portal UI (v0)',
+          items: [
+            'EPIC2/epic2-stato',
+            'EPIC2/epic2-obiettivo',
+            'EPIC2/epic2-requisiti',
+            'EPIC2/epic2-modello-dati',
+            'EPIC2/epic2-implementazione',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Fase 1',
           items: [
             'phase1-overview',

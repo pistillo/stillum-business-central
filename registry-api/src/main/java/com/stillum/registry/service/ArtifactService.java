@@ -2,6 +2,7 @@ package com.stillum.registry.service;
 
 import com.stillum.registry.dto.request.CreateArtifactRequest;
 import com.stillum.registry.dto.request.UpdateArtifactRequest;
+import com.stillum.registry.dto.response.ArtifactDetailResponse;
 import com.stillum.registry.dto.response.ArtifactResponse;
 import com.stillum.registry.dto.response.PagedResponse;
 import com.stillum.registry.entity.Artifact;
@@ -10,6 +11,7 @@ import com.stillum.registry.entity.enums.ArtifactType;
 import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
+import com.stillum.registry.repository.ArtifactVersionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,6 +24,9 @@ public class ArtifactService {
 
     @Inject
     ArtifactRepository repo;
+
+    @Inject
+    ArtifactVersionRepository versionRepo;
 
     @Transactional
     public ArtifactResponse create(UUID tenantId, CreateArtifactRequest req) {
@@ -57,10 +62,10 @@ public class ArtifactService {
     }
 
     @Transactional
-    public ArtifactResponse getById(UUID tenantId, UUID artifactId) {
-        return repo.findByIdAndTenant(artifactId, tenantId)
-                .map(ArtifactResponse::from)
+    public ArtifactDetailResponse getById(UUID tenantId, UUID artifactId) {
+        Artifact artifact = repo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+        return ArtifactDetailResponse.from(artifact, versionRepo.findByArtifact(artifactId));
     }
 
     @Transactional

@@ -90,11 +90,21 @@ class ArtifactResourceTest {
             .extract().path("id");
 
         given()
+            .contentType(ContentType.JSON)
+            .body("{\"version\":\"1.0.0\"}")
+            .when()
+            .post(BASE_PATH + "/" + id + "/versions")
+            .then()
+            .statusCode(201);
+
+        given()
             .when()
             .get(BASE_PATH + "/" + id)
             .then()
             .statusCode(200)
-            .body("id", is(id));
+            .body("id", is(id))
+            .body("versions.size()", is(1))
+            .body("versions[0].version", is("1.0.0"));
     }
 
     @Test

@@ -34,6 +34,15 @@ public class StorageService {
     @Transactional
     public PresignedUrlResponse generateUploadUrl(
             UUID tenantId, UUID artifactId, UUID versionId, String contentType) {
+        if (artifactId == null) {
+            throw new IllegalArgumentException("artifactId is required");
+        }
+        if (versionId == null) {
+            throw new IllegalArgumentException("versionId is required");
+        }
+        if (contentType == null || contentType.isBlank()) {
+            throw new IllegalArgumentException("contentType is required");
+        }
         var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
 
@@ -51,6 +60,12 @@ public class StorageService {
     @Transactional
     public PresignedUrlResponse generateDownloadUrl(
             UUID tenantId, UUID artifactId, UUID versionId) {
+        if (artifactId == null) {
+            throw new IllegalArgumentException("artifactId is required");
+        }
+        if (versionId == null) {
+            throw new IllegalArgumentException("versionId is required");
+        }
         var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
 
@@ -68,6 +83,15 @@ public class StorageService {
     @Transactional
     public PresignedUrlResponse generateBundleUploadUrl(
             UUID tenantId, UUID artifactId, UUID versionId, String contentType) {
+        if (artifactId == null) {
+            throw new IllegalArgumentException("artifactId is required");
+        }
+        if (versionId == null) {
+            throw new IllegalArgumentException("versionId is required");
+        }
+        if (contentType == null || contentType.isBlank()) {
+            throw new IllegalArgumentException("contentType is required");
+        }
         var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
 
@@ -87,6 +111,12 @@ public class StorageService {
     @Transactional
     public PresignedUrlResponse generateBundleDownloadUrl(
             UUID tenantId, UUID artifactId, UUID versionId) {
+        if (artifactId == null) {
+            throw new IllegalArgumentException("artifactId is required");
+        }
+        if (versionId == null) {
+            throw new IllegalArgumentException("versionId is required");
+        }
         var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
 
