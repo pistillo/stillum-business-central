@@ -10,7 +10,7 @@ sidebar_label: Stato EPIC 1
 
 **Contesto:** In questo worktree è già presente una base Quarkus per `registry-api` e `publisher`, oltre a Docker Compose, CI e documentazione di fase (es. `phase1-*`).
 
-**Stato complessivo:** **Parzialmente implementato** — la **Registry API** è operativa per CRUD, versioni, dipendenze, search e presigned payload; il **Publisher** è ancora scaffolding (health). La base DB (Flyway, schema, indici, RLS) è presente e l’enforcement RLS per il `tenantId` è ora integrato in modo sistematico nel `registry-api` (impostazione `app.current_tenant` all’inizio delle transazioni + test DB-level).
+**Stato complessivo:** **Parzialmente implementato** — la **Registry API** è operativa per CRUD, versioni, dipendenze, search (FTS + tag) e presigned payload/bundle; il **Publisher** è operativo per publish (validazioni MVP, bundle immutabile, `Publication` e `AuditLog`). La base DB (Flyway, schema, indici, RLS) è presente e l’enforcement RLS per il `tenantId` è integrato in modo sistematico (impostazione `app.current_tenant` all’inizio delle transazioni + hardening role opzionale + test DB-level).
 
 ---
 
@@ -68,10 +68,10 @@ sidebar_label: Stato EPIC 1
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-1.1.4.1 | 🟡 | Endpoint `/api/tenants/{tenantId}/search/artifacts` presente; strategia full-text da valutare (Postgres vs motore dedicato) |
-| T-1.1.4.2 | 🟡 | Filtri base presenti; `tag` non risulta supportato sull’endpoint search |
+| T-1.1.4.1 | ✅ | Endpoint `/api/tenants/{tenantId}/search/artifacts` usa Postgres FTS (baseline); strategia alternativa (Elastic/OpenSearch/altro) valutabile in futuro |
+| T-1.1.4.2 | ✅ | Filtri inclusi `tag` applicato su `tags` e coerente con conteggio/paginazione |
 | T-1.1.4.3 | ✅ | Indici GIN tags + FTS in `V3__create_indexes.sql` |
-| T-1.1.4.4 | 🔴 | Test specifici search non presenti |
+| T-1.1.4.4 | ✅ | Test search end-to-end presenti (`SearchResourceTest`) |
 
 ---
 
@@ -109,7 +109,7 @@ sidebar_label: Stato EPIC 1
 | T-1.3.1.3 | ✅ | Presigned download `GET /api/tenants/{tenantId}/storage/download-url` |
 | T-1.3.1.4 | ✅ | Registrazione `payloadRef` via `PUT .../versions/{versionId}/payload-ref` |
 | T-1.3.1.5 | 🟡 | Controllo “tenant autenticato” non applicabile senza auth; path include `tenant-{tenantId}` |
-| T-1.3.1.6 | 🟡 | Dev Services S3 attive in test; mancano test integrazione upload/download contro MinIO/LocalStack |
+| T-1.3.1.6 | 🟡 | Dev Services S3 attive in test; bucket creati automaticamente; mancano test integrazione payload upload/download (bundle coperto da test dedicati) |
 
 #### US-1.3.2 – Gestione bundle di pubblicazione
 
@@ -148,8 +148,7 @@ sidebar_label: Stato EPIC 1
 
 ## Azioni consigliate per completare EPIC 1
 
-1. Completare Publisher: endpoint publish, validazioni, bundle+upload, persistenza `Publication` e scrittura `AuditLog`.
-2. Collegare lo Storage bundle al flusso publish (creazione zip + upload).
-3. Consolidare le validazioni payload riusando quanto già presente nel progetto Editors (non ancora importato in questo repo) e allineare error reporting.
-4. Posticipare la decisione “full-text reale”: valutare Postgres FTS vs ElasticSearch/OpenSearch vs approcci multidimensionali/vettoriali prima di cambiare SearchService.
-5. Completare i task rimanenti Registry (tag in search, test search, environment API se necessaria al publish).
+1. Consolidare le validazioni payload riusando quanto già presente nel progetto Editors (non ancora importato in questo repo) e allineare error reporting.
+2. Definire una Environment API (o un meccanismo equivalente) per ottenere la lista ambienti dal portale e non dipendere dai seed.
+3. Aggiungere test integrazione payload upload/download contro S3 DevServices (LocalStack) e copertura error path.
+4. Valutare la strategia “full-text” definitiva (Postgres FTS vs Elastic/OpenSearch vs approcci multidimensionali/vettoriali) prima di investire in feature avanzate su Search.

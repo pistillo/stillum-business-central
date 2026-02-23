@@ -49,7 +49,7 @@ Questo documento esplicita i requisiti funzionali e non-funzionali necessari a c
 - Ricerca full-text su titolo/descrizione con filtri e paginazione:
   - `GET /tenants/{tenantId}/search/artifacts?q=...`
 - Filtri richiesti: type, status, tag, area.
-  - Nota: la scelta della tecnologia per la ricerca full-text è in valutazione (Postgres FTS vs motore dedicato come Elastic/OpenSearch, e/o approcci multidimensionali/vettoriali). In EPIC 1 è accettabile mantenere una ricerca “baseline” e posticipare la decisione definitiva.
+  - Nota: nel worktree corrente è presente una baseline su Postgres FTS; la scelta definitiva (Postgres vs motore dedicato come Elastic/OpenSearch, e/o approcci multidimensionali/vettoriali) resta in valutazione e può essere posticipata.
 
 ### Storage (payload)
 
