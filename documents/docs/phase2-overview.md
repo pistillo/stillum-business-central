@@ -11,14 +11,14 @@ La **Fase 2** è dedicata alla realizzazione della **prima interfaccia utente o
 
 * **Autenticazione e selezione del tenant**: integrazione con il provider IAM (es. Keycloak) per login unico e selezione del tenant.  Una volta loggato, l’utente opera nel contesto del tenant scelto.
 * **Dashboard iniziale**: una home page che mostra bozze in corso, ultime pubblicazioni, eventuali errori e link rapidi alle funzioni principali.
-* **Catalogo artefatti**: una vista elenco/tabellare per navigare processi, regole, moduli e request.  Supporto a filtri per tipo, stato, area, tag e ricerca full‑text.
+* **Catalogo artefatti**: una vista elenco/tabellare per navigare processi, regole, moduli e request.  Supporto a filtri per tipo, stato, area e tag; la strategia full‑text è posticipata.
 * **Dettaglio artefatto**: una pagina che visualizza i metadati di un artefatto e tutte le sue versioni, permettendo di aprire la versione in bozza nell’editor o di avviare la pubblicazione.
-* **Editor integrati**: embed degli editor BPMN, DMN, StillumForms e request all’interno del portale, con salvataggio automatico delle bozze tramite la Registry API.
-* **Pubblicazione guidata**: un flusso UI semplificato per richiamare il Publisher Service, visualizzando eventuali errori di validazione o lo stato di avanzamento della release.
+* **Editor v0**: editor “testuale” per caricare/salvare payload tramite presigned URL (in attesa dell’integrazione degli editor BPMN/DMN/Forms).
+* **Pubblicazione v0**: form semplificato che invoca il Publisher Service e mostra successo/fallimento (in attesa del wizard completo con dipendenze/validazioni dettagliate).
 
 ## Deliverable
 
-1. **Prototipo React** basato su un framework moderno (es. Next.js con React Router) e librerie di componenti (shadcn/ui).  Deve essere responsive e accessibile.
+1. **Prototipo React** basato su Vite + React Router.  Deve essere responsive e accessibile.
 2. **Integrazione con Keycloak/OIDC** per l’autenticazione e recupero dei ruoli e dei tenant associati all’utente.
 3. **Routing e navigazione**: definizione delle rotte principali (`/home`, `/catalogue`, `/artifact/:id`, `/editor/:id/:version`, `/publish`, ecc.) con gestione dello stato applicativo.
 4. **Componenti UI** per:
@@ -30,7 +30,7 @@ La **Fase 2** è dedicata alla realizzazione della **prima interfaccia utente o
 
 ## Criteri di riuscita
 
-* Un utente analista deve essere in grado di effettuare login, creare un nuovo artefatto in bozza, modificarlo nell’editor integrato, salvarlo come bozza, visualizzarlo nel catalogo e, come Process Owner, pubblicarlo con successo su un ambiente.
+* Un utente analista deve essere in grado di effettuare login, creare un nuovo artefatto in bozza, modificarlo nell’editor v0, salvarlo come bozza, visualizzarlo nel catalogo e, come Process Owner, pubblicarlo con successo su un ambiente.
 * Gli utenti di tenant diversi devono vedere solo i propri artefatti e versioni.
 * La UI deve essere localizzabile (almeno inglese/italiano) e compatibile con i principali browser.
 * Il design deve essere coerente con lo stile definito (utilizzo di shadcn/ui, Tailwind per il layout, componenti con ombre morbide e bordi arrotondati).
