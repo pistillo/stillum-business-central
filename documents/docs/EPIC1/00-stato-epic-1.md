@@ -19,7 +19,7 @@ sidebar_label: Stato EPIC 1
 | FEATURE | Stato | Note |
 |--------|--------|------|
 | **1.1** Registry API | 🟡 Parziale | CRUD artefatti/versioni, dipendenze, search e presigned payload presenti; mancano alcune parti (es. search full-text reale, filtro tag completo, environment API) |
-| **1.2** Publisher Service | 🔴 Mancante | Solo scaffolding + health; assenti publish, bundle, validazioni e audit |
+| **1.2** Publisher Service | 🟡 Parziale | Endpoint publish/get presenti; validazione payload base (XML/JSON), check dipendenze Published, creazione bundle zip + upload su S3, persistenza Publication e AuditLog |
 | **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; presigned bundle con no-overwrite presente; resta creazione bundle (Publisher) |
 | **1.4** Database multi-tenant (RLS) | 🟢 Completa (per registry-api) | Migrazioni, indici e RLS presenti; enforcement sistematico (`set_config` per transazione) + hardening `FORCE ROW LEVEL SECURITY` + test che verifica RLS a livello DB |
 
@@ -81,15 +81,20 @@ sidebar_label: Stato EPIC 1
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-1.2.1.1 | ✅ | Progetto Quarkus in `publisher/` (health) |
-| T-1.2.1.2–T-1.2.1.13 | 🔴 | Mancanti: endpoint publish, validazioni, bundle, upload, publication, error handling, test |
+| T-1.2.1.1 | ✅ | Progetto Quarkus in `publisher/` |
+| T-1.2.1.2 | ✅ | `POST /api/tenants/{tenantId}/publish` e `GET /api/tenants/{tenantId}/publish/{publicationId}` |
+| T-1.2.1.3 | ✅ | Validazione payload MVP (XML well-formed, JSON parse) |
+| T-1.2.1.4 | ✅ | Check dipendenze: tutte le dipendenze devono essere `PUBLISHED` |
+| T-1.2.1.5 | ✅ | Creazione bundle zip + manifest + SHA-256 e upload su bucket bundles |
+| T-1.2.1.6 | ✅ | Persistenza `publication` e update `artifact_version.state = PUBLISHED` |
+| T-1.2.1.7 | ✅ | Test integrazione publish (happy path + dependency not published) |
 
 #### US-1.2.2 – Audit della pubblicazione
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
 | T-1.2.2.1 | ✅ | Tabella `audit_log` presente in migrazione core |
-| T-1.2.2.2–T-1.2.2.3 | 🔴 | Mancanti: scrittura audit e test |
+| T-1.2.2.2–T-1.2.2.3 | ✅ | Audit `PUBLISH_SUCCESS` e `PUBLISH_FAILURE` su transazione separata (test incluso) |
 
 ---
 

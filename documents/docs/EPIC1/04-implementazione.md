@@ -115,12 +115,26 @@ Il builder definisce percorsi coerenti con multi-tenancy:
 
 ## Publisher
 
-Nel worktree il servizio `publisher/` è presente come base Quarkus ma non implementa ancora EPIC 1 oltre all’health check. Il completamento di EPIC 1 richiede:
+Il servizio `publisher/` implementa il flusso MVP di pubblicazione e gestisce la transizione di una versione da `DRAFT` a `PUBLISHED`, creando un bundle immutabile su S3 e registrando `Publication` + `AuditLog`.
 
-- endpoint publish + validazioni,
-- creazione bundle + upload su bucket bundles,
-- persist `publication` + update stato versione,
-- scrittura `audit_log`.
+### Endpoint principali
+
+- `POST /api/tenants/{tenantId}/publish`
+- `GET /api/tenants/{tenantId}/publish/{publicationId}`
+
+### Flusso MVP
+
+1. Verifica `Environment` per tenant
+2. Lettura `Artifact` + `ArtifactVersion` e verifica `state != PUBLISHED`
+3. Download payload da S3 usando `payloadRef` (bucket artifacts) e validazione base
+4. Verifica dipendenze: tutte le versioni dipendenti devono essere `PUBLISHED`
+5. Creazione bundle zip con:
+   - `manifest.json` (metadati + SHA-256 file)
+   - payload root + payload dipendenze
+6. Upload bundle su bucket bundles con path `tenant-{tenantId}/bundles/{type}/{artifactId}/{versionId}.zip`
+7. Persistenza `publication` + update `artifact_version.state = PUBLISHED`
+8. Scrittura audit su transazione separata:
+   - `PUBLISH_SUCCESS` o `PUBLISH_FAILURE`
 
 ---
 

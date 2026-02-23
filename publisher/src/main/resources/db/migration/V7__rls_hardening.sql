@@ -1,0 +1,30 @@
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'stillum_app') THEN
+        CREATE ROLE stillum_app NOLOGIN NOBYPASSRLS;
+    END IF;
+EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'stillum_app') THEN
+        EXECUTE 'GRANT USAGE ON SCHEMA public TO stillum_app';
+        EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO stillum_app';
+        EXECUTE 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO stillum_app';
+        EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO stillum_app';
+        EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO stillum_app';
+        EXECUTE format('GRANT stillum_app TO %I', current_user);
+    END IF;
+END $$;
+
+ALTER TABLE artifact         FORCE ROW LEVEL SECURITY;
+ALTER TABLE artifact_version FORCE ROW LEVEL SECURITY;
+ALTER TABLE environment      FORCE ROW LEVEL SECURITY;
+ALTER TABLE publication      FORCE ROW LEVEL SECURITY;
+ALTER TABLE dependency       FORCE ROW LEVEL SECURITY;
+ALTER TABLE audit_log        FORCE ROW LEVEL SECURITY;
+ALTER TABLE app_user         FORCE ROW LEVEL SECURITY;
+ALTER TABLE role             FORCE ROW LEVEL SECURITY;
+
