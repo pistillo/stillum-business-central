@@ -20,7 +20,7 @@ sidebar_label: Stato EPIC 1
 |--------|--------|------|
 | **1.1** Registry API | 🟡 Parziale | CRUD artefatti/versioni, dipendenze, search e presigned payload presenti; mancano alcune parti (es. search full-text reale, filtro tag completo, environment API) |
 | **1.2** Publisher Service | 🔴 Mancante | Solo scaffolding + health; assenti publish, bundle, validazioni e audit |
-| **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; bundle non implementato |
+| **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; presigned bundle con no-overwrite presente; resta creazione bundle (Publisher) |
 | **1.4** Database multi-tenant (RLS) | 🟢 Completa (per registry-api) | Migrazioni, indici e RLS presenti; enforcement sistematico (`set_config` per transazione) + hardening `FORCE ROW LEVEL SECURITY` + test che verifica RLS a livello DB |
 
 ---
@@ -36,7 +36,7 @@ sidebar_label: Stato EPIC 1
 | T-1.1.1.1 | ✅ | Progetto Quarkus in `registry-api/` |
 | T-1.1.1.2 | ✅ | Migrazioni core in `registry-api/src/main/resources/db/migration/` (in particolare `V2__create_core_tables.sql`) |
 | T-1.1.1.3 | ✅ | `POST /api/tenants/{tenantId}/artifacts` in `com.stillum.registry.resource.ArtifactResource` |
-| T-1.1.1.4 | 🟡 | `GET /api/tenants/{tenantId}/artifacts` con filtri base; parametro `tag` non applicato in repository |
+| T-1.1.1.4 | ✅ | `GET /api/tenants/{tenantId}/artifacts` con filtri base incluso `tag` (applicato anche nel conteggio paginato) |
 | T-1.1.1.5 | 🟡 | `GET /api/tenants/{tenantId}/artifacts/{artifactId}` presente; verificare che includa elenco versioni nella response (dipende dai DTO) |
 | T-1.1.1.6 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}` |
 | T-1.1.1.7 | ✅ | `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}` (soft delete, status `RETIRED`) |
@@ -50,9 +50,9 @@ sidebar_label: Stato EPIC 1
 | T-1.1.2.1 | ✅ | `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions` |
 | T-1.1.2.2 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` |
 | T-1.1.2.3 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` |
-| T-1.1.2.4 | 🟡 | `DELETE` bozza implementato; non risultano test specifici che blocchino `published` |
-| T-1.1.2.5 | 🟡 | Eccezione/guard presente; serve test esplicito e copertura completa dei path di update/delete |
-| T-1.1.2.6 | 🟡 | `ArtifactVersionResourceTest` copre creazione/lista/delete draft e update `payloadRef`; manca test immutabilità `published` |
+| T-1.1.2.4 | 🟡 | `DELETE` bozza implementato; verifica immutabilità `PUBLISHED` coperta da test |
+| T-1.1.2.5 | ✅ | Immutabilità `PUBLISHED` enforceata con risposta `409` sui path di update/delete |
+| T-1.1.2.6 | ✅ | `ArtifactVersionResourceTest` copre anche i casi `PUBLISHED` (update/delete vietati) |
 
 #### US-1.1.3 – Gestione Dipendenze
 
@@ -110,7 +110,7 @@ sidebar_label: Stato EPIC 1
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-1.3.2.1–T-1.3.2.4 |  | Aggiunte API presigned bundle (upload/download) con controllo no-overwrite e test dedicati; resta da collegare al flusso publish (creazione zip + upload) |
+| T-1.3.2.1–T-1.3.2.4 | 🟡 | Presigned upload/download bundle + no-overwrite + test presenti; resta integrazione col flusso publish (creazione zip + upload) |
 
 ---
 
@@ -135,6 +135,7 @@ sidebar_label: Stato EPIC 1
 | Registry API CRUD/versioni/dipendenze/search/presigned | `registry-api/src/main/java/com/stillum/registry/resource/` |
 | Test base Registry API | `registry-api/src/test/java/com/stillum/registry/` |
 | Enforcement RLS sistematico + test DB-level | `registry-api/src/main/java/com/stillum/registry/filter/` e `registry-api/src/test/java/com/stillum/registry/it/` |
+| Presigned bundle + test (no-overwrite) | `registry-api/src/main/java/com/stillum/registry/resource/StorageResource` e `registry-api/src/test/java/com/stillum/registry/resource/StorageBundleResourceTest` |
 | Docker Compose (PG + MinIO + Temporal) | `docker-compose.yml` |
 | CI build/test | `.github/workflows/ci.yml` |
 
@@ -143,6 +144,6 @@ sidebar_label: Stato EPIC 1
 ## Azioni consigliate per completare EPIC 1
 
 1. Completare Publisher: endpoint publish, validazioni, bundle+upload, persistenza `Publication` e scrittura `AuditLog`.
-2. Completare Storage bundle (upload/download, no-overwrite) e collegarlo al flusso publish.
+2. Collegare lo Storage bundle al flusso publish (creazione zip + upload).
 3. Allineare search all’indice full-text (Postgres) e completare filtri/tag e test.
 4. Completare i task rimanenti Registry (filtro `tag` in list/search, immutabilità `published` con test dedicati, environment API se necessaria al publish).

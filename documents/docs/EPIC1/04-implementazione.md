@@ -87,6 +87,8 @@ Perché l’RLS sia effettivamente “enforced”, il `tenantId` deve essere imp
 
 La Registry API usa AWS SDK via Quarkus S3 con parametri esternalizzati (endpoint, credenziali, bucket, expiry).
 
+In test, i bucket vengono creati automaticamente all’avvio del profilo `test` per evitare errori `NoSuchBucket` nelle suite di integrazione storage.
+
 Esempi di proprietà:
 
 - `stillum.storage.artifacts-bucket`
@@ -99,6 +101,15 @@ Il builder definisce percorsi coerenti con multi-tenancy:
 
 - Payload: `tenant-{tenantId}/artifacts/{type}/{artifactId}/{versionId}.{ext}`
 - Bundle: `tenant-{tenantId}/bundles/{type}/{artifactId}/{versionId}.zip`
+
+### Bundle (presigned + no-overwrite)
+
+- Upload bundle: `GET /api/tenants/{tenantId}/storage/bundle-upload-url`
+  - restituisce presigned URL + `key`
+  - rifiuta la generazione se l’oggetto esiste già (no-overwrite, `409`)
+- Download bundle: `GET /api/tenants/{tenantId}/storage/bundle-download-url`
+  - restituisce presigned URL + `key`
+  - ritorna `404` se l’oggetto non esiste
 
 ---
 
