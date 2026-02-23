@@ -84,4 +84,4 @@ Il sistema dovrà essere:
 - Audit log e conformità a requisiti di tracciabilità.
 - Requisiti non funzionali di sicurezza, scalabilità, performance e disponibilità.
 
-Questa raccolta requisiti serve come base per la progettazione del [modello dati](./03-modello-dati.md), delle API e dell'infrastruttura nelle fasi successive.
+Questa raccolta requisiti serve come base per la progettazione del [modello dati](epic0-modello-dati), delle API e dell'infrastruttura nelle fasi successive.

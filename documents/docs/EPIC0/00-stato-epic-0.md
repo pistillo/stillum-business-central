@@ -31,11 +31,11 @@ sidebar_label: Stato EPIC 0
 | T-0.1.1.1 | ✅ | Requisiti su BPMN, DMN, Forms, Request in [Requisiti Fase 0](./02-requisiti.md) |
 | T-0.1.1.2 | ✅ | Ciclo di vita (bozza → revisione → approvazione → pubblicazione) in requisiti e modello dati |
 | T-0.1.1.3 | ✅ | Multi-tenant, RBAC, auditing, ambienti DEV/QA/PROD in requisiti |
-| T-0.1.1.4 | ✅ | Documento `phase0-requirements.md` → [02-requisiti.md](./02-requisiti.md) |
-| T-0.1.2.1 | ✅ | Entità Tenant, User, Role, Artifact, ArtifactVersion, Environment, Publication, Instance, Task, AuditLog in [Modello dati](./03-modello-dati.md) e in `registry-api` (entity JPA) |
-| T-0.1.2.2 | ✅ | Diagramma ER e relazioni in [03-modello-dati.md](./03-modello-dati.md) |
+| T-0.1.1.4 | ✅ | Documento requisiti → [Requisiti](epic0-requisiti) |
+| T-0.1.2.1 | ✅ | Entità in [Modello dati](epic0-modello-dati) e in `registry-api` (entity JPA) |
+| T-0.1.2.2 | ✅ | Diagramma ER e relazioni in [Modello dati](epic0-modello-dati) |
 | T-0.1.2.3 | ✅ | Enum tipo artefatto, stato artefatto, stato istanza, tipo task in modello e package `entity/enums` |
-| T-0.1.2.4 | ✅ | `phase0-data-model.md` → [03-modello-dati.md](./03-modello-dati.md) |
+| T-0.1.2.4 | ✅ | Documento modello dati → [Modello dati](epic0-modello-dati) |
 
 ---
 
@@ -46,9 +46,9 @@ sidebar_label: Stato EPIC 0
 | T-0.2.1.1 | ✅ | Backend in **Java** (Spring Boot): `registry-api`, `publisher`, `runtime-gateway` (Maven) |
 | T-0.2.1.2 | ✅ | API REST per frontend; linee guida in [Stack tecnologico](./04-stack-tecnologico.md) |
 | T-0.2.1.3 | ✅ | JPA/Hibernate + Flyway in `registry-api` (`db/migration/`) |
-| T-0.2.1.4 | ✅ | PostgreSQL, MinIO/S3, Temporal documentati e usati (docker-compose, charts) |
+| T-0.2.1.4 | ✅ | PostgreSQL, MinIO/S3, Temporal in [Stack tecnologico](epic0-stack-tecnologico) e in repo |
 | T-0.2.2.1 | ✅ | React + shadcn/ui + Tailwind in `portal-ui` |
-| T-0.2.2.2 | ✅ | Scelta documentata; stato gestito con hook e context in portal-ui |
+| T-0.2.2.2 | ✅ | Scelta in [Stack tecnologico](epic0-stack-tecnologico); stato con hook/context in portal-ui |
 | T-0.2.2.3 | 🟡 | Editor bpmn.io/dmn.io/StillumForms: da validare in fase implementativa |
 | T-0.2.2.4 | ✅ | i18n e data fetching (fetch/API) in portal-ui |
 
@@ -92,13 +92,13 @@ sidebar_label: Stato EPIC 0
 
 ## Deliverable prodotti
 
-| Deliverable | File / percorso |
-|-------------|------------------|
-| Requisiti | [02-requisiti.md](./02-requisiti.md) |
-| Modello dati | [03-modello-dati.md](./03-modello-dati.md) |
-| Stack tecnologico | [04-stack-tecnologico.md](./04-stack-tecnologico.md) |
-| Ambiente di sviluppo | [05-ambiente-di-sviluppo.md](./05-ambiente-di-sviluppo.md) |
-| Obiettivo e deliverable fase | [01-obiettivo-e-deliverable.md](./01-obiettivo-e-deliverable.md) |
+| Deliverable | Documento / percorso |
+|-------------|----------------------|
+| Requisiti | [Requisiti](epic0-requisiti) |
+| Modello dati | [Modello dati](epic0-modello-dati) |
+| Stack tecnologico | [Stack tecnologico](epic0-stack-tecnologico) |
+| Ambiente di sviluppo | [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
+| Obiettivo e deliverable | [Obiettivo e deliverable](epic0-obiettivo) |
 | Struttura repository | `portal-ui/`, `registry-api/`, `publisher/`, `runtime-gateway/`, `docs/`, `charts/` |
 | Pipeline CI | `.github/workflows/ci.yml`, `docker.yml`, `helm.yml` |
 | Ambiente locale | `docker-compose.yml` (PostgreSQL, MinIO, Temporal) |
@@ -110,6 +110,6 @@ sidebar_label: Stato EPIC 0
 1. **Pre-commit hooks**: Aggiungere Husky (o equivalente) con lint frontend e, se possibile, check stile Java.
 2. **CI – Migrazioni DB**: Aggiungere uno step (es. in `ci.yml`) che esegua Flyway su un DB di test.
 3. **Cartella `/ci`**: Creare `ci/` per script o config condivisi (opzionale se si usa solo GitHub Actions).
-4. **Keycloak** (opzionale): Aggiungere servizio Keycloak a `docker-compose.yml` e documentarlo in [05-ambiente-di-sviluppo.md](./05-ambiente-di-sviluppo.md).
+4. **Keycloak** (opzionale): Aggiungere servizio Keycloak a `docker-compose.yml` e documentarlo in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo).
 
 Dopo queste integrazioni, l’EPIC 0 può essere considerato chiuso al 100% rispetto al piano di sviluppo.

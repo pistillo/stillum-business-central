@@ -63,7 +63,7 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il pr
 ### Pipeline CI/CD
 
 - **GitHub Actions**: workflow `ci.yml` (lint, build, test backend e frontend), `docker.yml`, `helm.yml`.
-- **Migrazioni DB**: Flyway in `registry-api`; step migrazioni in CI da predisporre (vedi [Stato EPIC 0](./00-stato-epic-0.md)).
+- **Migrazioni DB**: Flyway in `registry-api`; step migrazioni in CI da predisporre (vedi [Stato EPIC 0](epic0-stato)).
 
 ### Strumenti di gestione
 

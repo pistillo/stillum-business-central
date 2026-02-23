@@ -6,7 +6,7 @@ sidebar_label: Modello dati
 
 ## Introduzione
 
-Questo documento descrive il modello dati preliminare per la piattaforma **Stillum Business Portal**. Il modello è pensato per supportare il multi‑tenant, il versioning degli artefatti e il ciclo di vita definito nella fase di raccolta [requisiti](./02-requisiti.md). Ogni entità è accompagnata da una breve descrizione e dalle relazioni principali.
+Questo documento descrive il modello dati preliminare per la piattaforma **Stillum Business Portal**. Il modello è pensato per supportare il multi‑tenant, il versioning degli artefatti e il ciclo di vita definito nella fase di raccolta [requisiti](epic0-requisiti). Ogni entità è accompagnata da una breve descrizione e dalle relazioni principali.
 
 ## Entità principali
 
@@ -172,4 +172,4 @@ erDiagram
 - Il campo `metadata` su **ArtifactVersion** consente di estendere il modello senza modificare lo schema.
 - Il modello è pensato per essere implementato in PostgreSQL con politiche di row‑level security basate sul `tenant_id`.
 
-Questo modello dati costituisce la base per le tabelle, le API REST e il mapping negli ORM utilizzati dai servizi backend (vedi [Stato EPIC 0](./00-stato-epic-0.md) per l'allineamento con il codebase).
+Questo modello dati costituisce la base per le tabelle, le API REST e il mapping negli ORM utilizzati dai servizi backend (vedi [Stato EPIC 0](epic0-stato) per l'allineamento con il codebase).

@@ -9,13 +9,14 @@ module.exports = {
       items: [
         {
           type: 'category',
-          label: 'Fase 0',
+          label: 'Setup e Fondamenta',
           items: [
-            'phase-0',
-            'phase0-requirements',
-            'phase0-data-model',
-            'phase0-tech-stack',
-            'phase0-dev-environment',
+            'epic0-stato',
+            'epic0-obiettivo',
+            'epic0-requisiti',
+            'epic0-modello-dati',
+            'epic0-stack-tecnologico',
+            'epic0-ambiente-di-sviluppo',
           ],
         },
         {
