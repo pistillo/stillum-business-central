@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: portal-ui/package-lock.json
+      - name: Install and lint portal-ui
+        working-directory: portal-ui
+        run: |
+          npm ci
+          npm run lint
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Checkstyle registry-api
+        working-directory: registry-api
+        run: mvn -q validate
+      - name: Checkstyle publisher
+        working-directory: publisher
+        run: mvn -q validate
+      - name: Checkstyle runtime-gateway
+        working-directory: runtime-gateway
+        run: mvn -q validate
+
+  build-backend:
+    needs: [lint-frontend, lint-backend]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [registry-api, publisher, runtime-gateway]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build ${{ matrix.service }}
+        run: |
+          cd ${{ matrix.service }}
+          mvn -q -DskipTests package
+      - name: Upload ${{ matrix.service }} artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service }}-build
+          path: ${{ matrix.service }}/target/*.jar
+
+  build-frontend:
+    needs: [lint-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: portal-ui/package-lock.json
+      - name: Install and build portal-ui
+        working-directory: portal-ui
+        run: |
+          npm ci
+          npm run build
+      - name: Upload portal-ui build
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-ui-build
+          path: portal-ui/dist
+
+  test-backend:
+    needs: build-backend
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [registry-api, publisher, runtime-gateway]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Test ${{ matrix.service }}
+        run: |
+          cd ${{ matrix.service }}
+          mvn test
+      - name: Upload test results ${{ matrix.service }}
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service }}-test-results
+          path: ${{ matrix.service }}/target/surefire-reports
+
+  test-frontend:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: portal-ui/package-lock.json
+      - name: Install and test portal-ui
+        working-directory: portal-ui
+        run: |
+          npm ci
+          npm run test

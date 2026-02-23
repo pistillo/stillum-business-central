@@ -1,0 +1,36 @@
+# Environment
+.env
+.env.local
+.env.*.local
+*.log
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+target/
+build/
+documents/build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Misc
+*.bak
+*.tmp
