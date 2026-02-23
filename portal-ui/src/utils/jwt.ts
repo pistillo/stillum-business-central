@@ -33,8 +33,12 @@ export function extractTenantIdsFromJwt(payload: JwtPayload): string[] {
   for (const g of groups) {
     const m1 = /^tenant:(.+)$/i.exec(g);
     if (m1?.[1]) candidates.push(m1[1]);
-    const m2 = /^tenant\/(.+)$/i.exec(g);
+    // Keycloak group path può essere "tenant/UUID" o "/tenant/UUID"
+    const m2 = /^\/?tenant\/(.+)$/i.exec(g);
     if (m2?.[1]) candidates.push(m2[1]);
+    // Keycloak path come "/UUID" quando il group name è l'UUID
+    const trimmed = g.replace(/^\//, '');
+    if (isUuid(trimmed)) candidates.push(trimmed);
   }
 
   return uniq(candidates).filter((x) => isUuid(x));

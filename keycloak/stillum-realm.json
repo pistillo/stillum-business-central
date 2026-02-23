@@ -4,6 +4,16 @@
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
+  "groups": [
+    {
+      "name": "00000000-0000-0000-0000-000000000001",
+      "path": "/00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "00000000-0000-0000-0000-000000000002",
+      "path": "/00000000-0000-0000-0000-000000000002"
+    }
+  ],
   "clients": [
     {
       "clientId": "portal-ui",
@@ -11,6 +21,8 @@
       "enabled": true,
       "publicClient": true,
       "protocol": "openid-connect",
+      "rootUrl": "http://localhost:5173",
+      "baseUrl": "/",
       "redirectUris": [
         "http://localhost:5173/oidc/callback",
         "http://localhost:3000/oidc/callback",
@@ -26,7 +38,25 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "bearerOnly": false,
-      "fullScopeAllowed": true
+      "fullScopeAllowed": true,
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "id": "a1b2c3d4-0000-4000-8000-000000000001",
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "true",
+            "claim.name": "groups",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "users": [
@@ -36,6 +66,10 @@
       "email": "developer@stillum.local",
       "firstName": "Dev",
       "lastName": "User",
+      "groups": [
+        "/00000000-0000-0000-0000-000000000001",
+        "/00000000-0000-0000-0000-000000000002"
+      ],
       "credentials": [
         {
           "type": "password",

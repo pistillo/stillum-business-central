@@ -15,7 +15,14 @@ export function OidcCallbackPage() {
     state.userManager
       .signinRedirectCallback()
       .then(() => navigate('/select-tenant', { replace: true }))
-      .catch((e) => setError(e instanceof Error ? e.message : 'OIDC callback error'));
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        const extra =
+          typeof e === 'object' && e !== null && 'response' in e
+            ? JSON.stringify((e as { response?: unknown }).response, null, 2)
+            : '';
+        setError(extra ? `${msg}\n\nRisposta server:\n${extra}` : msg);
+      });
   }, [state, navigate]);
 
   if (error) {
