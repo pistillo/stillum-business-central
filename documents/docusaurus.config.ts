@@ -13,13 +13,16 @@ const config: Config = {
   projectName: 'business-central',
 
   onBrokenLinks: 'warn',
+  onBrokenAnchors: 'warn',
+
+  // Modalità nativa Mermaid: blocchi ```mermaid renderizzati dal theme (bundle)
+  themes: ['@docusaurus/theme-mermaid'],
   markdown: {
     mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
   },
-  onBrokenAnchors: 'warn',
 
   i18n: {
     defaultLocale: 'it',
@@ -34,6 +37,7 @@ const config: Config = {
           sidebarPath: './sidebars.js',
           editUrl:
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          remarkPlugins: [[require('./plugins/remark-plantuml.js'), {}]],
         },
         blog: false,
         theme: {
@@ -51,7 +55,7 @@ const config: Config = {
       title: 'Stillum Business Central',
       logo: {
         alt: 'Stillum Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
         {
@@ -74,6 +78,9 @@ const config: Config = {
     },
     prism: {
       additionalLanguages: ['bash', 'typescript', 'javascript'],
+    },
+    mermaid: {
+      theme: { light: 'neutral', dark: 'dark' },
     },
   } satisfies Preset.ThemeConfig,
 };
