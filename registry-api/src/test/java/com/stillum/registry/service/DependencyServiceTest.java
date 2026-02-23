@@ -67,16 +67,15 @@ class DependencyServiceTest {
         avB.artifactId = artifactId;
         avB.state = VersionState.DRAFT;
         when(versionRepo.findByIdOptional(versionB)).thenReturn(Optional.of(avB));
-        when(versionRepo.findByIdOptional(versionC)).thenReturn(Optional.of(avB));
 
         when(depRepo.findByVersionAndDependsOn(any(), any())).thenReturn(Optional.empty());
-        doNothing().when(depRepo).persist(any(Dependency.class));
     }
 
     @Test
     void addDependency_noCycle_succeeds() {
         // A→B: no cycle
         when(depRepo.listAll()).thenReturn(List.of());
+        doNothing().when(depRepo).persist(any(Dependency.class));
 
         AddDependencyRequest req = new AddDependencyRequest(artifactId, versionB);
         var result = service.add(tenantId, artifactId, versionA, req);
