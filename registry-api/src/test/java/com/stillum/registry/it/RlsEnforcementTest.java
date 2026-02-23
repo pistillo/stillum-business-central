@@ -1,4 +1,4 @@
-package test.java.com.stillum.registry.it;
+package com.stillum.registry.it;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -33,6 +33,8 @@ class RlsEnforcementTest {
             .extract().path("id");
 
         UUID id = UUID.fromString(artifactId);
+
+        em.createNativeQuery("SET LOCAL ROLE stillum_app").executeUpdate();
 
         em.createNativeQuery("SELECT set_config('app.current_tenant', :tid, true)")
             .setParameter("tid", TENANT_A.toString())
