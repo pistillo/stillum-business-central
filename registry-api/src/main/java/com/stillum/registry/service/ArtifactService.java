@@ -52,7 +52,7 @@ public class ArtifactService {
                 .stream()
                 .map(ArtifactResponse::from)
                 .toList();
-        long total = repo.countByTenant(tenantId, type, status, area);
+        long total = repo.countByTenant(tenantId, type, status, area, tag);
         return PagedResponse.of(items, page, pageSize, total);
     }
 

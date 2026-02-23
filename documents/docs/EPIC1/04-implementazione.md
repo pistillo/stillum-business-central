@@ -48,6 +48,9 @@ Le risorse sono montate sotto:
 - Storage payload:
   - `GET /api/tenants/{tenantId}/storage/upload-url`
   - `GET /api/tenants/{tenantId}/storage/download-url`
+- Storage bundle:
+  - `GET /api/tenants/{tenantId}/storage/bundle-upload-url`
+  - `GET /api/tenants/{tenantId}/storage/bundle-download-url`
 
 ---
 

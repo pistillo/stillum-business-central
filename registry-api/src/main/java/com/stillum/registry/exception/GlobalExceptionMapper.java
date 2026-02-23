@@ -24,8 +24,14 @@ public class GlobalExceptionMapper implements ExceptionMapper<RuntimeException> 
         if (ex instanceof DependencyCycleException) {
             return error(Response.Status.CONFLICT, ex.getMessage());
         }
+        if (ex instanceof ObjectAlreadyExistsException) {
+            return error(Response.Status.CONFLICT, ex.getMessage());
+        }
         if (ex instanceof IllegalArgumentException) {
             return error(Response.Status.BAD_REQUEST, ex.getMessage());
+        }
+        if (ex instanceof ObjectNotFoundException) {
+            return error(Response.Status.NOT_FOUND, ex.getMessage());
         }
         return error(Response.Status.INTERNAL_SERVER_ERROR, "Internal server error");
     }

@@ -110,7 +110,7 @@ sidebar_label: Stato EPIC 1
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-1.3.2.1–T-1.3.2.4 | 🔴 | Mancanti: upload/download bundle, immutabilità no-overwrite, test (helper path `bundleKey()` già presente) |
+| T-1.3.2.1–T-1.3.2.4 |  | Aggiunte API presigned bundle (upload/download) con controllo no-overwrite e test dedicati; resta da collegare al flusso publish (creazione zip + upload) |
 
 ---
 
