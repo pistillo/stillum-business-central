@@ -96,4 +96,3 @@ CREATE TABLE audit_log (
     timestamp   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     details     JSONB
 );
-

@@ -85,7 +85,7 @@ jobs:
           name: portal-ui-build
           path: portal-ui/dist
 
-  # registry-api: test con Dev Services (PostgreSQL + S3 via Testcontainers)
+  # registry-api: test con servizi esterni (PostgreSQL + MinIO via docker-compose)
   # Deve girare prima degli altri backend perché applica le migrazioni Flyway
   test-registry-api:
     needs: build-backend
@@ -97,12 +97,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-      - name: Test registry-api (with Dev Services)
+      - name: Start postgres + minio
+        run: |
+          docker compose up -d postgres minio minio-init
+          docker compose ps
+      - name: Test registry-api
         working-directory: registry-api
         run: mvn test
-        env:
-          # Quarkus Dev Services usa Docker del runner (disponibile su ubuntu-latest)
-          TESTCONTAINERS_RYUK_DISABLED: 'true'
       - name: Upload test results registry-api
         if: always()
         uses: actions/upload-artifact@v4
@@ -124,6 +125,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+      - name: Start postgres + minio
+        if: matrix.service == 'publisher'
+        run: |
+          docker compose up -d postgres minio minio-init
+          docker compose ps
       - name: Test ${{ matrix.service }}
         run: |
           cd ${{ matrix.service }}

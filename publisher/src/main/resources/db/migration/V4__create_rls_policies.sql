@@ -59,3 +59,6 @@ CREATE POLICY rls_app_user ON app_user
 CREATE POLICY rls_role ON role
     USING (tenant_id = current_setting('app.current_tenant', true)::UUID);
 
+-- Nota: il superuser (stillum) bypasssa RLS per default.
+-- L'utente applicativo (stillum) DEVE usare SET app.current_tenant prima di ogni query.
+-- Il filtraggio JPQL nei repository è il meccanismo primario; RLS è defense-in-depth.

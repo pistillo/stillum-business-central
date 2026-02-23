@@ -18,6 +18,9 @@ public class GlobalExceptionMapper implements ExceptionMapper<RuntimeException> 
         if (ex instanceof ArtifactNotFoundException) {
             return error(Response.Status.NOT_FOUND, ex.getMessage());
         }
+        if (ex instanceof EnvironmentNotFoundException) {
+            return error(Response.Status.NOT_FOUND, ex.getMessage());
+        }
         if (ex instanceof ImmutableVersionException) {
             return error(Response.Status.CONFLICT, ex.getMessage());
         }
