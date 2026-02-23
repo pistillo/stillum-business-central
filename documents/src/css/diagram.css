@@ -16,8 +16,7 @@ html[data-theme='dark'] .mermaid svg ellipse {
   stroke: var(--ifm-color-emphasis-400) !important;
 }
 
-html[data-theme='dark'] .mermaid svg text,
-html[data-theme='dark'] .mermaid svg [fill] {
+html[data-theme='dark'] .mermaid svg text {
   fill: var(--ifm-font-color-base) !important;
 }
 
