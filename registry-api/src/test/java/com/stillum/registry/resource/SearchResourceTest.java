@@ -2,6 +2,7 @@ package com.stillum.registry.resource;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -23,11 +24,12 @@ class SearchResourceTest {
 
     @Test
     void search_byQuery_returnsFtsMatches() {
+        String tag = uniqueTag("srt_fts");
         createArtifact("PROCESS", "SRT_FTS_Invoice Processing Workflow",
-                "automated invoice handling and approval", "Finance", "srt_fts");
+                "automated invoice handling and approval", "Finance", tag);
 
         createArtifact("RULE", "SRT_FTS_Employee Leave Policy",
-                "rules for leave management", "HR", "srt_fts");
+                "rules for leave management", "HR", tag);
 
         given()
             .queryParam("q", "invoice")
@@ -41,32 +43,35 @@ class SearchResourceTest {
 
     @Test
     void search_byTag_returnsTaggedArtifacts() {
+        String tagFinance = uniqueTag("srt_tag_finance");
         createArtifact("PROCESS", "SRT_Tag_Finance Process",
-                null, null, "srt_tag_finance", "automation");
+                null, null, tagFinance, "automation");
 
+        String tagHr = uniqueTag("srt_tag_hr");
         createArtifact("RULE", "SRT_Tag_HR Rule",
-                null, null, "srt_tag_hr");
+                null, null, tagHr);
 
         given()
-            .queryParam("tag", "srt_tag_finance")
+            .queryParam("tag", tagFinance)
         .when()
             .get(SEARCH_PATH)
         .then()
             .statusCode(200)
             .body("items", not(empty()))
-            .body("items.tags", everyItem(hasItem("srt_tag_finance")));
+            .body("items.tags", everyItem(hasItem(tagFinance)));
     }
 
     @Test
     void search_byType_returnsFiltered() {
+        String tag = uniqueTag("srt_type");
         createArtifact("FORM", "SRT_Type_Registration Form",
-                null, null, "srt_type");
+                null, null, tag);
 
         createArtifact("RULE", "SRT_Type_Validation Rule",
-                null, null, "srt_type");
+                null, null, tag);
 
         given()
-            .queryParam("tag", "srt_type")
+            .queryParam("tag", tag)
             .queryParam("type", "FORM")
         .when()
             .get(SEARCH_PATH)
@@ -78,11 +83,12 @@ class SearchResourceTest {
 
     @Test
     void search_byStatus_returnsFiltered() {
+        String tag = uniqueTag("srt_status");
         createArtifact("PROCESS", "SRT_Status_Draft Process",
-                null, null, "srt_status");
+                null, null, tag);
 
         given()
-            .queryParam("tag", "srt_status")
+            .queryParam("tag", tag)
             .queryParam("status", "DRAFT")
         .when()
             .get(SEARCH_PATH)
@@ -92,7 +98,7 @@ class SearchResourceTest {
             .body("items.status", everyItem(is("DRAFT")));
 
         given()
-            .queryParam("tag", "srt_status")
+            .queryParam("tag", tag)
             .queryParam("status", "PUBLISHED")
         .when()
             .get(SEARCH_PATH)
@@ -104,19 +110,20 @@ class SearchResourceTest {
 
     @Test
     void search_combinedFilters_returnsIntersection() {
+        String tag = uniqueTag("srt_combined_compliance");
         createArtifact("PROCESS", "SRT_Combined_Compliance Process Alpha",
-                "compliance workflow", "Legal", "srt_combined_compliance");
+                "compliance workflow", "Legal", tag);
 
         createArtifact("RULE", "SRT_Combined_Compliance Rule Beta",
-                "compliance rule", "Legal", "srt_combined_compliance");
+                "compliance rule", "Legal", tag);
 
         createArtifact("PROCESS", "SRT_Combined_HR Process Gamma",
-                "hr workflow", "HR", "srt_combined_hr");
+                "hr workflow", "HR", uniqueTag("srt_combined_hr"));
 
         given()
             .queryParam("q", "compliance")
             .queryParam("type", "PROCESS")
-            .queryParam("tag", "srt_combined_compliance")
+            .queryParam("tag", tag)
         .when()
             .get(SEARCH_PATH)
         .then()
@@ -139,13 +146,14 @@ class SearchResourceTest {
 
     @Test
     void search_pagination_works() {
+        String tag = uniqueTag("srt_pagination");
         for (int i = 1; i <= 3; i++) {
             createArtifact("PROCESS", "SRT_Pag_Process " + i,
-                    null, null, "srt_pagination");
+                    null, null, tag);
         }
 
         given()
-            .queryParam("tag", "srt_pagination")
+            .queryParam("tag", tag)
             .queryParam("page", 0)
             .queryParam("size", 2)
         .when()
@@ -158,7 +166,7 @@ class SearchResourceTest {
             .body("total", is(3));
 
         given()
-            .queryParam("tag", "srt_pagination")
+            .queryParam("tag", tag)
             .queryParam("page", 1)
             .queryParam("size", 2)
         .when()
@@ -183,18 +191,23 @@ class SearchResourceTest {
 
     @Test
     void search_tenantIsolation_otherTenantNotVisible() {
+        String tag = uniqueTag("srt_isolation");
         createArtifact("PROCESS", "SRT_Isolation_Secret Process",
-                null, null, "srt_isolation");
+                null, null, tag);
 
         String searchPathB = "/api/tenants/" + TENANT_B + "/search/artifacts";
         given()
-            .queryParam("tag", "srt_isolation")
+            .queryParam("tag", tag)
         .when()
             .get(searchPathB)
         .then()
             .statusCode(200)
             .body("items", empty())
             .body("total", is(0));
+    }
+
+    private static String uniqueTag(String base) {
+        return base + "_" + UUID.randomUUID();
     }
 
     private String createArtifact(String type, String title, String description,
