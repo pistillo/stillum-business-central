@@ -21,6 +21,17 @@ module.exports = {
         },
         {
           type: 'category',
+          label: 'EPIC 1 – MVP Backend',
+          items: [
+            'EPIC1/epic1-stato',
+            'EPIC1/epic1-obiettivo',
+            'EPIC1/epic1-requisiti',
+            'EPIC1/epic1-modello-dati',
+            'EPIC1/epic1-implementazione',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Fase 1',
           items: [
             'phase1-overview',

@@ -46,6 +46,35 @@ Servizio REST per:
 - Generazione bundle zip con manifest + hash e upload su MinIO/S3.
 - Persistenza `Publication` e scrittura `AuditLog` (successo/fallimento).
 
+### Vista d'insieme dei flussi (EPIC 1)
+
+```mermaid
+flowchart LR
+  subgraph registry [registry-api]
+    CRUD[CRUD Artifacts/Versions]
+    Dep[Dependencies]
+    Search[Search]
+    Presign[Presigned URLs]
+  end
+  subgraph pub [publisher]
+    Publish[POST Publish]
+    Validate[Validate BPMN/DMN/Forms]
+    Bundle[Build and Upload Bundle]
+    Audit[Audit Log]
+  end
+  DB[(PostgreSQL)]
+  S3[(MinIO/S3)]
+  CRUD --> DB
+  Dep --> DB
+  Search --> DB
+  Presign --> S3
+  Publish --> DB
+  Publish --> Validate
+  Publish --> Bundle
+  Bundle --> S3
+  Audit --> DB
+```
+
 ---
 
 ## Deliverable della Fase 1
