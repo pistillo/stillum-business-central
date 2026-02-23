@@ -5,6 +5,7 @@ import com.stillum.registry.dto.response.DependencyResponse;
 import com.stillum.registry.entity.Dependency;
 import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.exception.DependencyCycleException;
+import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
 import com.stillum.registry.repository.DependencyRepository;
@@ -20,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
+@EnforceTenantRls
 public class DependencyService {
 
     @Inject
@@ -31,6 +33,7 @@ public class DependencyService {
     @Inject
     ArtifactRepository artifactRepo;
 
+    @Transactional
     public List<DependencyResponse> list(UUID tenantId, UUID artifactId, UUID versionId) {
         artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
