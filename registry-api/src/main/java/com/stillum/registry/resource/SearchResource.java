@@ -30,10 +30,11 @@ public class SearchResource {
             @QueryParam("type") ArtifactType type,
             @QueryParam("status") ArtifactStatus status,
             @QueryParam("area") String area,
+            @QueryParam("tag") String tag,
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
         PagedResponse<ArtifactResponse> resp =
-                service.search(tenantId, query, type, status, area, page, size);
+                service.search(tenantId, query, type, status, area, tag, page, size);
         return Response.ok(resp).build();
     }
 }
