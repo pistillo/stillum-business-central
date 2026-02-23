@@ -99,12 +99,13 @@ stillum-business-central/
   registry-api/     # API artefatti e versioni (Java/Quarkus)
   publisher/        # servizio di pubblicazione (Java/Quarkus)
   runtime-gateway/  # interfaccia con Temporal (Java)
-  docs/             # documentazione Docusaurus
+  documents/        # documentazione Docusaurus (sito in documents/, non docs/)
   charts/           # Helm chart stillum-platform
-  .github/workflows # CI (ci.yml, docker.yml, helm.yml)
+  .github/workflows # CI (ci.yml, ecc.)
+  ci/               # opzionale: script/config condivisi
 ```
 
-La cartella `/ci` è opzionale; la CI è gestita da GitHub Actions.
+La cartella della documentazione è **documents/** (Docusaurus). La CI è gestita da GitHub Actions.
 
 ## Pipeline CI di base
 

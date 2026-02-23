@@ -1,0 +1,10 @@
+apiVersion: v2
+name: stillum-platform
+description: Stillum Business Portal – deploy su Kubernetes
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+keywords:
+  - stillum
+  - portal
+maintainers: []

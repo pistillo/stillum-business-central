@@ -1,0 +1,18 @@
+{
+  "name": "stillum-business-central",
+  "private": true,
+  "description": "Stillum Business Portal – monorepo root",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "portal-ui/**/*.{ts,tsx,js,jsx,json,css}": [
+      "bash -c 'cd portal-ui && npm run lint'",
+      "npx prettier --write"
+    ]
+  }
+}

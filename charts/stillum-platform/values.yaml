@@ -1,0 +1,33 @@
+# Stillum Business Portal – valori default
+# Override in values-dev.yaml / values-prod.yaml
+
+global:
+  imageRegistry: ""
+
+portalUi:
+  replicaCount: 1
+  image:
+    repository: portal-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+
+registryApi:
+  replicaCount: 1
+  image:
+    repository: registry-api
+    tag: latest
+    pullPolicy: IfNotPresent
+
+publisher:
+  replicaCount: 1
+  image:
+    repository: publisher
+    tag: latest
+    pullPolicy: IfNotPresent
+
+runtimeGateway:
+  replicaCount: 1
+  image:
+    repository: runtime-gateway
+    tag: latest
+    pullPolicy: IfNotPresent

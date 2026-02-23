@@ -1,0 +1,2 @@
+Stillum Business Portal – chart stillum-platform (scaffold EPIC 0.3).
+I manifest di deploy (Deployment, Service, Ingress) saranno aggiunti in EPIC 1+.

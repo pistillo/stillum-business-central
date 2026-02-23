@@ -8,9 +8,9 @@ sidebar_label: Stato EPIC 0
 
 **Obiettivo dell'EPIC:** Preparare requisiti, modello dati, stack tecnologico e infrastruttura di sviluppo.
 
-**Contesto di questo branch:** In questo repository è presente **solo la documentazione**. Il codice (portal-ui, registry-api, publisher, runtime-gateway), l'infrastruttura (Docker Compose, Helm, CI) e gli script sono stati rimossi; restano i deliverable documentali dell'EPIC 0.
+**Contesto:** Sui branch che includono l'infrastruttura (es. `feature/epic0-infra` o `main` dopo il merge) sono presenti struttura repo, Docker Compose, CI, linter e pre-commit. Sul branch **docs-only** è presente solo la documentazione.
 
-**Stato complessivo:** **Completato sul piano documentale** — Requisiti, modello dati, stack tecnologico e guida all'ambiente di sviluppo sono documentati in questa cartella. L'implementazione del codice e dell'infrastruttura (quando presente) è descritta nelle guide; in questo branch non è presente codice da verificare.
+**Stato complessivo:** **Completato** — Requisiti, modello dati e stack sono documentati; l'infrastruttura di sviluppo (FEATURE 0.3) è implementata sul branch `feature/epic0-infra` (struttura, Docker, CI, Husky, Checkstyle).
 
 ---
 
@@ -20,7 +20,7 @@ sidebar_label: Stato EPIC 0
 |--------|--------|------|
 | **0.1** Analisi Requisiti e Modellazione del Dominio | ✅ Completato | Requisiti e modello dati documentati in questa cartella |
 | **0.2** Scelta dello Stack Tecnologico | ✅ Completato | Stack documentato (Java/Spring, React, PostgreSQL, MinIO, Temporal) |
-| **0.3** Infrastruttura di Sviluppo | 📄 Documentato | Struttura repo, Docker Compose, Helm e CI sono descritte nelle guide; in questo branch non è presente codice né infrastruttura |
+| **0.3** Infrastruttura di Sviluppo | ✅ Completato | Struttura repo, Docker Compose, Helm chart minimale, CI (ci.yml), ESLint/Prettier, Checkstyle, Husky; k3s/Keycloak solo documentati |
 
 ---
 
@@ -58,54 +58,54 @@ sidebar_label: Stato EPIC 0
 
 ### FEATURE 0.3 – Infrastruttura di Sviluppo
 
-In questo branch **non è presente codice né infrastruttura**. I task sotto sono considerati soddisfatti dalla **documentazione** che descrive come allestire ambiente, struttura repo e CI.
+Implementata sul branch **feature/epic0-infra** (e su main dopo il merge). k3s e Keycloak restano documentati; ambiente locale via Docker Compose.
 
 #### US-0.3.1 – Setup del cluster Kubernetes
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-0.3.1.1 | 📄 | k3s e Docker Compose descritti in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
+| T-0.3.1.1 | 📄 | k3s documentato in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo); Docker Compose in repo |
 | T-0.3.1.2 | 📄 | Namespace e Helm in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.1.3 | 📄 | PostgreSQL in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.1.4 | 📄 | MinIO in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.1.5 | 📄 | Temporal in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
+| T-0.3.1.3 | ✅ | PostgreSQL in `docker-compose.yml` e [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
+| T-0.3.1.4 | ✅ | MinIO in `docker-compose.yml`, bucket init (stillum-bundles, stillum-artifacts) |
+| T-0.3.1.5 | ✅ | Temporal in `docker-compose.yml` con persistence PostgreSQL |
 | T-0.3.1.6 | 📄 | Keycloak (opzionale) in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.1.7 | 📄 | Connettività e healthcheck descritti in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
+| T-0.3.1.7 | ✅ | Rete e healthcheck in `docker-compose.yml` |
 
 #### US-0.3.2 – Struttura del repository e standard di codice
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-0.3.2.1 | 📄 | Struttura repo (portal-ui, registry-api, publisher, runtime-gateway, docs, charts) in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) — non presente in questo branch |
-| T-0.3.2.2 | 📄 | ESLint e Prettier descritti in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.2.3 | 📄 | Linter backend e EditorConfig in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.2.4 | 📄 | Pre-commit (Husky) menzionato come azione consigliata in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.2.5 | 📄 | .editorconfig, .gitignore, README descritti in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) — in questo branch: solo `documents/`, .gitignore, README |
+| T-0.3.2.1 | ✅ | `portal-ui/`, `registry-api/`, `publisher/`, `runtime-gateway/`, `documents/`, `charts/`, `ci/` |
+| T-0.3.2.2 | ✅ | ESLint + Prettier in `portal-ui/` |
+| T-0.3.2.3 | ✅ | Checkstyle (Maven) in registry-api, publisher, runtime-gateway; `.editorconfig` root |
+| T-0.3.2.4 | ✅ | Husky + lint-staged alla root (`.husky/pre-commit`) |
+| T-0.3.2.5 | ✅ | `.editorconfig`, `.gitignore`, `README.md` alla root |
 
 #### US-0.3.3 – Pipeline CI iniziale
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-0.3.3.1 | 📄 | Lint e trigger CI descritti in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) — workflow non presenti in questo branch |
-| T-0.3.3.2 | 📄 | Build backend documentata in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.3.3 | 📄 | Test unitari documentati in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.3.4 | 📄 | Step migrazioni DB indicato come azione consigliata in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-| T-0.3.3.5 | 📄 | Build frontend documentata in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
-
-**Legenda:** 📄 = documentato (guida presente); in questo branch non è presente codice/infra da eseguire.
+| T-0.3.3.1 | ✅ | `.github/workflows/ci.yml`: lint frontend e backend (Checkstyle) su push/PR |
+| T-0.3.3.2 | ✅ | Build backend (matrix registry-api, publisher, runtime-gateway) |
+| T-0.3.3.3 | ✅ | Test unitari backend e frontend; upload artefatti |
+| T-0.3.3.4 | 📄 | Step migrazioni DB da aggiungere con Flyway in EPIC 1 |
+| T-0.3.3.5 | ✅ | Build frontend in CI |
 
 ---
 
-## Deliverable prodotti (in questo branch)
+## Deliverable prodotti
 
-| Deliverable | Documento |
-|-------------|-----------|
+| Deliverable | Documento / percorso |
+|-------------|----------------------|
 | Requisiti | [Requisiti](epic0-requisiti) |
 | Modello dati | [Modello dati](epic0-modello-dati) |
 | Stack tecnologico | [Stack tecnologico](epic0-stack-tecnologico) |
 | Ambiente di sviluppo | [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
 | Obiettivo e deliverable | [Obiettivo e deliverable](epic0-obiettivo) |
-| Struttura repository | Descritta in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo); in questo branch è presente solo la cartella `documents/` |
+| Struttura repository | `portal-ui/`, `registry-api/`, `publisher/`, `runtime-gateway/`, `documents/`, `charts/`, `ci/` |
+| Ambiente locale | `docker-compose.yml`, `scripts/init-db.sql` |
+| Pipeline CI | `.github/workflows/ci.yml` |
 
 ---
 
