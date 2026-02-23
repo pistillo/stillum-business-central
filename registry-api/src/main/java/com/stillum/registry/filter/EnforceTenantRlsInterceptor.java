@@ -1,4 +1,4 @@
-package main.java.com.stillum.registry.filter;
+package com.stillum.registry.filter;
 
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -21,4 +21,3 @@ public class EnforceTenantRlsInterceptor {
         return ctx.proceed();
     }
 }
-

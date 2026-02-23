@@ -1,4 +1,4 @@
-package main.java.com.stillum.registry.filter;
+package com.stillum.registry.filter;
 
 import jakarta.interceptor.InterceptorBinding;
 import java.lang.annotation.ElementType;
@@ -11,4 +11,3 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EnforceTenantRls {
 }
-
