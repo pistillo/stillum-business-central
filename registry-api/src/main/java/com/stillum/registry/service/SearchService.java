@@ -5,20 +5,23 @@ import com.stillum.registry.dto.response.PagedResponse;
 import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
+import com.stillum.registry.filter.EnforceTenantRls;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import java.util.ArrayList;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
+@EnforceTenantRls
 public class SearchService {
 
     @Inject
     EntityManager em;
 
+    @Transactional
     public PagedResponse<ArtifactResponse> search(
             UUID tenantId,
             String query,
@@ -29,7 +32,6 @@ public class SearchService {
             int pageSize) {
         StringBuilder jpql = new StringBuilder(
             "SELECT a FROM Artifact a WHERE a.tenantId = :tid");
-        List<Object[]> conditions = new ArrayList<>();
 
         if (query != null && !query.isBlank()) {
             jpql.append(

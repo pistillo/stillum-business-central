@@ -8,6 +8,7 @@ import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
 import com.stillum.registry.exception.ArtifactNotFoundException;
+import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
+@EnforceTenantRls
 public class ArtifactService {
 
     @Inject
@@ -37,6 +39,7 @@ public class ArtifactService {
         return ArtifactResponse.from(artifact);
     }
 
+    @Transactional
     public PagedResponse<ArtifactResponse> list(
             UUID tenantId,
             ArtifactType type,
@@ -53,6 +56,7 @@ public class ArtifactService {
         return PagedResponse.of(items, page, pageSize, total);
     }
 
+    @Transactional
     public ArtifactResponse getById(UUID tenantId, UUID artifactId) {
         return repo.findByIdAndTenant(artifactId, tenantId)
                 .map(ArtifactResponse::from)

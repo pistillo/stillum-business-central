@@ -8,6 +8,7 @@ import com.stillum.registry.entity.ArtifactVersion;
 import com.stillum.registry.entity.enums.VersionState;
 import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.exception.ImmutableVersionException;
+import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
+@EnforceTenantRls
 public class ArtifactVersionService {
 
     @Inject
@@ -45,6 +47,7 @@ public class ArtifactVersionService {
         return ArtifactVersionResponse.from(v);
     }
 
+    @Transactional
     public List<ArtifactVersionResponse> listByArtifact(UUID tenantId, UUID artifactId) {
         artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
@@ -54,6 +57,7 @@ public class ArtifactVersionService {
                 .toList();
     }
 
+    @Transactional
     public ArtifactVersionResponse getById(UUID tenantId, UUID artifactId, UUID versionId) {
         artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
