@@ -20,7 +20,7 @@ sidebar_label: Stato EPIC 1
 |--------|--------|------|
 | **1.1** Registry API | 🟡 Parziale | CRUD artefatti/versioni, dipendenze, search e presigned payload presenti; mancano alcune parti (es. search full-text reale, filtro tag completo, environment API) |
 | **1.2** Publisher Service | 🟡 Parziale | Endpoint publish/get presenti; validazione payload base (XML/JSON), check dipendenze Published, creazione bundle zip + upload su S3, persistenza Publication e AuditLog |
-| **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; presigned bundle con no-overwrite presente; resta creazione bundle (Publisher) |
+| **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; presigned bundle con no-overwrite presente; integrazione bundle nel publish completata lato Publisher |
 | **1.4** Database multi-tenant (RLS) | 🟢 Completa (per registry-api) | Migrazioni, indici e RLS presenti; enforcement sistematico (`set_config` per transazione) + hardening `FORCE ROW LEVEL SECURITY` + test che verifica RLS a livello DB |
 
 ---
@@ -68,7 +68,7 @@ sidebar_label: Stato EPIC 1
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-1.1.4.1 | 🟡 | Endpoint `/api/tenants/{tenantId}/search/artifacts` presente; da verificare uso reale full-text Postgres |
+| T-1.1.4.1 | 🟡 | Endpoint `/api/tenants/{tenantId}/search/artifacts` presente; strategia full-text da valutare (Postgres vs motore dedicato) |
 | T-1.1.4.2 | 🟡 | Filtri base presenti; `tag` non risulta supportato sull’endpoint search |
 | T-1.1.4.3 | ✅ | Indici GIN tags + FTS in `V3__create_indexes.sql` |
 | T-1.1.4.4 | 🔴 | Test specifici search non presenti |
@@ -115,7 +115,7 @@ sidebar_label: Stato EPIC 1
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-1.3.2.1–T-1.3.2.4 | 🟡 | Presigned upload/download bundle + no-overwrite + test presenti; resta integrazione col flusso publish (creazione zip + upload) |
+| T-1.3.2.1–T-1.3.2.4 | ✅ | Bundle implementato nel flusso publish (zip + manifest + upload su S3) e non sovrascrivibile |
 
 ---
 
@@ -150,5 +150,6 @@ sidebar_label: Stato EPIC 1
 
 1. Completare Publisher: endpoint publish, validazioni, bundle+upload, persistenza `Publication` e scrittura `AuditLog`.
 2. Collegare lo Storage bundle al flusso publish (creazione zip + upload).
-3. Allineare search all’indice full-text (Postgres) e completare filtri/tag e test.
-4. Completare i task rimanenti Registry (filtro `tag` in list/search, immutabilità `published` con test dedicati, environment API se necessaria al publish).
+3. Consolidare le validazioni payload riusando quanto già presente nel progetto Editors (non ancora importato in questo repo) e allineare error reporting.
+4. Posticipare la decisione “full-text reale”: valutare Postgres FTS vs ElasticSearch/OpenSearch vs approcci multidimensionali/vettoriali prima di cambiare SearchService.
+5. Completare i task rimanenti Registry (tag in search, test search, environment API se necessaria al publish).

@@ -136,6 +136,14 @@ Il servizio `publisher/` implementa il flusso MVP di pubblicazione e gestisce la
 8. Scrittura audit su transazione separata:
    - `PUBLISH_SUCCESS` o `PUBLISH_FAILURE`
 
+### Validazioni payload
+
+- Stato attuale (MVP): validazione sintattica (XML well-formed con hardening XXE, JSON parse).
+- Prossimo step: integrare/riusare le validazioni già implementate nel progetto Editors (non ancora incluso in questo repo) per ottenere:
+  - validazioni BPMN/DMN più specifiche,
+  - JSON Schema per form/request,
+  - messaggi errore coerenti con l’esperienza editor.
+
 ---
 
 ## CI e sviluppo locale

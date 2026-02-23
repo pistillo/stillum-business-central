@@ -49,6 +49,7 @@ Questo documento esplicita i requisiti funzionali e non-funzionali necessari a c
 - Ricerca full-text su titolo/descrizione con filtri e paginazione:
   - `GET /tenants/{tenantId}/search/artifacts?q=...`
 - Filtri richiesti: type, status, tag, area.
+  - Nota: la scelta della tecnologia per la ricerca full-text è in valutazione (Postgres FTS vs motore dedicato come Elastic/OpenSearch, e/o approcci multidimensionali/vettoriali). In EPIC 1 è accettabile mantenere una ricerca “baseline” e posticipare la decisione definitiva.
 
 ### Storage (payload)
 
@@ -64,6 +65,7 @@ Questo documento esplicita i requisiti funzionali e non-funzionali necessari a c
 - Flusso:
   1. Caricamento metadati artefatto + versione.
   2. Validazione payload (BPMN/DMN/Forms/Request).
+     - Nota: in EPIC 1 è accettabile una validazione MVP (XML/JSON sintattici). Le validazioni semantiche e/o basate su schema vanno allineate con quelle del progetto Editors (non ancora importato qui).
   3. Verifica dipendenze: tutte devono essere `Published`.
   4. Creazione bundle zip (payload + manifest con hash).
   5. Upload bundle su storage, percorso includa tenant:
