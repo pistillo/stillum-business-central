@@ -18,7 +18,7 @@ sidebar_label: Stato EPIC 2
 
 | FEATURE | Stato | Note |
 |--------|--------|------|
-| **2.1** Autenticazione e Selezione Tenant | 🟡 Parziale | OIDC + tenant selection presenti; estrazione tenant dal token è “tollerante” su alcuni claim/pattern; Keycloak client config non documentato qui |
+| **2.1** Autenticazione e Selezione Tenant | ✅ Completato | OIDC + tenant selection + claim `tenantIds` Keycloak + test unitari completi |
 | **2.2** Dashboard | 🟡 Parziale | Home v0 con quick links; mancano “mie bozze” e “ultime pubblicazioni” |
 | **2.3** Catalogo Artefatti | 🟡 Parziale | Lista paginata con filtri type/status/area/tag; full-text posticipata |
 | **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 è textarea con load/save; mancano embed BPMN/DMN/forms e auto-save |
@@ -31,6 +31,8 @@ sidebar_label: Stato EPIC 2
 
 ### FEATURE 2.1 – Autenticazione e Selezione Tenant
 
+**Stato (worktree):** ✅ Completato (100%).
+
 #### US-2.1.1 – Login con provider IAM
 
 | Task | Stato | Evidenza |
@@ -41,7 +43,7 @@ sidebar_label: Stato EPIC 2
 | T-2.1.1.4 | ✅ | Callback OIDC e gestione sessione utente |
 | T-2.1.1.5 | ✅ | Header `Authorization: Bearer` su chiamate API |
 | T-2.1.1.6 | ✅ | Route guard autenticazione |
-| T-2.1.1.7 | 🟡 | Test presenti (smoke); copertura flusso OIDC end-to-end da estendere |
+| T-2.1.1.7 | ✅ | Test unitari: jwt.ts (19 test) + TenantContext (10 test) + AuthFlow esistente |
 
 #### US-2.1.2 – Selezione tenant
 
