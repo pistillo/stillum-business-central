@@ -14,9 +14,30 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 ---
 
+## Stato attuale (worktree)
+
+Riferimento sintetico rispetto all’implementazione presente nel repository.
+
+| EPIC | Stato | % | Note | Evidenza |
+|------|------|---:|------|----------|
+| EPIC 0 | ✅ Completato | 90% | Deliverable documentali + Docker Compose/CI presenti; chart Helm è uno scaffold | [Stato EPIC 0](epic0-stato) |
+| EPIC 1 | ✅ Completato (MVP) | 100% | Registry API + Publisher + storage + RLS e test completi | [Stato EPIC 1](epic1-stato) |
+| EPIC 2 | 🟡 Parziale (v0) | 60% | UI v0 operativa (login/tenant/catalogo/dettaglio/editor testuale/publish form); mancano editor integrati e wizard publish | [Stato EPIC 2](epic2-stato) |
+| EPIC 3 | 🔴 Non iniziato | 0% | Workflow approvazione e ciclo di vita avanzato | |
+| EPIC 4 | 🟡 In avvio | 10% | Servizio `runtime-gateway` minimale; Temporal disponibile in docker-compose, integrazione applicativa da implementare | |
+| EPIC 5 | 🟡 In parte | 15% | Hardening multi-tenant già avviato (RLS); RBAC/ACL e onboarding tenant non implementati | |
+| EPIC 6 | 🔴 Non iniziato | 5% | Chart Helm presente come scaffold, mancano Dockerfile e chart applicativi | |
+| EPIC 7 | 🔴 Non iniziato | 0% | Export/import Git, webhook e diff versioni | |
+| EPIC 8 | 🔴 Non iniziato | 0% | Analytics, SLA e audit consultabile | |
+| EPIC 9 | 🔴 Non iniziato | 0% | Marketplace, assistente AI e plugin | |
+
+Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/api`. Nei task dove il prefisso non è esplicitato, assumere `/api`.
+
 ## EPIC 0 – Setup e Fondamenta
 
 **Obiettivo:** Preparare requisiti, modello dati, stack tecnologico e infrastruttura di sviluppo.
+
+**Stato (worktree):** ✅ Completato (90%) — deliverable documentali e infrastruttura locale/CI presenti; Kubernetes/Helm sono uno scaffold.
 
 ### FEATURE 0.1 – Analisi Requisiti e Modellazione del Dominio
 
@@ -82,9 +103,9 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-0.3.2.1 | Creare la struttura: `/portal-ui`, `/registry-api`, `/publisher`, `/runtime-gateway`, `/docs`, `/charts`, `/ci` | Repository strutturato |
+| T-0.3.2.1 | Creare la struttura: `/portal-ui`, `/registry-api`, `/publisher`, `/runtime-gateway`, `/documents`, `/charts`, `/ci` | Repository strutturato |
 | T-0.3.2.2 | Configurare ESLint + Prettier per il frontend | Config files |
-| T-0.3.2.3 | Configurare linter per il backend (golangci-lint o ktlint) | Config files |
+| T-0.3.2.3 | Configurare linter per il backend (Checkstyle per servizi Java) | Config files |
 | T-0.3.2.4 | Aggiungere pre-commit hooks (Husky o equivalente) | `.husky/` configurato |
 | T-0.3.2.5 | Creare `.editorconfig`, `.gitignore`, `README.md` iniziali | File di progetto |
 
@@ -93,10 +114,10 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-0.3.3.1 | Configurare workflow GitHub Actions per lint su ogni push/PR | `.github/workflows/lint.yml` |
+| T-0.3.3.1 | Configurare workflow GitHub Actions per lint su ogni push/PR | `.github/workflows/ci.yml` |
 | T-0.3.3.2 | Aggiungere step di build per i servizi backend | Step build nel workflow |
 | T-0.3.3.3 | Aggiungere step di test unitari con report | Step test nel workflow |
-| T-0.3.3.4 | Predisporre step per migrazioni DB in ambiente di test | Step migrazione |
+| T-0.3.3.4 | Eseguire migrazioni DB in ambiente di test (Flyway all’avvio dei test) | Step migrazione |
 | T-0.3.3.5 | Configurare step di build per il frontend (React) | Workflow frontend |
 
 ---
@@ -105,6 +126,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Realizzare i servizi di base per CRUD artefatti, pubblicazione e storage payload.
 
+**Stato (worktree):** ✅ Completato (100%) — Registry API + Publisher + storage + RLS e test completi.
+
 ### FEATURE 1.1 – Registry API
 
 #### US-1.1.1 – CRUD Artefatti
@@ -112,13 +135,13 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-1.1.1.1 | Creare lo scaffolding del progetto registry-api (Go/Java, struttura packages, config) | Progetto base |
+| T-1.1.1.1 | Creare lo scaffolding del progetto registry-api (Java/Quarkus, struttura packages, config) | Progetto base |
 | T-1.1.1.2 | Definire e applicare le migrazioni DB per le tabelle `tenant`, `artifact`, `artifact_version`, `environment`, `publication` | File migrazione SQL |
-| T-1.1.1.3 | Implementare `POST /tenants/{tenantId}/artifacts` – creazione artefatto con tipo, titolo, descrizione, tag, area | Endpoint funzionante |
-| T-1.1.1.4 | Implementare `GET /tenants/{tenantId}/artifacts` – lista artefatti con filtri (tipo, stato, tag, area) e paginazione | Endpoint funzionante |
-| T-1.1.1.5 | Implementare `GET /tenants/{tenantId}/artifacts/{artifactId}` – dettaglio artefatto con elenco versioni | Endpoint funzionante |
-| T-1.1.1.6 | Implementare `PUT /tenants/{tenantId}/artifacts/{artifactId}` – aggiornamento metadati | Endpoint funzionante |
-| T-1.1.1.7 | Implementare `DELETE /tenants/{tenantId}/artifacts/{artifactId}` – soft delete (ritiro) | Endpoint funzionante |
+| T-1.1.1.3 | Implementare `POST /api/tenants/{tenantId}/artifacts` – creazione artefatto con tipo, titolo, descrizione, tag, area | Endpoint funzionante |
+| T-1.1.1.4 | Implementare `GET /api/tenants/{tenantId}/artifacts` – lista artefatti con filtri (tipo, stato, tag, area) e paginazione | Endpoint funzionante |
+| T-1.1.1.5 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}` – dettaglio artefatto con elenco versioni | Endpoint funzionante |
+| T-1.1.1.6 | Implementare `PUT /api/tenants/{tenantId}/artifacts/{artifactId}` – aggiornamento metadati | Endpoint funzionante |
+| T-1.1.1.7 | Implementare `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}` – soft delete (ritiro) | Endpoint funzionante |
 | T-1.1.1.8 | Implementare filtro automatico per `tenantId` su tutte le query (middleware) | Middleware tenant |
 | T-1.1.1.9 | Scrivere test unitari e di integrazione per tutti gli endpoint | Suite di test |
 
@@ -127,11 +150,11 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-1.1.2.1 | Implementare `POST /tenants/{tenantId}/artifacts/{artifactId}/versions` – creazione versione in bozza con payloadRef | Endpoint |
-| T-1.1.2.2 | Implementare `GET /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – dettaglio versione | Endpoint |
-| T-1.1.2.3 | Implementare `PUT /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – aggiornamento bozza | Endpoint |
-| T-1.1.2.4 | Implementare `DELETE /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – cancellazione bozza (vietata per published) | Endpoint |
-| T-1.1.2.5 | Implementare immutabilità: impedire modifiche a versioni in stato `Published` | Logica di business |
+| T-1.1.2.1 | Implementare `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions` – creazione versione in bozza con payloadRef | Endpoint |
+| T-1.1.2.2 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – dettaglio versione | Endpoint |
+| T-1.1.2.3 | Implementare `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – aggiornamento bozza | Endpoint |
+| T-1.1.2.4 | Implementare `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – cancellazione bozza (vietata per `PUBLISHED`) | Endpoint |
+| T-1.1.2.5 | Implementare immutabilità: impedire modifiche a versioni in stato `PUBLISHED` | Logica di business |
 | T-1.1.2.6 | Scrivere test per creazione, modifica e cancellazione versioni | Suite di test |
 
 #### US-1.1.3 – Gestione Dipendenze
@@ -140,8 +163,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 | # | Task | Output |
 |---|------|--------|
 | T-1.1.3.1 | Creare tabella `dependency` (artifact_version_id, depends_on_artifact_id, depends_on_version_id) | Migrazione DB |
-| T-1.1.3.2 | Implementare `POST /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` | Endpoint |
-| T-1.1.3.3 | Implementare `GET /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` | Endpoint |
+| T-1.1.3.2 | Implementare `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` | Endpoint |
+| T-1.1.3.3 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` | Endpoint |
 | T-1.1.3.4 | Implementare logica di risoluzione del grafo delle dipendenze (con rilevamento cicli) | Servizio dipendenze |
 | T-1.1.3.5 | Scrivere test per dipendenze, inclusi casi di cicli e dipendenze mancanti | Suite di test |
 
@@ -150,10 +173,21 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-1.1.4.1 | Implementare `GET /tenants/{tenantId}/search/artifacts` con ricerca full-text su titolo e descrizione | Endpoint |
+| T-1.1.4.1 | Implementare `GET /api/tenants/{tenantId}/search/artifacts` con ricerca full-text su titolo e descrizione | Endpoint |
 | T-1.1.4.2 | Aggiungere filtri per tipo, tag, area, stato e supporto paginazione | Parametri query |
 | T-1.1.4.3 | Configurare indici PostgreSQL per ottimizzare le ricerche (GIN/GiST per full-text) | Indici DB |
 | T-1.1.4.4 | Scrivere test per i vari scenari di ricerca | Suite di test |
+
+#### US-1.1.5 – Gestione Ambienti
+*Come utente del portale, voglio gestire gli ambienti del tenant, in modo da poter pubblicare su target configurabili.*
+
+| # | Task | Output |
+|---|------|--------|
+| T-1.1.5.1 | Implementare `GET /api/tenants/{tenantId}/environments` | Endpoint |
+| T-1.1.5.2 | Implementare `POST /api/tenants/{tenantId}/environments` | Endpoint |
+| T-1.1.5.3 | Implementare `GET /api/tenants/{tenantId}/environments/{environmentId}` | Endpoint |
+| T-1.1.5.4 | Implementare `PUT /api/tenants/{tenantId}/environments/{environmentId}` | Endpoint |
+| T-1.1.5.5 | Implementare `DELETE /api/tenants/{tenantId}/environments/{environmentId}` | Endpoint |
 
 ### FEATURE 1.2 – Publisher Service
 
@@ -162,18 +196,18 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-1.2.1.1 | Creare lo scaffolding del progetto publisher (Go/Java, struttura packages) | Progetto base |
-| T-1.2.1.2 | Implementare `POST /tenants/{tenantId}/publish` – endpoint di pubblicazione (artifactId, versionId, environmentId, notes) | Endpoint |
-| T-1.2.1.3 | Implementare validazione BPMN: parsing XML e verifica sintattica | Modulo validazione |
-| T-1.2.1.4 | Implementare validazione DMN: verifica tabelle decisionali | Modulo validazione |
-| T-1.2.1.5 | Implementare validazione Forms/Request: conformità JSON Schema | Modulo validazione |
-| T-1.2.1.6 | Implementare risoluzione dipendenze: verifica che tutte le dipendenze siano in stato `Published` | Logica dipendenze |
+| T-1.2.1.1 | Creare lo scaffolding del progetto publisher (Java/Quarkus, struttura packages) | Progetto base |
+| T-1.2.1.2 | Implementare `POST /api/tenants/{tenantId}/publish` – endpoint di pubblicazione (artifactId, versionId, environmentId, notes) | Endpoint |
+| T-1.2.1.3 | Implementare validazione payload (MVP): parsing XML e JSON sintattici | Modulo validazione |
+| T-1.2.1.4 | Integrare validazioni semantiche BPMN/DMN (post-MVP) | Modulo validazione |
+| T-1.2.1.5 | Integrare validazione Forms/Request via JSON Schema (post-MVP) | Modulo validazione |
+| T-1.2.1.6 | Implementare risoluzione dipendenze: verifica che tutte le dipendenze siano in stato `PUBLISHED` | Logica dipendenze |
 | T-1.2.1.7 | Implementare creazione bundle (zip con payload + manifest JSON con hash) | Generatore bundle |
-| T-1.2.1.8 | Caricare il bundle su MinIO/S3 nel percorso `bundles/<type>/<artifactId>/<versionId>.zip` | Upload storage |
+| T-1.2.1.8 | Caricare il bundle su MinIO/S3 nel percorso `tenant-<tenantId>/bundles/<type>/<artifactId>/<versionId>.zip` | Upload storage |
 | T-1.2.1.9 | Creare record `Publication` nel DB con environment, timestamp, autore, note, bundleRef | Persistenza |
-| T-1.2.1.10 | Aggiornare stato `ArtifactVersion` a `Published` e rendere immutabile | Aggiornamento stato |
-| T-1.2.1.11 | Implementare `GET /tenants/{tenantId}/publish/{publicationId}` – dettaglio pubblicazione | Endpoint |
-| T-1.2.1.12 | Gestire errori di validazione con messaggi dettagliati nella risposta | Error handling |
+| T-1.2.1.10 | Aggiornare stato `ArtifactVersion` a `PUBLISHED` e rendere immutabile | Aggiornamento stato |
+| T-1.2.1.11 | Implementare `GET /api/tenants/{tenantId}/publish/{publicationId}` – dettaglio pubblicazione | Endpoint |
+| T-1.2.1.12 | Gestire errori di validazione con messaggi chiari nella risposta | Error handling |
 | T-1.2.1.13 | Scrivere test unitari e di integrazione per il flusso completo di pubblicazione | Suite di test |
 
 #### US-1.2.2 – Audit della pubblicazione
@@ -193,9 +227,9 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 | # | Task | Output |
 |---|------|--------|
 | T-1.3.1.1 | Configurare il client S3 (compatibile MinIO/AWS) con parametri esternalizzati (endpoint, bucket, credenziali, region) | Modulo S3 client |
-| T-1.3.1.2 | Implementare endpoint per generare URL presignati per upload con path strutturato `tenant-<tenantId>/artifacts/<type>/<artifactId>/<versionId>` | Endpoint presigned upload |
+| T-1.3.1.2 | Implementare endpoint per generare URL presignati per upload con path strutturato `tenant-<tenantId>/artifacts/<type>/<artifactId>/<versionId>.<ext>` | Endpoint presigned upload |
 | T-1.3.1.3 | Implementare endpoint per generare URL presignati per download con scadenza breve | Endpoint presigned download |
-| T-1.3.1.4 | Implementare registrazione del `payloadRef` nel DB dopo upload completato | Callback/webhook |
+| T-1.3.1.4 | Implementare `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/payload-ref` per aggiornare `payloadRef` nel DB dopo upload completato | Endpoint |
 | T-1.3.1.5 | Implementare validazione che il `tenantId` nel path corrisponda al tenant autenticato | Controllo sicurezza |
 | T-1.3.1.6 | Scrivere test con MinIO locale per upload/download | Suite di test |
 
@@ -229,6 +263,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Realizzare la prima interfaccia web operativa con autenticazione, catalogo, editor e pubblicazione.
 
+**Stato (worktree):** 🟡 Parziale (60%) — login/tenant/catalogo/dettaglio/editor testuale/publish form; mancano editor integrati e wizard publish.
+
 ### FEATURE 2.1 – Autenticazione e Selezione Tenant
 
 #### US-2.1.1 – Login con provider IAM
@@ -236,7 +272,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-2.1.1.1 | Creare lo scaffolding del progetto portal-ui (React + Next.js + shadcn/ui + Tailwind) | Progetto base |
+| T-2.1.1.1 | Creare lo scaffolding del progetto portal-ui (React + Vite + shadcn/ui + Tailwind) | Progetto base |
 | T-2.1.1.2 | Registrare il portale come client OIDC in Keycloak | Configurazione Keycloak |
 | T-2.1.1.3 | Implementare la pagina `/login` con redirect a Keycloak | Pagina login |
 | T-2.1.1.4 | Implementare il callback OIDC: decodifica JWT, estrazione ruoli e tenant disponibili | Logica auth |
@@ -251,7 +287,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 |---|------|--------|
 | T-2.1.2.1 | Implementare la pagina `/select-tenant` con lista dei tenant dall'JWT | Pagina selezione |
 | T-2.1.2.2 | Creare il Context Provider React con `tenantId`, info utente, ruoli, lingua | TenantContext |
-| T-2.1.2.3 | Redirect automatico alla home se l'utente ha un solo tenant | Logica redirect |
+| T-2.1.2.3 | Tenant unico: selezione automatica e accesso diretto alle rotte protette | Logica tenant unico |
 | T-2.1.2.4 | Propagare `tenantId` a tutte le chiamate API tramite context | Integrazione API |
 
 ### FEATURE 2.2 – Dashboard
@@ -276,7 +312,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 |---|------|--------|
 | T-2.3.1.1 | Implementare la pagina `/catalogue` con tabella/lista paginata | Pagina catalogo |
 | T-2.3.1.2 | Implementare filtri per tipo (processo/regola/modulo/request), stato (bozza/pubblicato), area, tag | Componente filtri |
-| T-2.3.1.3 | Implementare barra di ricerca full-text | Componente search |
+| T-2.3.1.3 | Posticipare barra di ricerca full-text; usare filtri + paginazione (eventuale `q=` successiva) | Decisione UX |
 | T-2.3.1.4 | Implementare hook `useArtifacts` con parametri di filtro e paginazione | Custom hook |
 | T-2.3.1.5 | Implementare navigazione al dettaglio artefatto al click | Routing |
 
@@ -287,7 +323,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 |---|------|--------|
 | T-2.3.2.1 | Implementare la pagina `/artifact/:id` con metadati e lista versioni | Pagina dettaglio |
 | T-2.3.2.2 | Mostrare stato, tipo, area, tag, owner, date di creazione/aggiornamento | Componente metadati |
-| T-2.3.2.3 | Lista versioni con badge stato (Draft/Published/Retired) | Componente versioni |
+| T-2.3.2.3 | Lista versioni con badge stato (`DRAFT`/`PUBLISHED`/`RETIRED`) | Componente versioni |
 | T-2.3.2.4 | Pulsante "Modifica bozza" che apre l'editor | Action button |
 | T-2.3.2.5 | Pulsante "Pubblica" per avviare il wizard di pubblicazione | Action button |
 | T-2.3.2.6 | Implementare hook `useArtifactDetail` e `useArtifactVersions` | Custom hooks |
@@ -338,7 +374,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 | # | Task | Output |
 |---|------|--------|
 | T-2.4.5.1 | Implementare dialog modale "Nuovo Artefatto" con selezione tipo, titolo, area, tag | Componente modale |
-| T-2.4.5.2 | Al submit, invocare `POST /artifacts` e creare prima versione in bozza | Logica creazione |
+| T-2.4.5.2 | Al submit, invocare `POST /api/tenants/{tenantId}/artifacts` e creare prima versione in bozza | Logica creazione |
 | T-2.4.5.3 | Redirect automatico all'editor corrispondente (`/editor/<id>/<version>`) | Routing |
 | T-2.4.5.4 | Implementare hook `useCreateArtifact` | Custom hook |
 
@@ -355,7 +391,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 | T-2.5.1.4 | Step 3 – Selezione ambiente: dropdown con ambienti disponibili (DEV/QA/PROD) | Step ambiente |
 | T-2.5.1.5 | Step 4 – Conferma: riepilogo e pulsante "Pubblica" | Step conferma |
 | T-2.5.1.6 | Mostrare esito (successo con dettagli pubblicazione / fallimento con errori) | Feedback UI |
-| T-2.5.1.7 | Implementare hook `usePublish` per invocare `POST /publish` | Custom hook |
+| T-2.5.1.7 | Implementare hook `usePublish` per invocare `POST /api/tenants/{tenantId}/publish` | Custom hook |
 
 ### FEATURE 2.6 – Infrastruttura UI
 
@@ -378,6 +414,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Implementare il workflow di approvazione e il ciclo di vita completo degli artefatti.
 
+**Stato (worktree):** 🔴 Non iniziato (0%) — stati DB presenti, ma mancano transizioni/permessi/review UI.
+
 ### FEATURE 3.1 – Workflow di Approvazione
 
 #### US-3.1.1 – Transizioni di stato del ciclo di vita
@@ -385,7 +423,7 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-3.1.1.1 | Aggiornare il modello `ArtifactVersion` con tutti gli stati: `draft`, `review`, `approved`, `published`, `retired` | Migrazione DB |
+| T-3.1.1.1 | Verificare e utilizzare gli stati `DRAFT/REVIEW/APPROVED/PUBLISHED/RETIRED` su `ArtifactVersion` (già presenti nel modello) | Verifica modello |
 | T-3.1.1.2 | Implementare endpoint `POST /versions/{versionId}/transition` per cambiare stato | Endpoint |
 | T-3.1.1.3 | Implementare regole di transizione: chi può spostare da quale stato a quale stato (matrice ruolo/stato) | Logica di business |
 | T-3.1.1.4 | Impedire modifiche a versioni non in stato `draft` | Vincolo |
@@ -438,6 +476,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Eseguire processi tramite Temporal, gestire task umani e monitorare le pratiche.
 
+**Stato (worktree):** 🟡 In avvio (10%) — servizio `runtime-gateway` presente (health); Temporal disponibile in docker-compose, integrazione applicativa non presente.
+
 ### FEATURE 4.1 – Runtime Gateway
 
 #### US-4.1.1 – Avvio istanze di processo
@@ -445,9 +485,9 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-4.1.1.1 | Creare lo scaffolding del progetto runtime-gateway (Go/Java) | Progetto base |
+| T-4.1.1.1 | Consolidare scaffolding del progetto runtime-gateway (Java/Quarkus) | Progetto base |
 | T-4.1.1.2 | Integrare l'SDK Temporal (Go SDK o Java SDK) | Dipendenza SDK |
-| T-4.1.1.3 | Implementare `POST /tenants/{tenantId}/instances` – avvio workflow con processDefinitionId, versionId, parametri iniziali | Endpoint |
+| T-4.1.1.3 | Implementare `POST /api/tenants/{tenantId}/instances` – avvio workflow con processDefinitionId, versionId, parametri iniziali | Endpoint |
 | T-4.1.1.4 | Tradurre processDefinitionId + versionId nel workflowId Temporal corretto | Logica mapping |
 | T-4.1.1.5 | Passare `tenantId` come search attribute di Temporal | Configurazione |
 | T-4.1.1.6 | Creare record `Instance` nel DB con metadati (tenant, versione, business_key, status) | Persistenza |
@@ -458,10 +498,10 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 | # | Task | Output |
 |---|------|--------|
-| T-4.1.2.1 | Implementare `GET /tenants/{tenantId}/instances` – lista istanze con filtri (stato, processo, data, utente) e paginazione | Endpoint |
-| T-4.1.2.2 | Implementare `GET /tenants/{tenantId}/instances/{instanceId}` – dettaglio istanza con stato, task correnti, timeline eventi | Endpoint |
+| T-4.1.2.1 | Implementare `GET /api/tenants/{tenantId}/instances` – lista istanze con filtri (stato, processo, data, utente) e paginazione | Endpoint |
+| T-4.1.2.2 | Implementare `GET /api/tenants/{tenantId}/instances/{instanceId}` – dettaglio istanza con stato, task correnti, timeline eventi | Endpoint |
 | T-4.1.2.3 | Recuperare la cronologia eventi da Temporal e trasformarla in formato user-friendly | Logica mapping |
-| T-4.1.2.4 | Implementare `GET /tenants/{tenantId}/instances/{instanceId}/history` – log eventi | Endpoint |
+| T-4.1.2.4 | Implementare `GET /api/tenants/{tenantId}/instances/{instanceId}/history` – log eventi | Endpoint |
 | T-4.1.2.5 | Scrivere test per interrogazione istanze | Suite di test |
 
 ### FEATURE 4.2 – Gestione Task Umani
@@ -522,6 +562,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Rafforzare isolamento dati, implementare RBAC completo e onboarding tenant.
 
+**Stato (worktree):** 🟡 In parte (15%) — RLS e hardening già presenti; RBAC/ACL e onboarding tenant non implementati.
+
 ### FEATURE 5.1 – Isolamento dei Dati
 
 #### US-5.1.1 – Verifica e hardening RLS
@@ -578,6 +620,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Dockerizzare i componenti, creare Helm charts e configurare pipeline CI/CD completa.
 
+**Stato (worktree):** 🔴 Non iniziato (5%) — chart `charts/stillum-platform` presente come scaffold; mancano Dockerfile e chart applicativi.
+
 ### FEATURE 6.1 – Dockerizzazione
 
 #### US-6.1.1 – Immagini Docker per ogni componente
@@ -628,6 +672,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 ## EPIC 7 – Modalità Developer & Integrazione Git
 
 **Obiettivo:** Fornire strumenti per sviluppatori: export/import Git, webhook CI/CD e diff versioni.
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
 
 ### FEATURE 7.1 – Export / Import
 
@@ -685,6 +731,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 
 **Obiettivo:** Fornire KPI, dashboard di monitoraggio, alerting su SLA e audit log consultabile.
 
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
 ### FEATURE 8.1 – KPI e Dashboard
 
 #### US-8.1.1 – Dashboard analytics per processi
@@ -730,6 +778,8 @@ Questo piano organizza lo sviluppo della piattaforma Stillum Business Portal sec
 ## EPIC 9 – Funzionalità Avanzate e Marketplace
 
 **Obiettivo:** Trasformare la piattaforma in un ecosistema con template, assistente AI e plugin.
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
 
 ### FEATURE 9.1 – Marketplace di Template
 
