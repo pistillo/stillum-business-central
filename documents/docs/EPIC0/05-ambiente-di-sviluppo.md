@@ -121,6 +121,76 @@ La cartella della documentazione è **documents/** (Docusaurus). La CI è gestit
 - **Test**: test unitari backend (Maven) e frontend; report caricati come artefatti.
 - **Migrazioni DB**: Flyway è configurato per eseguire migrazioni all’avvio dei servizi; in CI i test avviano PostgreSQL/MinIO e validano di fatto l’applicazione delle migrazioni.
 
+## Sviluppo applicativo
+
+Oltre all'infrastruttura, la piattaforma include quattro servizi applicativi. Esistono **due modalità** di esecuzione:
+
+### Modalità 1 – Dev mode (sviluppo quotidiano, hot-reload)
+
+Avvia prima l'infrastruttura, poi ogni servizio nel proprio terminale:
+
+```bash
+# Terminale 1 – infrastruttura
+docker compose up -d       # oppure: make infra
+
+# Terminale 2 – registry-api (porta 8081)
+cd registry-api && mvn quarkus:dev    # oppure: make dev-registry
+
+# Terminale 3 – publisher (porta 8082)
+cd publisher && mvn quarkus:dev       # oppure: make dev-publisher
+
+# Terminale 4 – runtime-gateway (porta 8080)
+cd runtime-gateway && mvn quarkus:dev # oppure: make dev-gateway
+
+# Terminale 5 – portal-ui (porta 5173, Vite HMR)
+cd portal-ui && npm run dev              # oppure: make dev-ui
+```
+
+Quarkus dev mode offre hot-reload automatico, testing continuo e la Dev UI su `http://localhost:<porta>/q/dev`. **È la modalità consigliata per lo sviluppo attivo.**
+
+### Modalità 2 – Full-stack mode (smoke test e integrazione)
+
+Costruisce e avvia **tutti** i container (infra + app) con un solo comando:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.full.yml up --build
+# oppure: make full-stack
+```
+
+**Porte esposte sull'host:**
+
+| Servizio | Porta host | Note |
+|---|---|---|
+| PostgreSQL | `5432` | DB condiviso |
+| MinIO API | `9000` | Object storage |
+| MinIO Console | `9001` | UI web MinIO |
+| Temporal | `7233` | Workflow engine |
+| Keycloak | `8080` | OIDC / IAM |
+| registry-api | `8081` | REST + Swagger UI su `/q/swagger-ui` |
+| publisher | `8082` | REST + Swagger UI su `/q/swagger-ui` |
+| runtime-gateway | `8083` | Gateway (porta interna 8080) |
+| portal-ui | `3000` (full-stack) / `5173` (dev) | SPA nginx / Vite |
+
+Per fermare tutto: `make down` oppure `docker compose -f docker-compose.yml -f docker-compose.full.yml down`.
+
+### Makefile – comandi utili
+
+Dalla root del repository è disponibile un `Makefile` con target predefiniti:
+
+```bash
+make help          # elenco di tutti i target disponibili
+make infra         # solo infrastruttura (docker compose up -d)
+make dev-registry  # registry-api in Quarkus dev mode
+make dev-publisher # publisher in Quarkus dev mode
+make dev-gateway   # runtime-gateway in Quarkus dev mode
+make dev-ui        # portal-ui con Vite dev server
+make full-stack    # stack completo (build + avvio)
+make down          # ferma e rimuove tutti i container
+make test-ui       # test frontend (vitest)
+```
+
+---
+
 ## Note finali
 
-Con Docker Compose si ha un ambiente locale completo; con k3s e Helm si replica l'ambiente target. Nelle fasi successive si possono introdurre monitoring, logging centralizzato e affinare i chart per ambienti multipli e scalabilità.
+Il `docker-compose.yml` è intenzionalmente limitato ai servizi infrastrutturali: rimane leggero, riutilizzabile in CI e stabile tra ambienti. Il file `docker-compose.full.yml` estende quello base solo per uso locale (smoke test e integrazione). Con k3s e Helm si replica l'ambiente target di produzione. Nelle fasi successive si possono introdurre monitoring, logging centralizzato e affinare i chart per ambienti multipli e scalabilità.

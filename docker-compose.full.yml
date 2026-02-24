@@ -1,0 +1,132 @@
+# docker-compose.full.yml — Full-stack overlay
+#
+# Aggiunge i servizi applicativi all'infra definita in docker-compose.yml.
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.full.yml up --build
+#   docker compose -f docker-compose.yml -f docker-compose.full.yml down
+#
+# Per sviluppo attivo con hot-reload preferire:
+#   docker compose up -d        # solo infra
+#   mvn quarkus:dev          # in ciascuna directory servizio Java
+#   npm run dev                 # in portal-ui/
+
+services:
+
+  # ─── Registry API ────────────────────────────────────────────────────────
+  registry-api:
+    build:
+      context: ./registry-api
+      dockerfile: Dockerfile
+    image: stillum/registry-api:local
+    container_name: stillum-registry-api
+    environment:
+      # Quarkus profile prod → usa le variabili POSTGRES_HOST/USER/PASSWORD/DB
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-stillum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stillum123}
+      POSTGRES_DB: ${POSTGRES_DB:-stillumdb}
+      # Override S3 per il profilo prod (non presente in application.properties)
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── Publisher ───────────────────────────────────────────────────────────
+  publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    image: stillum/publisher:local
+    container_name: stillum-publisher
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-stillum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stillum123}
+      POSTGRES_DB: ${POSTGRES_DB:-stillumdb}
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8082/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── Runtime Gateway ─────────────────────────────────────────────────────
+  runtime-gateway:
+    build:
+      context: ./runtime-gateway
+      dockerfile: Dockerfile
+    image: stillum/runtime-gateway:local
+    container_name: stillum-runtime-gateway
+    # Porta interna Quarkus default (8080) → host 8083 per evitare conflitto con Keycloak
+    environment:
+      QUARKUS_HTTP_PORT: "8080"
+    ports:
+      - "8083:8080"
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ─── Portal UI ───────────────────────────────────────────────────────────
+  portal-ui:
+    build:
+      context: ./portal-ui
+      dockerfile: Dockerfile
+      args:
+        # Le VITE_* vengono baked nel bundle JS a build-time.
+        # Keycloak e le API sono raggiunte dal browser (localhost), non dal container.
+        VITE_OIDC_AUTHORITY: http://localhost:8080/realms/stillum
+        VITE_OIDC_CLIENT_ID: portal-ui
+        VITE_REGISTRY_API_BASE_URL: http://localhost:8081/api
+        VITE_PUBLISHER_API_BASE_URL: http://localhost:8082/api
+    image: stillum/portal-ui:local
+    container_name: stillum-portal-ui
+    ports:
+      - "3000:80"
+    depends_on:
+      registry-api:
+        condition: service_healthy
+      publisher:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - stillum-net
