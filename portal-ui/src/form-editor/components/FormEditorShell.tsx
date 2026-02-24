@@ -1,6 +1,17 @@
-import { AlertCircle, Check, Loader2, Redo2, Save, ShieldAlert, Undo2 } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import {
+  AlertCircle,
+  Check,
+  Eye,
+  EyeOff,
+  Loader2,
+  Redo2,
+  Save,
+  ShieldAlert,
+  Undo2,
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useFormEditorStore } from '../store';
+import { FormPreview } from './FormPreview';
 import { FormTree } from './FormTree';
 import { Palette } from './Palette';
 import { PropertiesPanel } from './PropertiesPanel';
@@ -31,6 +42,8 @@ export function FormEditorShell({
   const validate = useFormEditorStore((s) => s.validate);
   const validationErrors = useFormEditorStore((s) => s.validationErrors);
   const dirty = useFormEditorStore((s) => s.dirty);
+
+  const [showPreview, setShowPreview] = useState(true);
 
   // Load initial content
   useEffect(() => {
@@ -87,6 +100,16 @@ export function FormEditorShell({
             <Redo2 size={14} />
           </button>
 
+          <div className="w-px h-4 bg-gray-300 dark:bg-slate-600 mx-1" />
+
+          <button
+            className={`btn-ghost btn-sm ${showPreview ? 'text-brand-600 dark:text-brand-400' : ''}`}
+            onClick={() => setShowPreview((v) => !v)}
+            title={showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
+          >
+            {showPreview ? <Eye size={14} /> : <EyeOff size={14} />}
+          </button>
+
           {validationErrors.length > 0 && (
             <span className="flex items-center gap-1 ml-2 text-xs text-amber-600 dark:text-amber-400">
               <ShieldAlert size={13} />
@@ -126,9 +149,16 @@ export function FormEditorShell({
         </div>
 
         {/* Tree */}
-        <div className="flex-1 border-r border-gray-200 dark:border-slate-700 overflow-y-auto">
+        <div className="w-64 shrink-0 border-r border-gray-200 dark:border-slate-700 overflow-y-auto">
           <FormTree />
         </div>
+
+        {/* Preview */}
+        {showPreview && (
+          <div className="flex-1 border-r border-gray-200 dark:border-slate-700 overflow-hidden">
+            <FormPreview />
+          </div>
+        )}
 
         {/* Properties */}
         <div className="w-72 shrink-0 overflow-y-auto">
