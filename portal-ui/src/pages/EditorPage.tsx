@@ -1,6 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import Editor from '@monaco-editor/react';
+import * as yaml from 'js-yaml';
+import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
+import type { ArtifactType } from '../api/types';
 import {
   getArtifact,
   getPayloadDownloadUrl,
@@ -10,17 +14,69 @@ import {
 } from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
+import { useTheme } from '../theme/ThemeContext';
+
+type EditorFormat = 'json' | 'yaml' | 'xml';
+
+function getDefaultContent(type: ArtifactType): string {
+  if (type === 'FORM' || type === 'REQUEST') return '{}';
+  if (type === 'PROCESS')
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"/>';
+  if (type === 'RULE')
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"/>';
+  return '';
+}
+
+function getFormats(type: ArtifactType): EditorFormat[] {
+  if (type === 'FORM' || type === 'REQUEST') return ['json', 'yaml'];
+  return ['xml'];
+}
+
+function getContentType(type: ArtifactType): string {
+  if (type === 'FORM' || type === 'REQUEST') return 'application/json';
+  return 'application/xml';
+}
+
+function jsonToYaml(json: string): string {
+  try {
+    return yaml.dump(JSON.parse(json), { indent: 2, lineWidth: 120 });
+  } catch {
+    return '# Errore conversione JSON -> YAML';
+  }
+}
+
+function yamlToJson(yamlStr: string): string {
+  try {
+    return JSON.stringify(yaml.load(yamlStr), null, 2);
+  } catch {
+    return '{}';
+  }
+}
 
 export function EditorPage() {
   const { getAccessToken } = useAuth();
   const { tenantId } = useTenant();
+  const { resolved: theme } = useTheme();
   const params = useParams();
   const artifactId = params.artifactId ?? '';
   const versionId = params.versionId ?? '';
 
-  const [content, setContent] = useState('');
+  const [jsonContent, setJsonContent] = useState('');
+  const [xmlContent, setXmlContent] = useState('');
+  const [artifactType, setArtifactType] = useState<ArtifactType>('PROCESS');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [contentType, setContentType] = useState('application/octet-stream');
+  const [activeTab, setActiveTab] = useState<EditorFormat>('json');
+  const [artifactTitle, setArtifactTitle] = useState('');
+  const [versionLabel, setVersionLabel] = useState('');
+
+  const formats = useMemo(() => getFormats(artifactType), [artifactType]);
+  const isJsonBased = artifactType === 'FORM' || artifactType === 'REQUEST';
+
+  useEffect(() => {
+    if (formats.length > 0 && !formats.includes(activeTab)) {
+      setActiveTab(formats[0]);
+    }
+  }, [formats, activeTab]);
 
   useEffect(() => {
     if (!tenantId || !artifactId || !versionId) return;
@@ -30,15 +86,17 @@ export function EditorPage() {
       getVersion({ token: getAccessToken(), tenantId, artifactId, versionId }),
     ])
       .then(async ([a, v]) => {
-        if (a.type === 'PROCESS' || a.type === 'RULE') {
-          setContentType('application/xml');
-        } else if (a.type === 'FORM' || a.type === 'REQUEST') {
-          setContentType('application/json');
-        } else {
-          setContentType('application/octet-stream');
-        }
+        setArtifactType(a.type);
+        setArtifactTitle(a.title);
+        setVersionLabel(v.version);
+
         if (!v.payloadRef) {
-          setContent(a.type === 'FORM' || a.type === 'REQUEST' ? '{}' : '<definitions/>');
+          const def = getDefaultContent(a.type);
+          if (a.type === 'FORM' || a.type === 'REQUEST') {
+            setJsonContent(def);
+          } else {
+            setXmlContent(def);
+          }
           setStatus('ready');
           return;
         }
@@ -50,11 +108,45 @@ export function EditorPage() {
         });
         const res = await fetch(d.url);
         const text = await res.text();
-        setContent(text);
+        if (a.type === 'FORM' || a.type === 'REQUEST') {
+          setJsonContent(text);
+        } else {
+          setXmlContent(text);
+        }
         setStatus('ready');
       })
       .catch(() => setStatus('error'));
   }, [tenantId, artifactId, versionId, getAccessToken]);
+
+  const editorValue = useMemo(() => {
+    if (!isJsonBased) return xmlContent;
+    if (activeTab === 'yaml') return jsonToYaml(jsonContent);
+    return jsonContent;
+  }, [isJsonBased, xmlContent, jsonContent, activeTab]);
+
+  const editorLanguage = useMemo(() => {
+    if (!isJsonBased) return 'xml';
+    return activeTab === 'yaml' ? 'yaml' : 'json';
+  }, [isJsonBased, activeTab]);
+
+  const handleEditorChange = useCallback(
+    (value: string | undefined) => {
+      const v = value ?? '';
+      if (!isJsonBased) {
+        setXmlContent(v);
+        return;
+      }
+      if (activeTab === 'yaml') {
+        setJsonContent(yamlToJson(v));
+      } else {
+        setJsonContent(v);
+      }
+    },
+    [isJsonBased, activeTab]
+  );
+
+  const contentToSave = isJsonBased ? jsonContent : xmlContent;
+  const contentType = getContentType(artifactType);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -73,7 +165,7 @@ export function EditorPage() {
       await fetch(upload.url, {
         method: 'PUT',
         headers: { 'Content-Type': contentType },
-        body: content,
+        body: contentToSave,
       });
       await updatePayloadRef({
         token: getAccessToken(),
@@ -86,30 +178,130 @@ export function EditorPage() {
     },
   });
 
+  const typeLabels: Record<ArtifactType, string> = {
+    PROCESS: 'BPMN',
+    RULE: 'DMN',
+    FORM: 'Form',
+    REQUEST: 'Request',
+  };
+
   return (
-    <div>
-      <h1>Editor (v0)</h1>
-      <div style={{ opacity: 0.7, marginBottom: 8 }}>
-        Artifact {artifactId} · Version {versionId}
+    <div className="flex flex-col h-[calc(100vh-8rem)]">
+      {/* Editor toolbar */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Link to={`/artifact/${artifactId}`} className="btn-ghost btn-sm shrink-0">
+            <ArrowLeft size={14} />
+            Indietro
+          </Link>
+          <div className="h-5 w-px bg-gray-200 dark:bg-slate-700 shrink-0" />
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {artifactTitle || 'Editor'}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-slate-400">
+              {typeLabels[artifactType]} · v{versionLabel}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {save.isSuccess && (
+            <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+              <Check size={14} />
+              Salvato
+            </span>
+          )}
+          {save.isError && (
+            <span className="flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
+              <AlertCircle size={14} />
+              Errore
+            </span>
+          )}
+          <button
+            className="btn-primary btn-sm"
+            disabled={save.isPending || status !== 'ready'}
+            onClick={() => save.mutate()}
+          >
+            {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            Salva
+          </button>
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-        <button disabled={save.isPending} onClick={() => save.mutate()}>
-          Save
-        </button>
-        <Link to={`/artifact/${artifactId}`}>Back</Link>
+
+      {/* Format tabs (only for JSON-based types) */}
+      {isJsonBased && (
+        <div className="flex border-b border-gray-200 dark:border-slate-700 mb-0">
+          {formats.map((fmt) => (
+            <button
+              key={fmt}
+              onClick={() => setActiveTab(fmt)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
+                ${
+                  activeTab === fmt
+                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                    : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'
+                }`}
+            >
+              {fmt.toUpperCase()}
+            </button>
+          ))}
+          <div className="flex-1" />
+          <span className="self-center text-[10px] text-gray-400 dark:text-slate-500 pr-2">
+            Persistenza: JSON
+          </span>
+        </div>
+      )}
+
+      {/* Editor area */}
+      <div className="flex-1 card overflow-hidden rounded-t-none border-t-0">
+        {status === 'loading' && (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 size={28} className="animate-spin text-brand-600 dark:text-brand-400" />
+              <span className="text-sm text-gray-500 dark:text-slate-400">
+                Caricamento payload…
+              </span>
+            </div>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-3">
+              <AlertCircle size={28} className="text-red-500" />
+              <span className="text-sm text-red-500 dark:text-red-400">
+                Errore nel caricamento del payload
+              </span>
+            </div>
+          </div>
+        )}
+
+        {status === 'ready' && (
+          <Editor
+            height="100%"
+            language={editorLanguage}
+            value={editorValue}
+            onChange={handleEditorChange}
+            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 13,
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
+              tabSize: 2,
+              automaticLayout: true,
+              padding: { top: 12 },
+            }}
+            loading={
+              <div className="flex items-center justify-center h-full">
+                <Loader2 size={24} className="animate-spin text-gray-400" />
+              </div>
+            }
+          />
+        )}
       </div>
-
-      {status === 'loading' ? <div>Loading…</div> : null}
-      {status === 'error' ? <div>Error loading payload</div> : null}
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        style={{ width: '100%', height: 520, fontFamily: 'monospace' }}
-      />
-
-      {save.isSuccess ? <div>Saved: {save.data}</div> : null}
-      {save.isError ? <div>Error saving</div> : null}
     </div>
   );
 }

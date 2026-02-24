@@ -1,5 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
+import { ArrowLeft, Code2, Loader2, Pencil, Send, Tag } from 'lucide-react';
 import { useArtifactDetail } from '../hooks/useArtifactDetail';
+import { StatusBadge, TypeBadge } from '../components/StatusBadge';
 
 export function ArtifactDetailPage() {
   const params = useParams();
@@ -7,48 +9,142 @@ export function ArtifactDetailPage() {
   const { artifact, versions } = useArtifactDetail(artifactId);
 
   return (
-    <div>
-      <h1>Artifact</h1>
+    <div className="space-y-6">
+      {/* Back link */}
+      <Link
+        to="/catalogue"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400"
+      >
+        <ArrowLeft size={14} />
+        Torna al catalogo
+      </Link>
 
-      {artifact.isLoading ? <div>Loading…</div> : null}
-      {artifact.data ? (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>{artifact.data.title}</div>
-          <div style={{ opacity: 0.8 }}>
-            {artifact.data.type} · {artifact.data.status} · {artifact.data.area ?? ''}
-          </div>
-          <div style={{ marginTop: 8 }}>Tags: {(artifact.data.tags ?? []).join(', ')}</div>
+      {/* Artifact header */}
+      {artifact.isLoading && (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 size={28} className="animate-spin text-brand-600 dark:text-brand-400" />
         </div>
-      ) : null}
+      )}
 
-      <h2>Versions</h2>
-      {versions.isLoading ? <div>Loading…</div> : null}
-      {versions.data ? (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>Version</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>State</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {versions.data.map((v) => (
-              <tr key={v.id}>
-                <td style={{ padding: 6 }}>{v.version}</td>
-                <td style={{ padding: 6 }}>{v.state}</td>
-                <td style={{ padding: 6, display: 'flex', gap: 12 }}>
-                  <Link to={`/editor/${artifactId}/${v.id}`}>Edit</Link>
-                  <Link to={`/publish/${artifactId}/${v.id}`}>Publish</Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : null}
+      {artifact.data && (
+        <div className="card p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {artifact.data.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <TypeBadge type={artifact.data.type} />
+                <StatusBadge status={artifact.data.status} />
+                {artifact.data.area && (
+                  <span className="badge bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+                    {artifact.data.area}
+                  </span>
+                )}
+              </div>
+              {artifact.data.description && (
+                <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">
+                  {artifact.data.description}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-mono text-gray-400 dark:text-slate-500 hidden sm:block">
+                {artifactId.slice(0, 8)}…
+              </span>
+            </div>
+          </div>
 
-      <div style={{ marginTop: 16 }}>
-        <Link to="/catalogue">Back to catalogue</Link>
+          {/* Tags */}
+          {artifact.data.tags && artifact.data.tags.length > 0 && (
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-slate-700/50">
+              <Tag size={14} className="text-gray-400 dark:text-slate-500" />
+              <div className="flex flex-wrap gap-1.5">
+                {artifact.data.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="badge bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Versions */}
+      <div className="card overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-200 dark:border-slate-700">
+          <Code2 size={18} className="text-gray-400 dark:text-slate-500" />
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Versioni</h2>
+        </div>
+
+        {versions.isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={24} className="animate-spin text-gray-400 dark:text-slate-500" />
+          </div>
+        )}
+
+        {versions.data && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-slate-700">
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                    Versione
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                    Stato
+                  </th>
+                  <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                    Azioni
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                {versions.data.map((v) => (
+                  <tr
+                    key={v.id}
+                    className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <span className="text-sm font-mono font-medium text-gray-900 dark:text-slate-200">
+                        v{v.version}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={v.state} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link to={`/editor/${artifactId}/${v.id}`} className="btn-secondary btn-sm">
+                          <Pencil size={12} />
+                          Modifica
+                        </Link>
+                        <Link to={`/publish/${artifactId}/${v.id}`} className="btn-primary btn-sm">
+                          <Send size={12} />
+                          Pubblica
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {versions.data.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="px-5 py-12 text-center text-sm text-gray-400 dark:text-slate-500"
+                    >
+                      Nessuna versione disponibile.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
