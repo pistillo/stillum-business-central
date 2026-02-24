@@ -8,9 +8,9 @@ sidebar_label: Stato EPIC 0
 
 **Obiettivo dell'EPIC:** Preparare requisiti, modello dati, stack tecnologico e infrastruttura di sviluppo.
 
-**Contesto:** Sui branch che includono l'infrastruttura (es. `feature/epic0-infra` o `main` dopo il merge) sono presenti struttura repo, Docker Compose, CI, linter e pre-commit. Sul branch **docs-only** è presente solo la documentazione.
+**Contesto:** In questo repository sono presenti struttura repo, Docker Compose, CI, linter e pre-commit, oltre ai servizi Quarkus e alla UI.
 
-**Stato complessivo:** **Completato** — Requisiti, modello dati e stack sono documentati; l'infrastruttura di sviluppo (FEATURE 0.3) è implementata sul branch `feature/epic0-infra` (struttura, Docker, CI, Husky, Checkstyle).
+**Stato complessivo:** **Completato** — Requisiti, modello dati e stack sono documentati; l'infrastruttura di sviluppo (FEATURE 0.3) è presente nel worktree (struttura, Docker, CI, Husky, Checkstyle, Keycloak in compose, chart Helm scaffold).
 
 ---
 
@@ -20,7 +20,7 @@ sidebar_label: Stato EPIC 0
 |--------|--------|------|
 | **0.1** Analisi Requisiti e Modellazione del Dominio | ✅ Completato | Requisiti e modello dati documentati in questa cartella |
 | **0.2** Scelta dello Stack Tecnologico | ✅ Completato | Stack documentato (Java/Spring, React, PostgreSQL, MinIO, Temporal) |
-| **0.3** Infrastruttura di Sviluppo | ✅ Completato | Struttura repo, Docker Compose, Helm chart minimale, CI (ci.yml), ESLint/Prettier, Checkstyle, Husky; k3s/Keycloak solo documentati |
+| **0.3** Infrastruttura di Sviluppo | ✅ Completato | Struttura repo, Docker Compose, CI (ci.yml), ESLint/Prettier, Checkstyle, Husky; Keycloak incluso in compose; chart Helm presente come scaffold (senza manifest applicativi) |
 
 ---
 
@@ -58,7 +58,7 @@ sidebar_label: Stato EPIC 0
 
 ### FEATURE 0.3 – Infrastruttura di Sviluppo
 
-Implementata sul branch **feature/epic0-infra** (e su main dopo il merge). k3s e Keycloak restano documentati; ambiente locale via Docker Compose.
+Ambiente locale via Docker Compose; la parte Kubernetes/Helm è presente come scaffold e viene completata nelle fasi successive.
 
 #### US-0.3.1 – Setup del cluster Kubernetes
 
@@ -69,7 +69,7 @@ Implementata sul branch **feature/epic0-infra** (e su main dopo il merge). k3s e
 | T-0.3.1.3 | ✅ | PostgreSQL in `docker-compose.yml` e [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
 | T-0.3.1.4 | ✅ | MinIO in `docker-compose.yml`, bucket init (stillum-bundles, stillum-artifacts) |
 | T-0.3.1.5 | ✅ | Temporal in `docker-compose.yml` con persistence PostgreSQL |
-| T-0.3.1.6 | 📄 | Keycloak (opzionale) in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo) |
+| T-0.3.1.6 | ✅ | Keycloak in `docker-compose.yml` con import realm (cartella `keycloak/`) |
 | T-0.3.1.7 | ✅ | Rete e healthcheck in `docker-compose.yml` |
 
 #### US-0.3.2 – Struttura del repository e standard di codice
@@ -89,7 +89,7 @@ Implementata sul branch **feature/epic0-infra** (e su main dopo il merge). k3s e
 | T-0.3.3.1 | ✅ | `.github/workflows/ci.yml`: lint frontend e backend (Checkstyle) su push/PR |
 | T-0.3.3.2 | ✅ | Build backend (matrix registry-api, publisher, runtime-gateway) |
 | T-0.3.3.3 | ✅ | Test unitari backend e frontend; upload artefatti |
-| T-0.3.3.4 | 📄 | Step migrazioni DB da aggiungere con Flyway in EPIC 1 |
+| T-0.3.3.4 | ✅ | Migrazioni Flyway eseguite all’avvio nei servizi; in CI i test avviano Postgres/MinIO e applicano le migrazioni |
 | T-0.3.3.5 | ✅ | Build frontend in CI |
 
 ---
@@ -109,16 +109,11 @@ Implementata sul branch **feature/epic0-infra** (e su main dopo il merge). k3s e
 
 ---
 
-## Azioni consigliate (in un branch con implementazione)
+## Azioni consigliate (post-EPIC0)
 
-Quando il codice e l'infrastruttura saranno di nuovo presenti nel repository:
-
-1. **Pre-commit hooks**: Aggiungere Husky (o equivalente) con lint frontend e, se possibile, check stile Java.
-2. **CI – Migrazioni DB**: Aggiungere uno step in CI che esegua Flyway su un DB di test.
-3. **Cartella `/ci`**: Creare `ci/` per script o config condivisi (opzionale se si usa solo GitHub Actions).
-4. **Keycloak** (opzionale): Aggiungere servizio Keycloak a `docker-compose.yml` e documentarlo in [Ambiente di sviluppo](epic0-ambiente-di-sviluppo).
-
-In questo branch (solo documentazione) l'EPIC 0 è considerato **completato sul piano dei deliverable documentali**.
+1. Completare il chart Helm con template di Deployment/Service/Ingress per i moduli (oggi è uno scaffold).
+2. Chiarire la strategia Temporal: ambiente disponibile in locale, integrazione applicativa da implementare negli EPIC successivi.
+3. Definire una matrice RBAC applicativa e l’enforcement lato API (oggi non è parte di EPIC0).
 
 ---
 

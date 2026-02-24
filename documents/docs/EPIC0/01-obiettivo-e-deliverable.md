@@ -6,7 +6,7 @@ sidebar_label: Obiettivo e deliverable
 
 ## Obiettivo della fase
 
-La Fase 0 (EPIC 0 – Setup e Fondamenta) ha l'obiettivo di preparare il terreno per tutte le evoluzioni successive del progetto. In questa fase si raccolgono i requisiti, si definisce il modello dati e si allestisce l'infrastruttura minima per poter avviare lo sviluppo. Non vengono implementate funzionalità di business, ma si stabiliscono le fondamenta sulle quali costruire la piattaforma.
+La Fase 0 (EPIC 0 – Setup e Fondamenta) ha l'obiettivo di preparare il terreno per tutte le evoluzioni successive del progetto. In questa fase si raccolgono i requisiti, si definisce il modello dati e si allestisce l'infrastruttura minima per poter avviare lo sviluppo.
 
 ## Analisi dei requisiti e modellazione del dominio
 
@@ -15,7 +15,7 @@ La Fase 0 (EPIC 0 – Setup e Fondamenta) ha l'obiettivo di preparare il terreno
    - Definire i flussi di pubblicazione e promozione (bozza → revisione → approvazione → pubblicazione).
    - Raccogliere esigenze relative a multi‑tenant, RBAC, auditing e ambienti (DEV, QA, PROD).
 2. **Definizione del modello dati**
-   - Identificare le entità principali e le loro relazioni: Tenant, Utente, Ruolo, Artefatto, Versione di artefatto, Ambiente, Pubblicazione, Istanza, Task.
+   - Identificare le entità principali e le loro relazioni: Tenant, Utente, Ruolo, Artefatto, Versione di artefatto, Ambiente, Pubblicazione (istanze e task sono previsti in fasi successive).
    - Stabilire i campi chiave per ogni entità (id, foreign key, metadati, timestamp).
    - Definire le enumerazioni (tipo di artefatto, stato dell'artefatto, stato dell'istanza, tipo di task).
    - Documentare il modello con un diagramma ER per una visione complessiva.
@@ -50,7 +50,7 @@ Dettaglio in [Stack tecnologico](epic0-stack-tecnologico).
 ## Preparazione dell'infrastruttura di sviluppo
 
 1. **Cluster di sviluppo**: k3s/Kubernetes, Postgres, MinIO, Temporal (Helm o Docker Compose).
-2. **Repository**: `/portal-ui`, `/registry-api`, `/publisher`, `/runtime-gateway`, `/docs`, `/charts`; ESLint, Prettier, EditorConfig.
+2. **Repository**: `/portal-ui`, `/registry-api`, `/publisher`, `/runtime-gateway`, `/documents`, `/charts`; ESLint, Prettier, EditorConfig.
 3. **CI**: Workflow GitHub Actions per lint, build e test.
 4. **Documentazione**: Modello dati e decisioni architetturali in questa documentazione.
 

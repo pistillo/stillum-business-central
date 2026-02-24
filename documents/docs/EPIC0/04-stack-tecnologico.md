@@ -13,17 +13,17 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il pr
 ### Linguaggi e framework
 
 - **Java (Quarkus)** per i microservizi: `registry-api`, `publisher`, `runtime-gateway` (Maven, JDK 21).
-- **REST** per l'esposizione delle API verso la UI; gRPC per comunicazioni interne.
+- **REST** per l'esposizione delle API verso la UI (gRPC eventualmente valutabile in futuro).
 
 ### Database
 
 - **PostgreSQL**: RDBMS per metadati (tenant, utenti, artefatti, versioni, pubblicazioni, istanze, task, audit). **Row‑Level Security** per isolamento multi‑tenant.
-- **JPA/Hibernate** e **Flyway** per entità e migrazioni (presenti in `registry-api`).
+- **JPA/Hibernate** e **Flyway** per entità e migrazioni (presenti in `registry-api` e `publisher`).
 
 ### Orchestrazione dei workflow
 
 - **Temporal**: motore di orchestrazione per workflow duraturi, retry e compensazioni. Installato con persistence su PostgreSQL (Docker Compose e/o Helm).
-- **Temporal SDK Typescript** per worker e attività (vedi `runtime-gateway`).
+- In questo worktree l’integrazione applicativa (worker/attività) non è ancora implementata; `runtime-gateway` è un servizio Java minimale.
 
 ### Storage dei payload
 
@@ -62,12 +62,12 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il pr
 
 ### Pipeline CI/CD
 
-- **GitHub Actions**: workflow `ci.yml` (lint, build, test backend e frontend), `docker.yml`, `helm.yml`.
-- **Migrazioni DB**: Flyway in `registry-api`; step migrazioni in CI da predisporre (vedi [Stato EPIC 0](epic0-stato)).
+- **GitHub Actions**: workflow `ci.yml` (lint, build, test backend e frontend).
+- **Migrazioni DB**: Flyway esegue le migrazioni all’avvio dei servizi; i test in CI avviano PostgreSQL/MinIO e validano di fatto l’applicazione delle migrazioni.
 
 ### Strumenti di gestione
 
-- **Keycloak** (opzionale) per autenticazione e OIDC.
+- **Keycloak** per autenticazione e OIDC (presente nel `docker-compose.yml` con realm import).
 - **Cert Manager**, **Prometheus/Grafana** per TLS e monitoring in evoluzione.
 
 ## Considerazioni finali

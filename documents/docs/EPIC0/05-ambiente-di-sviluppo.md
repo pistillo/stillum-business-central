@@ -15,6 +15,13 @@ Il progetto fornisce un `docker-compose.yml` alla root con i servizi base:
 - **PostgreSQL** (porta 5432): utente `stillum`, DB inizializzato con script in `scripts/init-db.sql`.
 - **MinIO** (9000 API, 9001 Console): bucket `stillum-bundles` e `stillum-artifacts` creati all'avvio.
 - **Temporal** (7233): con persistence su PostgreSQL.
+- **Keycloak** (8080): avviato in modalità dev con import realm dalla cartella `keycloak/`.
+
+Credenziali di default (override via `.env`):
+
+- PostgreSQL: `POSTGRES_USER=stillum`, `POSTGRES_PASSWORD=stillum123`, `POSTGRES_DB=stillumdb`
+- MinIO: `MINIO_ROOT_USER=minioadmin`, `MINIO_ROOT_PASSWORD=minioadmin`
+- Keycloak: `KEYCLOAK_ADMIN=admin`, `KEYCLOAK_ADMIN_PASSWORD=admin`
 
 Avvio:
 
@@ -98,7 +105,7 @@ stillum-business-central/
   portal-ui/        # frontend React (Vite, shadcn, Tailwind)
   registry-api/     # API artefatti e versioni (Java/Quarkus)
   publisher/        # servizio di pubblicazione (Java/Quarkus)
-  runtime-gateway/  # interfaccia con Temporal (Java)
+  runtime-gateway/  # servizio gateway (Java/Quarkus)
   documents/        # documentazione Docusaurus (sito in documents/, non docs/)
   charts/           # Helm chart stillum-platform
   .github/workflows # CI (ci.yml, ecc.)
@@ -112,7 +119,7 @@ La cartella della documentazione è **documents/** (Docusaurus). La CI è gestit
 - **Lint**: ESLint + Prettier per `portal-ui`; eseguito in `.github/workflows/ci.yml`.
 - **Build**: Maven per backend, `npm run build` per frontend.
 - **Test**: test unitari backend (Maven) e frontend; report caricati come artefatti.
-- **Migrazioni DB**: Flyway in `registry-api`; uno step in CI per eseguire le migrazioni in un DB di test è consigliato (vedi [Stato EPIC 0](epic0-stato)).
+- **Migrazioni DB**: Flyway è configurato per eseguire migrazioni all’avvio dei servizi; in CI i test avviano PostgreSQL/MinIO e validano di fatto l’applicazione delle migrazioni.
 
 ## Note finali
 

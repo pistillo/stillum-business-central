@@ -102,3 +102,15 @@ Il sistema dovrà essere:
 - Requisiti non funzionali di sicurezza, scalabilità, performance e disponibilità.
 
 Questa raccolta requisiti serve come base per la progettazione del [modello dati](epic0-modello-dati), delle API e dell'infrastruttura nelle fasi successive.
+
+---
+
+## Allineamento con il worktree corrente
+
+Nel worktree attuale una parte di questi requisiti è già stata implementata (vedi EPIC 1 per il dettaglio operativo):
+
+- **Multi‑tenant + RLS**: implementato a livello DB con `app.current_tenant` e policy RLS.
+- **Artefatti/versioni/dipendenze/search/storage**: implementati lato backend (Registry API) con test end‑to‑end.
+- **Pubblicazione su ambienti**: implementata lato backend (Publisher) con bundle immutabili e audit.
+- **RBAC/ACL**: i ruoli sono presenti come concetto/modello dati, ma l’enforcement autorizzativo fine‑grained sulle API non è completato in questo worktree.
+- **Temporal**: presente nell’ambiente di sviluppo (docker‑compose), ma l’integrazione applicativa per esecuzione processi non è ancora implementata.

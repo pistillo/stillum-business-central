@@ -46,11 +46,11 @@ Rappresenta un artefatto generico (processo BPMN, regola DMN, modulo, request). 
 
 - `id` (uuid).
 - `tenant_id` (uuid) → **Tenant**.
-- `type` (enum): {`process`, `rule`, `form`, `request`}.
+- `type` (enum): {`PROCESS`, `RULE`, `FORM`, `REQUEST`}.
 - `title` (string).
 - `description` (string).
 - `owner_id` (uuid) → **User**.
-- `status` (enum): stato corrente (bozza, in revisione, approvato, pubblicato, ritirato).
+- `status` (enum): {`DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`}.
 - `created_at`, `updated_at` (datetime).
 
 ### ArtifactVersion
@@ -60,7 +60,7 @@ Versione concreta di un artefatto. Ogni versione fa riferimento al payload memor
 - `id` (uuid).
 - `artifact_id` (uuid) → **Artifact**.
 - `version` (string): numero di versione (es. semver).
-- `state` (enum): {`draft`, `review`, `approved`, `published`, `retired`}.
+- `state` (enum): {`DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`}.
 - `payload_ref` (string): puntatore al file in MinIO/S3.
 - `created_by` (uuid) → **User**.
 - `created_at` (datetime).
@@ -85,10 +85,20 @@ Registra la pubblicazione di una versione di un artefatto in uno specifico ambie
 - `published_by` (uuid) → **User**.
 - `published_at` (datetime).
 - `notes` (string).
+- `bundle_ref` (string): riferimento al bundle su storage.
 
-### Instance
+### Dependency
 
-Istanza di esecuzione di un processo (workflow) avviata tramite Temporal.
+Dipendenza fra versioni (grafo). Una versione può dipendere da altre versioni (anche di artefatti diversi).
+
+- `id` (uuid).
+- `artifact_version_id` (uuid) → **ArtifactVersion**.
+- `depends_on_artifact_id` (uuid) → **Artifact**.
+- `depends_on_version_id` (uuid) → **ArtifactVersion**.
+
+### Instance (futuro)
+
+Istanza di esecuzione di un processo (workflow) avviata tramite Temporal. Non è implementata nel worktree corrente.
 
 - `id` (uuid).
 - `tenant_id` (uuid) → **Tenant**.
@@ -97,9 +107,9 @@ Istanza di esecuzione di un processo (workflow) avviata tramite Temporal.
 - `status` (enum): {`running`, `completed`, `failed`, `cancelled`}.
 - `started_at`, `ended_at` (datetime).
 
-### Task
+### Task (futuro)
 
-Rappresenta un'unità di lavoro (potenzialmente assegnata a un utente) nell'ambito di un'istanza.
+Rappresenta un'unità di lavoro (potenzialmente assegnata a un utente) nell'ambito di un'istanza. Non è implementata nel worktree corrente.
 
 - `id` (uuid).
 - `instance_id` (uuid) → **Instance**.
@@ -109,7 +119,7 @@ Rappresenta un'unità di lavoro (potenzialmente assegnata a un utente) nell'ambi
 - `status` (enum): {`pending`, `in_progress`, `completed`, `failed`}.
 - `due_date`, `created_at`, `updated_at` (datetime).
 
-### AuditLog (opzionale)
+### AuditLog
 
 Log delle operazioni rilevanti per audit.
 
@@ -132,7 +142,6 @@ erDiagram
     TENANT ||--o{ ROLE : "1:n"
     TENANT ||--o{ ARTIFACT : "1:n"
     TENANT ||--o{ ENVIRONMENT : "1:n"
-    TENANT ||--o{ INSTANCE : "1:n"
     TENANT ||--o{ AUDITLOG : "1:n"
 
     ROLE ||--o{ USER : "1:n"
@@ -147,11 +156,9 @@ erDiagram
     ARTIFACT ||--o{ ARTIFACT_VERSION : "1:n"
 
     ARTIFACT_VERSION ||--o{ PUBLICATION : "1:n"
-    ARTIFACT_VERSION ||--o{ INSTANCE : "1:n"
+    ARTIFACT_VERSION ||--o{ DEPENDENCY : "1:n"
 
     ENVIRONMENT ||--o{ PUBLICATION : "1:n"
-
-    INSTANCE ||--o{ TASK : "1:n"
 
     AUDITLOG {
         string id
@@ -171,5 +178,6 @@ erDiagram
 - I campi `created_at` e `updated_at` permettono di tracciare le modifiche nel tempo.
 - Il campo `metadata` su **ArtifactVersion** consente di estendere il modello senza modificare lo schema.
 - Il modello è pensato per essere implementato in PostgreSQL con politiche di row‑level security basate sul `tenant_id`.
+- Nel worktree corrente le entity sono presenti nei servizi Quarkus con naming DB `app_user` (per l’utente) e relazioni coerenti con le migrazioni Flyway.
 
 Questo modello dati costituisce la base per le tabelle, le API REST e il mapping negli ORM utilizzati dai servizi backend (vedi [Stato EPIC 0](epic0-stato) per l'allineamento con il codebase).
