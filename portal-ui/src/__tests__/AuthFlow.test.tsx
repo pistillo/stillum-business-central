@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '../theme/ThemeContext';
 
 // Components from the portal
 import { AuthContext, type AuthContextValue } from '../auth/auth-context';
@@ -90,6 +91,24 @@ vi.mock('oidc-client-ts', () => {
 });
 
 describe('OIDC authentication flow', () => {
+  beforeAll(() => {
+    // jsdom does not implement window.matchMedia; ThemeProvider needs it
+    window.matchMedia =
+      window.matchMedia ||
+      function () {
+        return {
+          matches: false,
+          media: '',
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(() => false),
+        } as unknown as MediaQueryList;
+      };
+  });
+
   beforeEach(() => {
     // Clear mocks between tests to avoid cross‑test pollution
     signinRedirectMock.mockClear();
@@ -98,14 +117,16 @@ describe('OIDC authentication flow', () => {
 
   it('invokes signinRedirect when the login button is clicked', async () => {
     render(
-      <MemoryRouter>
-        <AuthProvider>
-          <LoginPage />
-        </AuthProvider>
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <AuthProvider>
+            <LoginPage />
+          </AuthProvider>
+        </MemoryRouter>
+      </ThemeProvider>
     );
-    // The login button is labelled "Login" on the page
-    const button = screen.getByRole('button', { name: /login/i });
+    // The login button is labelled "Accedi con SSO" on the page
+    const button = screen.getByRole('button', { name: /accedi/i });
     fireEvent.click(button);
     // Wait for any pending promises; then assert that our stub was called
     await waitFor(() => {

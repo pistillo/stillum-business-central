@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodeJwtPayload, extractTenantIdsFromJwt } from '../jwt';
+import { decodeJwtPayload, extractDefaultTenantIdFromJwt, extractTenantIdsFromJwt } from '../jwt';
 
 describe('decodeJwtPayload', () => {
   it('decodes a valid JWT payload', () => {
@@ -134,5 +134,28 @@ describe('extractTenantIdsFromJwt', () => {
     const payload = { groups: ['Tenant:invalid', 'TENANT:invalid'] };
     const result = extractTenantIdsFromJwt(payload);
     expect(result).toEqual([]);
+  });
+});
+
+describe('extractDefaultTenantIdFromJwt', () => {
+  const validTenantId = '00000000-0000-0000-0000-000000000001';
+
+  it('extracts from claim "defaultTenantId"', () => {
+    const payload = { defaultTenantId: validTenantId };
+    expect(extractDefaultTenantIdFromJwt(payload)).toBe(validTenantId);
+  });
+
+  it('extracts from claim "tenantId" as fallback', () => {
+    const payload = { tenantId: validTenantId };
+    expect(extractDefaultTenantIdFromJwt(payload)).toBe(validTenantId);
+  });
+
+  it('returns null for invalid UUID', () => {
+    const payload = { defaultTenantId: 'not-a-uuid' };
+    expect(extractDefaultTenantIdFromJwt(payload)).toBeNull();
+  });
+
+  it('returns null when missing', () => {
+    expect(extractDefaultTenantIdFromJwt({})).toBeNull();
   });
 });

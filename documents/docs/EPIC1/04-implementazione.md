@@ -139,6 +139,7 @@ Il servizio `publisher/` implementa il flusso MVP di pubblicazione e gestisce la
 
 1. Verifica `Environment` per tenant
 2. Lettura `Artifact` + `ArtifactVersion` e verifica `state != PUBLISHED`
+   - guard-rail: se `Environment.name == PROD` allora `ArtifactVersion.state` deve essere `APPROVED`
 3. Download payload da S3 usando `payloadRef` (bucket artifacts) e validazione base
 4. Verifica dipendenze: tutte le versioni dipendenti devono essere `PUBLISHED`
 5. Creazione bundle zip con:

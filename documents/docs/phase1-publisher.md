@@ -16,7 +16,7 @@ Il **Publisher Service** è responsabile della transizione delle versioni di ar
 ## Flusso di pubblicazione
 
 1. **Invocazione**: un utente (solitamente un Process Owner) invia una richiesta al publisher tramite l’endpoint `POST /tenants/{tenantId}/publish` specificando `artifactId`, `versionId` e `environmentId`.  Opzionalmente può includere note di release.
-2. **Recupero e controllo**: il servizio legge dai metadati la versione richiesta, verifica che sia in stato `Draft` e recupera il payload dall’object storage usando `payloadRef`.
+2. **Recupero e controllo**: il servizio legge dai metadati la versione richiesta, verifica che non sia già `Published` e recupera il payload dall’object storage usando `payloadRef`.
 3. **Validazione schema**:
    - **BPMN**: eseguire una validazione sintattica del file XML e verificare la correttezza dei riferimenti a variabili e task.
    - **DMN**: assicurarsi che le tabelle decisionali siano corrette e seguano lo standard DMN.
@@ -24,7 +24,7 @@ Il **Publisher Service** è responsabile della transizione delle versioni di ar
 4. **Risoluzione dipendenze**: per ogni dipendenza registrata, recuperare la versione indicata e verificare che sia già pubblicata.  Se non lo è, bloccare la pubblicazione segnalando l’errore all’utente.
 5. **Costruzione bundle**: aggregare il payload dell’artefatto e opzionalmente i payload delle dipendenze in un singolo file (ad esempio un archivio zip) e generare un manifest (un file JSON) con i metadati: `artifactId`, `versionId`, lista dipendenze e hash dei file.
 6. **Persistenza bundle**: caricare il bundle nello storage in un percorso strutturato (vedi sezione Storage) e ottenere un riferimento (bundleRef).  Salvare su DB una nuova entità `Publication` con l’ambiente selezionato (`DEV`, `QA`, `PROD`), la data, l’autore e eventuali note.
-7. **Aggiornamento stato**: aggiornare la riga di `ArtifactVersion` impostando `state = Published`, memorizzare il riferimento al bundle (`bundleRef`) e rendere la versione non più modificabile.
+7. **Aggiornamento stato**: aggiornare la riga di `ArtifactVersion` impostando `state = Published` e rendere la versione non più modificabile. Il riferimento al bundle è memorizzato nella `Publication` (`bundleRef`).
 8. **Risposta**: restituire al client un esito positivo con le informazioni della pubblicazione (id, timestamp, bundleRef) oppure un errore con le cause della validazione fallita.
 
 ## Endpoint di pubblicazione
@@ -39,8 +39,8 @@ Il **Publisher Service** è responsabile della transizione delle versioni di ar
 Ogni `Publication` è legata a un ambiente, definito da `Environment` (es. `dev`, `qa`, `stage`, `prod`).  Il publisher deve:
 
 * Verificare che l’ambiente esista per il tenant.
-* Consente la pubblicazione di una versione su più ambienti (ogni pubblicazione è un record separato).
-* Mantenere uno storico: eventuali nuove pubblicazioni dello stesso artefatto in un ambiente aggiornano l’ambiente alla nuova versione.
+* Applicare policy minime di rilascio per ambiente (guard-rail): publish verso un ambiente chiamato `PROD` consentito solo se la versione è `APPROVED`.
+* Nel branch corrente una versione già `PUBLISHED` non può essere ripubblicata su un secondo ambiente (limitazione della v0).
 
 ## Logging e auditing
 

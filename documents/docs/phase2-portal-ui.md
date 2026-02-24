@@ -13,8 +13,7 @@ Questa pagina dettaglia la progettazione del **Portal UI** per la Fase 2, evid
 * **React Router**: routing client‑side e protezione rotte.
 * **TanStack Query**: gestione delle chiamate REST e cache dei dati provenienti da Registry API e Publisher.
 * **OIDC (Keycloak)**: login tramite redirect OIDC (Authorization Code + PKCE) gestito da `oidc-client-ts`.
-* **bpmn-js / dmn-js / form editor**: i pacchetti bpmn.io e dmn.io vengono incapsulati in componenti React.  Per i form (StillumForms) e le request si utilizzeranno componenti custom basati su schemi JSON.
-* **i18next**: per supportare la localizzazione in più lingue (italiano, inglese, etc.).
+* **Monaco Editor**: editor testuale per payload XML/JSON, con supporto YAML per artefatti JSON-based (Forms/Requests).
 
 ### Stato implementazione (Portal UI v0)
 
@@ -23,20 +22,20 @@ Nel repository è presente una prima implementazione operativa (v0) che copre:
 * Routing, layout e route guard (autenticazione e selezione tenant).
 * Catalogo artefatti (lista con filtri base e paginazione).
 * Dettaglio artefatto (metadati + lista versioni).
-* Editor v0 “testuale” (textarea) con load/save tramite presigned URL e aggiornamento `payloadRef`.
-* Pubblicazione v0 (form semplice che invoca il Publisher e mostra l’esito).
+* Editor v0 (Monaco) con load/save tramite presigned URL e aggiornamento `payloadRef` (JSON/YAML o XML).
+* Pubblicazione v0 (form semplice che invoca il Publisher, seleziona ambiente da Registry e torna al dettaglio artefatto a successo).
 
 ### Struttura delle pagine
 
 | Percorso | Descrizione |
 |---------|-------------|
-| **`/login`** | Pagina di login che reindirizza al provider IAM (Keycloak).  Una volta autenticato, l’utente viene reindirizzato alla selezione del tenant o direttamente alla home se appartiene a un solo tenant. |
-| **`/select-tenant`** | Pagina in cui l’utente sceglie tra i tenant a cui è assegnato.  Il `tenantId` selezionato viene salvato nel contesto dell’applicazione e usato in tutte le chiamate API. |
+| **`/login`** | Pagina di login che reindirizza al provider IAM (Keycloak). Preserva i deep link tramite `redirectTo` e, a login completato, riporta l’utente alla pagina richiesta. |
+| **`/select-tenant`** | Pagina in cui l’utente sceglie tra i tenant a cui è assegnato. Se è presente un `defaultTenantId` nel token, o se esiste un solo tenant disponibile, la selezione è automatica. |
 | **`/home`** | Dashboard con le bozze dell’utente, i processi recenti, i task assegnati (futuro) e i link rapidi (crea nuovo artefatto, vai al catalogo, vedi errori). |
 | **`/catalogue`** | Lista paginata degli artefatti del tenant.  Possibilità di filtrare per tipo (processo, regola, modulo, request), stato (bozza, pubblicato), area e tag. |
 | **`/artifact/:id`** | Pagina dettaglio dell’artefatto con metadati, elenco versioni (bozze e pubblicate), pulsanti per modificare la bozza o avviare la pubblicazione. |
-| **`/editor/:id/:version`** | Vista editor per una specifica versione in bozza.  Carica il file dal `payloadRef`, apre l’editor corrispondente (BPMN, DMN, Modulo, Request) e permette il salvataggio della bozza. |
-| **`/publish/:id/:version`** | Wizard di pubblicazione che mostra l’anteprima dei metadati, le dipendenze, gli errori di validazione restituiti dal Publisher e consente di selezionare l’ambiente. |
+| **`/editor/:id/:version`** | Vista editor per una specifica versione. Carica il file dal `payloadRef` e permette il salvataggio solo se la versione non è `PUBLISHED` (sola lettura sulle versioni pubblicate). |
+| **`/publish/:id/:version`** | Form di pubblicazione che consente di selezionare l’ambiente (lista dal Registry) e invoca il Publisher. A successo, torna automaticamente al dettaglio dell’artefatto. |
 
 Le rotte devono essere protette: solo utenti autenticati possono accedervi.  L’assenza di un `tenantId` nell’applicazione reindirizza l’utente alla selezione del tenant.
 
@@ -65,7 +64,8 @@ Per la prima versione dell’UI si prevede una **single sign‑on** tramite Keyc
 
 * Il portale è registrato come client OIDC in Keycloak.
 * L’utente viene rediretto a Keycloak per il login; al ritorno riceve un JWT che contiene ruoli e tenant disponibili.
-* La UI decodifica il JWT per ricavare i tenant e, se ce n’è più di uno, propone la pagina `select-tenant`.  Il token viene salvato in sessione e usato in ogni richiesta come header `Authorization: Bearer <token>`.
+* La UI decodifica il JWT per ricavare i tenant (`tenantIds`) ed eventuale `defaultTenantId`. Se necessario propone `select-tenant`. Il token viene salvato in sessione e usato in ogni richiesta come header `Authorization: Bearer <token>`.
+* Le route guard preservano il deep link iniziale tramite `redirectTo` e lo ripristinano dopo login e selezione tenant.
 
 #### Configurazione runtime (env)
 
@@ -78,7 +78,7 @@ La Portal UI v0 usa variabili `VITE_*`:
 * `VITE_OIDC_SCOPE` (default `openid profile email`)
 * `VITE_OIDC_REDIRECT_URI` (default `${window.location.origin}/oidc/callback`)
 
-Nota: l’estrazione dei tenant dal token è implementata in modo “tollerante” (supporta claim array come `tenants/tenantIds` o pattern in `groups`), con fallback a inserimento manuale del tenantId se assente.
+Nota: l’estrazione dei tenant dal token è implementata in modo “tollerante” (supporta claim array come `tenants/tenantIds` o pattern in `groups`), con fallback a inserimento manuale del tenantId se assente. Il `defaultTenantId` (se presente) viene usato come selezione automatica quando l’utente ha più tenant.
 
 ## Considerazioni future
 

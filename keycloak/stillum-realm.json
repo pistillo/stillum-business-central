@@ -61,6 +61,20 @@
             "access.token.claim": "true",
             "userinfo.token.claim": "true"
           }
+        },
+        {
+          "id": "a1b2c3d4-0000-4000-8000-000000000002",
+          "name": "defaultTenantId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "defaultTenantId",
+            "claim.name": "defaultTenantId",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         }
       ]
     }
@@ -76,6 +90,9 @@
         "/tenant/00000000-0000-0000-0000-000000000001",
         "/tenant/00000000-0000-0000-0000-000000000002"
       ],
+      "attributes": {
+        "defaultTenantId": ["00000000-0000-0000-0000-000000000001"]
+      },
       "credentials": [
         {
           "type": "password",

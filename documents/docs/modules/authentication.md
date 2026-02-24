@@ -9,7 +9,9 @@ La piattaforma deve garantire che solo gli utenti autorizzati possano accedere a
 ## Autenticazione
 
 - Integrazione con un provider esterno (es. Keycloak, Auth0, Azure AD) tramite OIDC.
-- Supporto per single sign-on e multi-tenant: il token deve contenere `tenantId` e ruoli.
+- Supporto per single sign-on e multi-tenant: il token deve contenere ruoli e contesto di tenancy:
+  - `tenantIds`: lista dei tenant a cui l’utente può accedere.
+  - `defaultTenantId` (opzionale): tenant predefinito da usare quando `tenantIds` contiene più valori.
 - Supporto per inviti utente e reset password.
 
 ## Autorizzazione

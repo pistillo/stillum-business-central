@@ -23,7 +23,7 @@ sidebar_label: Implementazione
 | `/catalogue` | Catalogo artefatti (filtri + paginazione) |
 | `/catalogue/new` | Creazione artefatto + prima versione |
 | `/artifact/:id` | Dettaglio artefatto + versioni |
-| `/editor/:artifactId/:versionId` | Editor v0 (testuale) con load/save |
+| `/editor/:artifactId/:versionId` | Editor v0 (Monaco) con load/save; sola lettura su versioni pubblicate |
 | `/publish/:artifactId/:versionId` | Publish v0 (form semplice) |
 
 Route guards:
@@ -31,6 +31,7 @@ Route guards:
 - autenticazione: [RequireAuth.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/routes/RequireAuth.tsx)
 - tenant selection: [RequireTenant.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/routes/RequireTenant.tsx)
 - fallback: utenti non autenticati → `/login`, utenti autenticati → `/home`
+- post-login redirect: preserva deep link tramite `redirectTo` e storage in sessione: [postLoginRedirect.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/utils/postLoginRedirect.ts)
 
 ---
 
@@ -57,6 +58,7 @@ Variabili `VITE_*` rilevanti:
 - UI selezione tenant: [SelectTenantPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/pages/SelectTenantPage.tsx)
 
 Nota: se il token espone un solo tenant, le route protette possono essere accessibili anche prima di una scelta esplicita del tenant.
+Se il token espone più tenant e contiene `defaultTenantId`, la selezione può avvenire automaticamente.
 
 ---
 
@@ -79,10 +81,11 @@ Hooks (TanStack Query):
 
 - catalogo: [useArtifacts.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/hooks/useArtifacts.ts)
 - dettaglio: [useArtifactDetail.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/hooks/useArtifactDetail.ts)
+- ambienti: [useEnvironments.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/hooks/useEnvironments.ts)
 
 ---
 
-## Editor v0 (testuale)
+## Editor v0 (Monaco)
 
 L’editor v0 implementa un flusso minimale:
 
@@ -97,6 +100,6 @@ Implementazione: [EditorPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-
 
 ## Pubblicazione v0
 
-Publish v0 invoca il Publisher e mostra l’esito base (id + bundleRef):
+Publish v0 carica la lista ambienti dal Registry (`GET /api/tenants/{tenantId}/environments`), invoca il Publisher e mostra l’esito base (id + bundleRef). A successo, ritorna automaticamente al dettaglio dell’artefatto:
 
 - [PublishPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/pages/PublishPage.tsx)

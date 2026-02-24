@@ -10,7 +10,7 @@ sidebar_label: Stato EPIC 2
 
 **Contesto:** La UI vive nel progetto `portal-ui/` e integra **Registry API** (`registry-api`) e **Publisher** (`publisher`) tramite chiamate REST con `Authorization: Bearer <token>`.
 
-**Stato complessivo:** **Parzialmente implementato** — disponibili login OIDC, selezione tenant, home v0, catalogo, dettaglio artefatto, creazione bozza, editor testuale v0 con presigned URL e pubblicazione v0. Restano da completare editor BPMN/DMN/forms “real”, wizard publish multi-step, i18n/toast/error boundary e decisione su ricerca full-text.
+**Stato complessivo:** **Parzialmente implementato** — disponibili login OIDC, selezione tenant (con auto-select via `defaultTenantId`), home v0, catalogo, dettaglio artefatto, creazione bozza, editor v0 (Monaco) con presigned URL e pubblicazione v0 (scelta ambiente da Registry + redirect automatico al dettaglio). Restano da completare editor BPMN/DMN/forms “real”, wizard publish multi-step, i18n/toast/error boundary e decisione su ricerca full-text.
 
 ---
 
@@ -18,11 +18,11 @@ sidebar_label: Stato EPIC 2
 
 | FEATURE | Stato | Note |
 |--------|--------|------|
-| **2.1** Autenticazione e Selezione Tenant | ✅ Completato | OIDC + tenant selection + claim `tenantIds` Keycloak + test unitari completi |
+| **2.1** Autenticazione e Selezione Tenant | ✅ Completato | OIDC + tenant selection + claim `tenantIds`/`defaultTenantId` (Keycloak) + deep-link `redirectTo` + test unitari completi |
 | **2.2** Dashboard | ✅ Completato | Home con sezioni “Le mie bozze” e “Ultime pubblicazioni” + hook dedicati + test unitari |
 | **2.3** Catalogo Artefatti | 🟡 Parziale | Lista paginata con filtri type/status/area/tag; full-text posticipata |
-| **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 è textarea con load/save; mancano embed BPMN/DMN/forms e auto-save |
-| **2.5** Pubblicazione Guidata | 🟡 Parziale | Publish v0 è form semplice; mancano step e gestione errori validazione dettagliata |
+| **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 usa Monaco (XML/JSON) con load/save; mancano embed BPMN/DMN/forms e auto-save |
+| **2.5** Pubblicazione Guidata | 🟡 Parziale | Publish v0 è form semplice con dropdown ambienti (da Registry) e redirect al dettaglio; mancano step e gestione errori validazione dettagliata |
 | **2.6** Infrastruttura UI | 🟡 Parziale | Layout+router presenti; mancano i18n, toast, error boundary, audit a11y |
 
 ---
@@ -38,7 +38,7 @@ sidebar_label: Stato EPIC 2
 | Task | Stato | Evidenza |
 |------|--------|----------|
 | T-2.1.1.1 | ✅ | Progetto `portal-ui/` basato su React+Vite |
-| T-2.1.1.2 | ✅ | Client `portal-ui` importato nel realm `stillum` + claim `tenantIds` (vedi `keycloak/stillum-realm.json`) |
+| T-2.1.1.2 | ✅ | Client `portal-ui` importato nel realm `stillum` + claim `tenantIds` e `defaultTenantId` (vedi `keycloak/stillum-realm.json`) |
 | T-2.1.1.3 | ✅ | Pagina `/login` con redirect OIDC |
 | T-2.1.1.4 | ✅ | Callback OIDC e gestione sessione utente |
 | T-2.1.1.5 | ✅ | Header `Authorization: Bearer` su chiamate API |
@@ -52,6 +52,7 @@ sidebar_label: Stato EPIC 2
 | T-2.1.2.1 | ✅ | Pagina `/select-tenant` |
 | T-2.1.2.2 | ✅ | Tenant context provider con persistenza locale |
 | T-2.1.2.3 | ✅ | Tenant unico: accesso consentito e selezione automatica supportata |
+| T-2.1.2.3b | ✅ | Tenant multipli: selezione automatica se `defaultTenantId` è presente nel token |
 | T-2.1.2.4 | ✅ | Propagazione tenantId alle API (path) |
 
 ---

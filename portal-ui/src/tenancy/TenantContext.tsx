@@ -7,10 +7,15 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { decodeJwtPayload, extractTenantIdsFromJwt } from '../utils/jwt';
+import {
+  decodeJwtPayload,
+  extractDefaultTenantIdFromJwt,
+  extractTenantIdsFromJwt,
+} from '../utils/jwt';
 import { useAuth } from '../auth/AuthContext';
 
 type TenantContextValue = {
+  status: 'loading' | 'ready';
   tenantId: string | null;
   availableTenantIds: string[];
   setTenantId: (tenantId: string | null) => void;
@@ -26,39 +31,65 @@ export function TenantProvider(props: { children: ReactNode }) {
     return window.localStorage.getItem(STORAGE_KEY);
   });
   const [availableTenantIds, setAvailableTenantIds] = useState<string[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready'>('loading');
 
   useEffect(() => {
+    if (state.status === 'loading') {
+      setStatus('loading');
+      return;
+    }
     if (state.status !== 'authenticated') {
       setAvailableTenantIds([]);
       setTenantIdState(null);
       window.localStorage.removeItem(STORAGE_KEY);
+      setStatus('ready');
       return;
     }
+    setStatus('loading');
     const accessToken = state.user.access_token;
     if (!accessToken) {
       setAvailableTenantIds([]);
+      setStatus('ready');
       return;
     }
     try {
       const payload = decodeJwtPayload(accessToken);
       const tenants = extractTenantIdsFromJwt(payload);
+      const defaultTenantId = extractDefaultTenantIdFromJwt(payload);
       setAvailableTenantIds(tenants);
 
       if (tenants.length === 1) {
         setTenantIdState(tenants[0]);
         window.localStorage.setItem(STORAGE_KEY, tenants[0]);
+        setStatus('ready');
         return;
       }
 
       if (tenantId && tenants.includes(tenantId)) {
+        setStatus('ready');
         return;
       }
       if (tenantId && !tenants.includes(tenantId)) {
         setTenantIdState(null);
         window.localStorage.removeItem(STORAGE_KEY);
+        if (defaultTenantId && tenants.includes(defaultTenantId)) {
+          setTenantIdState(defaultTenantId);
+          window.localStorage.setItem(STORAGE_KEY, defaultTenantId);
+        }
+        setStatus('ready');
+        return;
       }
+
+      if (!tenantId && defaultTenantId && tenants.includes(defaultTenantId)) {
+        setTenantIdState(defaultTenantId);
+        window.localStorage.setItem(STORAGE_KEY, defaultTenantId);
+        setStatus('ready');
+        return;
+      }
+      setStatus('ready');
     } catch {
       setAvailableTenantIds([]);
+      setStatus('ready');
     }
   }, [state, tenantId]);
 
@@ -72,8 +103,8 @@ export function TenantProvider(props: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<TenantContextValue>(
-    () => ({ tenantId, availableTenantIds, setTenantId }),
-    [tenantId, availableTenantIds, setTenantId]
+    () => ({ status, tenantId, availableTenantIds, setTenantId }),
+    [status, tenantId, availableTenantIds, setTenantId]
   );
 
   return <TenantContext.Provider value={value}>{props.children}</TenantContext.Provider>;

@@ -4,6 +4,7 @@ import type {
   ArtifactStatus,
   ArtifactType,
   ArtifactVersion,
+  Environment,
   PagedResponse,
   PresignedUrlResponse,
 } from './types';
@@ -145,6 +146,15 @@ export async function getPayloadDownloadUrl(params: {
   q.set('artifactId', params.artifactId);
   q.set('versionId', params.versionId);
   return apiFetch(registryUrl(`/tenants/${params.tenantId}/storage/download-url?${q.toString()}`), {
+    token: params.token,
+  });
+}
+
+export async function listEnvironments(params: {
+  token: string | null;
+  tenantId: string;
+}): Promise<Environment[]> {
+  return apiFetch(registryUrl(`/tenants/${params.tenantId}/environments`), {
     token: params.token,
   });
 }

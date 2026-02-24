@@ -51,3 +51,10 @@ export type Publication = {
   bundleRef: string;
   notes?: string | null;
 };
+
+export type Environment = {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string | null;
+};

@@ -15,45 +15,48 @@ import { SelectTenantPage } from './pages/SelectTenantPage';
 import { RequireAuth } from './routes/RequireAuth';
 import { RequireTenant } from './routes/RequireTenant';
 import { TenantProvider } from './tenancy/TenantContext';
+import { ThemeProvider } from './theme/ThemeContext';
 
 function App() {
   const queryClient = useMemo(() => new QueryClient(), []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TenantProvider>
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/oidc/callback" element={<OidcCallbackPage />} />
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TenantProvider>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/oidc/callback" element={<OidcCallbackPage />} />
 
-              <Route element={<RequireAuth />}>
-                <Route path="/select-tenant" element={<SelectTenantPage />} />
-                <Route element={<RequireTenant />}>
-                  <Route element={<Layout />}>
-                    <Route path="/home" element={<HomePage />} />
-                    <Route path="/catalogue" element={<CataloguePage />} />
-                    <Route path="/catalogue/new" element={<NewArtifactPage />} />
-                    <Route path="/artifact/:id" element={<ArtifactDetailPage />} />
-                    <Route path="/editor/:artifactId/:versionId" element={<EditorPage />} />
-                    <Route path="/publish/:artifactId/:versionId" element={<PublishPage />} />
-                    <Route path="*" element={<Navigate to="/home" replace />} />
+                <Route element={<RequireAuth />}>
+                  <Route path="/select-tenant" element={<SelectTenantPage />} />
+                  <Route element={<RequireTenant />}>
+                    <Route element={<Layout />}>
+                      <Route path="/home" element={<HomePage />} />
+                      <Route path="/catalogue" element={<CataloguePage />} />
+                      <Route path="/catalogue/new" element={<NewArtifactPage />} />
+                      <Route path="/artifact/:id" element={<ArtifactDetailPage />} />
+                      <Route path="/editor/:artifactId/:versionId" element={<EditorPage />} />
+                      <Route path="/publish/:artifactId/:versionId" element={<PublishPage />} />
+                      <Route path="*" element={<Navigate to="/home" replace />} />
+                    </Route>
                   </Route>
                 </Route>
-              </Route>
 
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </TenantProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </TenantProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

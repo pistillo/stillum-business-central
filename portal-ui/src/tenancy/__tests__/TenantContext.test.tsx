@@ -8,6 +8,14 @@ const validTenantId2 = '00000000-0000-0000-0000-000000000002';
 
 const testTokenWithTenantIds = createTestToken({ tenantIds: [validTenantId, validTenantId2] });
 const testTokenWithSingleTenant = createTestToken({ tenantIds: [validTenantId] });
+const testTokenWithDefaultTenant = createTestToken({
+  tenantIds: [validTenantId, validTenantId2],
+  defaultTenantId: validTenantId,
+});
+const testTokenWithDefaultTenant2 = createTestToken({
+  tenantIds: [validTenantId, validTenantId2],
+  defaultTenantId: validTenantId2,
+});
 
 function createTestToken(claims: Record<string, unknown>): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -27,13 +35,16 @@ describe('TenantContext', () => {
     vi.resetAllMocks();
   });
 
-  it('provides default tenant context when user is anonymous', () => {
+  it('provides default tenant context when user is anonymous', async () => {
     const { result } = renderHook(() => useTenant(), {
       wrapper: createTestWrapper({ status: 'anonymous' }),
     });
-    expect(result.current.tenantId).toBeNull();
-    expect(result.current.availableTenantIds).toEqual([]);
     expect(typeof result.current.setTenantId).toBe('function');
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+      expect(result.current.tenantId).toBeNull();
+      expect(result.current.availableTenantIds).toEqual([]);
+    });
   });
 
   it('extracts tenants from JWT when user is authenticated', async () => {
@@ -42,6 +53,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
     });
   });
@@ -55,6 +67,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.tenantId).toBe(validTenantId);
       expect(result.current.availableTenantIds).toEqual([validTenantId]);
     });
@@ -66,7 +79,55 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.tenantId).toBeNull();
+      expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
+    });
+  });
+
+  it('auto-selects default tenant when multiple tenants are available', async () => {
+    const { result } = renderHook(() => useTenant(), {
+      wrapper: createTestWrapper({
+        status: 'authenticated',
+        accessToken: testTokenWithDefaultTenant,
+      }),
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+      expect(result.current.tenantId).toBe(validTenantId);
+      expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
+    });
+  });
+
+  it('keeps stored tenant when available even if default differs', async () => {
+    localStorage.setItem('stillum.tenantId', validTenantId);
+    const { result } = renderHook(() => useTenant(), {
+      wrapper: createTestWrapper({
+        status: 'authenticated',
+        accessToken: testTokenWithDefaultTenant2,
+      }),
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+      expect(result.current.tenantId).toBe(validTenantId);
+      expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
+    });
+  });
+
+  it('falls back to default tenant when stored tenant is not available', async () => {
+    localStorage.setItem('stillum.tenantId', '00000000-0000-0000-0000-000000000099');
+    const { result } = renderHook(() => useTenant(), {
+      wrapper: createTestWrapper({
+        status: 'authenticated',
+        accessToken: testTokenWithDefaultTenant,
+      }),
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+      expect(result.current.tenantId).toBe(validTenantId);
       expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
     });
   });
@@ -77,6 +138,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
     });
 
@@ -88,13 +150,16 @@ describe('TenantContext', () => {
     expect(result.current.tenantId).toBe(validTenantId);
   });
 
-  it('clears tenant from localStorage when user is unauthenticated', () => {
+  it('clears tenant from localStorage when user is unauthenticated', async () => {
     const { result } = renderHook(() => useTenant(), {
       wrapper: createTestWrapper({ status: 'anonymous' }),
     });
 
-    expect(result.current.tenantId).toBeNull();
-    expect(result.current.availableTenantIds).toEqual([]);
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+      expect(result.current.tenantId).toBeNull();
+      expect(result.current.availableTenantIds).toEqual([]);
+    });
   });
 
   it('removes tenant from localStorage when cleared', async () => {
@@ -103,6 +168,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.availableTenantIds).toEqual([validTenantId, validTenantId2]);
     });
 
@@ -131,6 +197,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.tenantId).toBe(validTenantId);
       expect(result.current.availableTenantIds).toEqual([validTenantId]);
     });
@@ -142,6 +209,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.availableTenantIds).toEqual([]);
     });
   });
@@ -152,6 +220,7 @@ describe('TenantContext', () => {
     });
 
     await waitFor(() => {
+      expect(result.current.status).toBe('ready');
       expect(result.current.availableTenantIds).toEqual([]);
     });
   });

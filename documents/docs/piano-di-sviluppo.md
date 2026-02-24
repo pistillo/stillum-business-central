@@ -22,7 +22,7 @@ Riferimento sintetico rispetto all’implementazione presente nel repository.
 |------|------|---:|------|----------|
 | EPIC 0 | ✅ Completato | 90% | Deliverable documentali + Docker Compose/CI presenti; chart Helm è uno scaffold | [Stato EPIC 0](/docs/EPIC0/epic0-stato) |
 | EPIC 1 | 🟡 Quasi completo (MVP) | 90% | Core completo; restano validazioni semantiche e hardening auth tenant | [Stato EPIC 1](/docs/EPIC1/epic1-stato) |
-| EPIC 2 | 🟡 Parziale (v0) | 60% | UI v0 operativa (login/tenant/catalogo/dettaglio/editor testuale/publish form); mancano editor integrati e wizard publish | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
+| EPIC 2 | 🟡 Parziale (v0) | 60% | UI v0 operativa (login/tenant/catalogo/dettaglio/editor Monaco/publish form con ambienti); mancano editor integrati e wizard publish | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
 | EPIC 3 | 🔴 Non iniziato | 0% | Workflow approvazione e ciclo di vita avanzato | |
 | EPIC 4 | 🟡 In avvio | 10% | Servizio `runtime-gateway` minimale; Temporal disponibile in docker-compose, integrazione applicativa da implementare | |
 | EPIC 5 | 🟡 In parte | 15% | Hardening multi-tenant già avviato (RLS); RBAC/ACL e onboarding tenant non implementati | |
@@ -311,7 +311,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 **Obiettivo:** Realizzare la prima interfaccia web operativa con autenticazione, catalogo, editor e pubblicazione.
 
-**Stato (worktree):** 🟡 Parziale (60%) — login/tenant/catalogo/dettaglio/editor testuale/publish form; mancano editor integrati e wizard publish.
+**Stato (worktree):** 🟡 Parziale (60%) — login/tenant/catalogo/dettaglio/editor Monaco/publish form con ambienti; mancano editor integrati e wizard publish.
 
 ### FEATURE 2.1 – Autenticazione e Selezione Tenant
 
@@ -335,31 +335,33 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 #### US-2.1.2 – Selezione tenant
 *Come utente appartenente a più tenant, voglio scegliere il tenant con cui operare, in modo da visualizzare solo i dati pertinenti.*
 
-**Stato (worktree):** ✅ Completato (95%).
+**Stato (worktree):** ✅ Completato (100%).
 
 | # | Task | Output |
 |---|------|--------|
 | ✅ T-2.1.2.1 | Implementare la pagina `/select-tenant` con lista dei tenant dall'JWT | Pagina selezione |
 | ✅ T-2.1.2.2 | Creare il Context Provider React con `tenantId`, info utente, ruoli, lingua | TenantContext |
 | ✅ T-2.1.2.3 | Tenant unico: selezione automatica e accesso diretto alle rotte protette | Logica tenant unico |
+| ✅ T-2.1.2.3b | Tenant multipli: selezione automatica con claim `defaultTenantId` | Default tenant |
 | ✅ T-2.1.2.4 | Propagare `tenantId` a tutte le chiamate API tramite context | Integrazione API |
+| ✅ T-2.1.2.5 | Preservare deep link post-login (`redirectTo`) attraverso login e selezione tenant | Post-login redirect |
 
 ### FEATURE 2.2 – Dashboard
 
-**Stato (worktree):** 🟡 Parziale (40%) — home v0 presente; sezioni dati mancanti.
+**Stato (worktree):** ✅ Completato (100%) — home v0 con sezioni dati e hook dedicati.
 
 #### US-2.2.1 – Home page del portale
 *Come utente, voglio vedere una dashboard con le informazioni principali al login, in modo da avere una panoramica immediata del mio lavoro.*
 
-**Stato (worktree):** 🟡 Parziale (40%).
+**Stato (worktree):** ✅ Completato (100%).
 
 | # | Task | Output |
 |---|------|--------|
 | ✅ T-2.2.1.1 | Implementare la pagina `/home` con layout responsive | Pagina home |
-| 🔴 T-2.2.1.2 | Sezione "Le mie bozze": lista delle bozze dell'utente corrente | Componente bozze |
-| 🔴 T-2.2.1.3 | Sezione "Ultime pubblicazioni": lista delle pubblicazioni recenti del tenant | Componente pubblicazioni |
+| ✅ T-2.2.1.2 | Sezione "Le mie bozze": lista delle bozze dell'utente corrente | Componente bozze |
+| ✅ T-2.2.1.3 | Sezione "Ultime pubblicazioni": lista delle pubblicazioni recenti del tenant | Componente pubblicazioni |
 | ✅ T-2.2.1.4 | Link rapidi: "Nuovo Artefatto", "Vai al Catalogo" | Componente quick links |
-| 🔴 T-2.2.1.5 | Implementare hooks `useMyDrafts`, `useRecentPublications` con React Query | Custom hooks |
+| ✅ T-2.2.1.5 | Implementare hooks `useMyDrafts`, `useRecentPublications` con React Query | Custom hooks |
 
 ### FEATURE 2.3 – Catalogo Artefatti
 
@@ -394,7 +396,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ### FEATURE 2.4 – Editor Integrati
 
-**Stato (worktree):** 🔴 Non iniziato (10%) — presente editor v0 testuale, non gli editor integrati richiesti dai task.
+**Stato (worktree):** 🔴 Non iniziato (10%) — presente editor v0 (Monaco), non gli editor integrati richiesti dai task.
 
 #### US-2.4.1 – Editor BPMN
 *Come analista, voglio modellare processi BPMN nell'editor integrato, in modo da creare e modificare definizioni di processo senza uscire dal portale.*
@@ -456,21 +458,21 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ### FEATURE 2.5 – Pubblicazione Guidata
 
-**Stato (worktree):** 🟡 Parziale (25%) — pagina publish v0 presente, non è wizard multi-step.
+**Stato (worktree):** 🟡 Parziale (35%) — pagina publish v0 presente con selezione ambiente; non è wizard multi-step.
 
 #### US-2.5.1 – Wizard di pubblicazione dalla UI
 *Come process owner, voglio pubblicare un artefatto tramite un wizard guidato, in modo da visualizzare errori di validazione e selezionare l'ambiente di destinazione.*
 
-**Stato (worktree):** 🟡 Parziale (25%).
+**Stato (worktree):** 🟡 Parziale (35%).
 
 | # | Task | Output |
 |---|------|--------|
 | 🟡 T-2.5.1.1 | Implementare la pagina `/publish/:id/:version` con wizard multi-step | Pagina wizard |
 | 🔴 T-2.5.1.2 | Step 1 – Anteprima: mostrare metadati artefatto, versione e dipendenze | Step preview |
 | 🔴 T-2.5.1.3 | Step 2 – Validazione: invocare il publisher e mostrare errori di validazione | Step validazione |
-| 🔴 T-2.5.1.4 | Step 3 – Selezione ambiente: dropdown con ambienti disponibili (DEV/QA/PROD) | Step ambiente |
+| ✅ T-2.5.1.4 | Step 3 – Selezione ambiente: dropdown con ambienti disponibili (da Registry) | Step ambiente |
 | 🔴 T-2.5.1.5 | Step 4 – Conferma: riepilogo e pulsante "Pubblica" | Step conferma |
-| 🟡 T-2.5.1.6 | Mostrare esito (successo con dettagli pubblicazione / fallimento con errori) | Feedback UI |
+| ✅ T-2.5.1.6 | Mostrare esito (successo con dettagli pubblicazione / fallimento con errori) | Feedback UI |
 | 🔴 T-2.5.1.7 | Implementare hook `usePublish` per invocare `POST /api/tenants/{tenantId}/publish` | Custom hook |
 
 ### FEATURE 2.6 – Infrastruttura UI

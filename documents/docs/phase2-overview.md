@@ -9,12 +9,12 @@ La **Fase 2** è dedicata alla realizzazione della **prima interfaccia utente o
 
 ## Ambito principale
 
-* **Autenticazione e selezione del tenant**: integrazione con il provider IAM (es. Keycloak) per login unico e selezione del tenant.  Una volta loggato, l’utente opera nel contesto del tenant scelto.
+* **Autenticazione e selezione del tenant**: integrazione con il provider IAM (es. Keycloak) per login unico e selezione del tenant. La UI può auto-selezionare il tenant via `defaultTenantId` quando l’utente ne ha più di uno e deve preservare i deep link post-login.
 * **Dashboard iniziale**: una home page che mostra bozze in corso, ultime pubblicazioni, eventuali errori e link rapidi alle funzioni principali.
 * **Catalogo artefatti**: una vista elenco/tabellare per navigare processi, regole, moduli e request.  Supporto a filtri per tipo, stato, area e tag; la strategia full‑text è posticipata.
 * **Dettaglio artefatto**: una pagina che visualizza i metadati di un artefatto e tutte le sue versioni, permettendo di aprire la versione in bozza nell’editor o di avviare la pubblicazione.
-* **Editor v0**: editor “testuale” per caricare/salvare payload tramite presigned URL (in attesa dell’integrazione degli editor BPMN/DMN/Forms).
-* **Pubblicazione v0**: form semplificato che invoca il Publisher Service e mostra successo/fallimento (in attesa del wizard completo con dipendenze/validazioni dettagliate).
+* **Editor v0**: editor (Monaco) per caricare/salvare payload tramite presigned URL (in attesa dell’integrazione degli editor BPMN/DMN/Forms).
+* **Pubblicazione v0**: form semplificato che invoca il Publisher Service, carica gli ambienti dal Registry e, a successo, torna al dettaglio artefatto (in attesa del wizard completo con dipendenze/validazioni dettagliate).
 
 ## Deliverable
 
@@ -24,7 +24,7 @@ La **Fase 2** è dedicata alla realizzazione della **prima interfaccia utente o
 4. **Componenti UI** per:
    - Liste e tabelle (catalogo, versioni).
    - Form di creazione artefatti (titolo, tipo, descrizione, tag, area).
-   - Dialog per selezione ambiente e conferma pubblicazione.
+   - Selezione ambiente per pubblicazione (dropdown popolata da Registry API).
    - Notifiche e feedback utente (toast, banner).
 5. **Chiamate API** verso la Registry API e il Publisher Service con gestione degli errori e visualizzazione degli stati (loading, successo, errore).
 

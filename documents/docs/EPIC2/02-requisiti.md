@@ -14,10 +14,14 @@ sidebar_label: Requisiti
 
 ### Selezione tenant
 
-- Se il token contiene più tenant, la UI deve far scegliere il tenant su `/select-tenant`.
+- Se il token contiene più tenant, la UI deve far scegliere il tenant su `/select-tenant` oppure selezionarlo automaticamente se è presente un `defaultTenantId` valido nel token.
 - Il tenant selezionato deve essere persistito localmente e propagato su tutte le chiamate (`/api/tenants/{tenantId}/...`). Nel client HTTP la base URL può includere già `/api` e quindi i path costruiti lato UI iniziano da `/tenants/{tenantId}/...`.
 - Se il token non contiene tenant, è accettabile un fallback (inserimento manuale del `tenantId`) per la v0.
 - Se il token contiene un solo tenant, la UI può selezionarlo automaticamente senza richiedere una scelta esplicita.
+
+### Deep link (post-login redirect)
+
+- Se l’utente accede direttamente a una rotta protetta (es. `/catalogue`), la UI deve preservare la destinazione e riportare l’utente alla pagina richiesta dopo login e selezione tenant.
 
 ### Catalogo e dettaglio
 
@@ -36,6 +40,7 @@ sidebar_label: Requisiti
 
 - `/publish/:id/:version` deve consentire la pubblicazione della versione su un environment.
 - In v0 è accettabile una UX semplificata (form con `environmentId` e `notes`) e un feedback base di successo/fallimento.
+- La UI dovrebbe caricare la lista degli ambienti dal Registry (`GET /api/tenants/{tenantId}/environments`) e presentare una dropdown; rimane accettabile un fallback con inserimento manuale dell’`environmentId`.
 
 ---
 
