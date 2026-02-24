@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import * as yaml from 'js-yaml';
 import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
+import { FormEditorShell, useFormEditorStore } from '../form-editor';
 import type { ArtifactType, VersionState } from '../api/types';
 import {
   getArtifact,
@@ -16,7 +17,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 import { useTheme } from '../theme/ThemeContext';
 
-type EditorFormat = 'json' | 'yaml' | 'xml';
+type EditorFormat = 'json' | 'yaml' | 'xml' | 'visual';
 
 function getDefaultContent(type: ArtifactType): string {
   if (type === 'FORM' || type === 'REQUEST') return '{}';
@@ -28,7 +29,8 @@ function getDefaultContent(type: ArtifactType): string {
 }
 
 function getFormats(type: ArtifactType): EditorFormat[] {
-  if (type === 'FORM' || type === 'REQUEST') return ['json', 'yaml'];
+  if (type === 'FORM') return ['visual', 'json', 'yaml'];
+  if (type === 'REQUEST') return ['json', 'yaml'];
   return ['xml'];
 }
 
@@ -67,6 +69,7 @@ export function EditorPage() {
   const [versionState, setVersionState] = useState<VersionState>('DRAFT');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState<EditorFormat>('json');
+  const [visualEditorContent, setVisualEditorContent] = useState('');
   const [artifactTitle, setArtifactTitle] = useState('');
   const [versionLabel, setVersionLabel] = useState('');
 
@@ -78,6 +81,23 @@ export function EditorPage() {
       setActiveTab(formats[0]);
     }
   }, [formats, activeTab]);
+
+  // Sync visual editor content when switching tabs
+  useEffect(() => {
+    if (activeTab === 'visual' && jsonContent) {
+      setVisualEditorContent(jsonContent);
+    }
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleVisualEditorSave = useCallback(
+    (json: string) => {
+      setJsonContent(json);
+      setVisualEditorContent(json);
+      // Trigger the same save mutation
+      save.mutate();
+    },
+    [] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   useEffect(() => {
     if (!tenantId || !artifactId || !versionId) return;
@@ -148,6 +168,23 @@ export function EditorPage() {
   );
 
   const contentToSave = isJsonBased ? jsonContent : xmlContent;
+
+  // When switching away from visual tab, sync content
+  const handleTabChange = useCallback(
+    (tab: EditorFormat) => {
+      if (activeTab === 'visual' && tab !== 'visual') {
+        const json = useFormEditorStore.getState().toJson();
+        if (json && json !== '{}') {
+          setJsonContent(json);
+        }
+      }
+      if (tab === 'visual') {
+        setVisualEditorContent(jsonContent);
+      }
+      setActiveTab(tab);
+    },
+    [activeTab, jsonContent]
+  );
   const contentType = getContentType(artifactType);
 
   const save = useMutation({
@@ -240,7 +277,7 @@ export function EditorPage() {
           {formats.map((fmt) => (
             <button
               key={fmt}
-              onClick={() => setActiveTab(fmt)}
+              onClick={() => handleTabChange(fmt)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
                 ${
                   activeTab === fmt
@@ -248,7 +285,7 @@ export function EditorPage() {
                     : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
             >
-              {fmt.toUpperCase()}
+              {fmt === 'visual' ? 'Visivo' : fmt.toUpperCase()}
             </button>
           ))}
           <div className="flex-1" />
@@ -282,7 +319,18 @@ export function EditorPage() {
           </div>
         )}
 
-        {status === 'ready' && (
+        {status === 'ready' && activeTab === 'visual' && (
+          <FormEditorShell
+            initialContent={visualEditorContent}
+            onSave={handleVisualEditorSave}
+            saving={save.isPending}
+            saveSuccess={save.isSuccess}
+            saveError={save.isError}
+            readOnly={isReadOnly}
+          />
+        )}
+
+        {status === 'ready' && activeTab !== 'visual' && (
           <Editor
             height="100%"
             language={editorLanguage}
