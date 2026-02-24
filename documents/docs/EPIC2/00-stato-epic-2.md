@@ -36,7 +36,7 @@ sidebar_label: Stato EPIC 2
 | Task | Stato | Evidenza |
 |------|--------|----------|
 | T-2.1.1.1 | ✅ | Progetto `portal-ui/` basato su React+Vite |
-| T-2.1.1.2 | 🟡 | Configurazione client OIDC in Keycloak: da completare (issuer, clientId, redirectUri) |
+| T-2.1.1.2 | ✅ | Client `portal-ui` importato nel realm `stillum` + claim `tenantIds` (vedi `keycloak/stillum-realm.json`) |
 | T-2.1.1.3 | ✅ | Pagina `/login` con redirect OIDC |
 | T-2.1.1.4 | ✅ | Callback OIDC e gestione sessione utente |
 | T-2.1.1.5 | ✅ | Header `Authorization: Bearer` su chiamate API |
