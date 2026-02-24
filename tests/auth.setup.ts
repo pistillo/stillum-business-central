@@ -14,10 +14,6 @@ setup('auth', async ({ page }) => {
   await usernameField.press('Tab');
   await page.getByRole('textbox', { name: 'Password' }).fill(process.env.E2E_PASSWORD ?? 'developer');
   await page.getByRole('button', { name: 'Sign In' }).click();
-  await page
-    .getByRole('button', { name: process.env.E2E_TENANT_ID ?? '-0000-0000-0000-000000000001' })
-    .click();
-
   await page.waitForURL('/**');
   await expect(page).not.toHaveURL('/login');
   await page.context().storageState({ path: storageStatePath });

@@ -2,9 +2,6 @@ import { test, expect } from "@playwright/test";
 
 test("Nuovo Artefatto", async ({ page }) => {
   await page.goto("/home");
-  await page
-    .getByRole("button", { name: process.env.E2E_TENANT_ID ?? "-0000-0000-0000-000000000001" })
-    .click();
 
   await page.getByRole("main").getByRole("link", { name: "Nuovo Artefatto" }).click();
 

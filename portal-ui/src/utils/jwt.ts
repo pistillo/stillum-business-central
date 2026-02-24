@@ -44,6 +44,17 @@ export function extractTenantIdsFromJwt(payload: JwtPayload): string[] {
   return uniq(candidates).filter((x) => isUuid(x));
 }
 
+export function extractDefaultTenantIdFromJwt(payload: JwtPayload): string | null {
+  const direct = firstString(payload, [
+    'defaultTenantId',
+    'default_tenant_id',
+    'tenantId',
+    'tenant_id',
+  ]);
+  if (direct && isUuid(direct)) return direct;
+  return null;
+}
+
 function firstArrayOfStrings(payload: JwtPayload, keys: string[]): string[] {
   for (const k of keys) {
     const v = payload[k];
@@ -52,6 +63,14 @@ function firstArrayOfStrings(payload: JwtPayload, keys: string[]): string[] {
     }
   }
   return [];
+}
+
+function firstString(payload: JwtPayload, keys: string[]): string | null {
+  for (const k of keys) {
+    const v = payload[k];
+    if (typeof v === 'string') return v;
+  }
+  return null;
 }
 
 function uniq(items: string[]): string[] {
