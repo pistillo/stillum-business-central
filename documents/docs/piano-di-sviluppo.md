@@ -315,12 +315,12 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ### FEATURE 2.1 – Autenticazione e Selezione Tenant
 
-**Stato (worktree):** 🟡 Quasi completo (85%) — OIDC ok; test E2E da estendere.
+**Stato (worktree):** ✅ Completato (100%).
 
 #### US-2.1.1 – Login con provider IAM
 *Come utente, voglio effettuare il login tramite Keycloak/OIDC, in modo da accedere al portale in modo sicuro.*
 
-**Stato (worktree):** 🟡 Quasi completo (85%).
+**Stato (worktree):** ✅ Completato (100%).
 
 | # | Task | Output |
 |---|------|--------|
@@ -330,7 +330,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | ✅ T-2.1.1.4 | Implementare il callback OIDC: decodifica JWT, estrazione ruoli e tenant disponibili | Logica auth |
 | ✅ T-2.1.1.5 | Implementare salvataggio token in sessione e header `Authorization: Bearer` su ogni richiesta API | Interceptor HTTP |
 | ✅ T-2.1.1.6 | Implementare protezione rotte: redirect a login se non autenticato | Route guard |
-| 🟡 T-2.1.1.7 | Scrivere test per il flusso di autenticazione | Suite di test |
+| ✅ T-2.1.1.7 | Scrivere test per il flusso di autenticazione | Suite di test |
 
 #### US-2.1.2 – Selezione tenant
 *Come utente appartenente a più tenant, voglio scegliere il tenant con cui operare, in modo da visualizzare solo i dati pertinenti.*
