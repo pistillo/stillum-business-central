@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
+let oidcCallbackInProgress = false;
+
 export function OidcCallbackPage() {
   const { state } = useAuth();
   const navigate = useNavigate();
@@ -13,10 +15,17 @@ export function OidcCallbackPage() {
       navigate('/select-tenant', { replace: true });
       return;
     }
+    if (oidcCallbackInProgress) return;
+    oidcCallbackInProgress = true;
+
     state.userManager
       .signinRedirectCallback()
-      .then(() => navigate('/select-tenant', { replace: true }))
+      .then(() => {
+        oidcCallbackInProgress = false;
+        navigate('/select-tenant', { replace: true });
+      })
       .catch((e) => {
+        oidcCallbackInProgress = false;
         const msg = e instanceof Error ? e.message : String(e);
         const extra =
           typeof e === 'object' && e !== null && 'response' in e
