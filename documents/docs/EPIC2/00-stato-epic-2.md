@@ -19,7 +19,7 @@ sidebar_label: Stato EPIC 2
 | FEATURE | Stato | Note |
 |--------|--------|------|
 | **2.1** Autenticazione e Selezione Tenant | ✅ Completato | OIDC + tenant selection + claim `tenantIds` Keycloak + test unitari completi |
-| **2.2** Dashboard | 🟡 Parziale | Home v0 con quick links; mancano “mie bozze” e “ultime pubblicazioni” |
+| **2.2** Dashboard | ✅ Completato | Home con sezioni “Le mie bozze” e “Ultime pubblicazioni” + hook dedicati + test unitari |
 | **2.3** Catalogo Artefatti | 🟡 Parziale | Lista paginata con filtri type/status/area/tag; full-text posticipata |
 | **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 è textarea con load/save; mancano embed BPMN/DMN/forms e auto-save |
 | **2.5** Pubblicazione Guidata | 🟡 Parziale | Publish v0 è form semplice; mancano step e gestione errori validazione dettagliata |
@@ -63,10 +63,10 @@ sidebar_label: Stato EPIC 2
 | Task | Stato | Evidenza |
 |------|--------|----------|
 | T-2.2.1.1 | ✅ | Pagina `/home` |
-| T-2.2.1.2 | 🔴 | Sezione “Le mie bozze” mancante |
-| T-2.2.1.3 | 🔴 | Sezione “Ultime pubblicazioni” mancante |
-| T-2.2.1.4 | ✅ | Quick links base |
-| T-2.2.1.5 | 🔴 | Hook `useMyDrafts` e `useRecentPublications` mancanti |
+| T-2.2.1.2 | ✅ | Sezione “Le mie bozze” con lista artefatti DRAFT e link al dettaglio |
+| T-2.2.1.3 | ✅ | Sezione “Ultime pubblicazioni” con lista artefatti PUBLISHED e link al dettaglio |
+| T-2.2.1.4 | ✅ | Quick links: “Vai al catalogo” e “Nuovo artefatto” |
+| T-2.2.1.5 | ✅ | Hook `useMyDrafts` e `useRecentPublications` in `portal-ui/src/hooks/` + test unitari |
 
 ---
 
