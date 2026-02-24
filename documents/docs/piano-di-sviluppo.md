@@ -315,7 +315,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ### FEATURE 2.1 – Autenticazione e Selezione Tenant
 
-**Stato (worktree):** 🟡 Quasi completo (85%) — OIDC ok; configurazione Keycloak e test E2E da estendere.
+**Stato (worktree):** 🟡 Quasi completo (85%) — OIDC ok; test E2E da estendere.
 
 #### US-2.1.1 – Login con provider IAM
 *Come utente, voglio effettuare il login tramite Keycloak/OIDC, in modo da accedere al portale in modo sicuro.*
@@ -325,7 +325,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | # | Task | Output |
 |---|------|--------|
 | ✅ T-2.1.1.1 | Creare lo scaffolding del progetto portal-ui (React + Vite + shadcn/ui + Tailwind) | Progetto base |
-| 🟡 T-2.1.1.2 | Registrare il portale come client OIDC in Keycloak | Configurazione Keycloak |
+| ✅ T-2.1.1.2 | Registrare il portale come client OIDC in Keycloak | Configurazione Keycloak |
 | ✅ T-2.1.1.3 | Implementare la pagina `/login` con redirect a Keycloak | Pagina login |
 | ✅ T-2.1.1.4 | Implementare il callback OIDC: decodifica JWT, estrazione ruoli e tenant disponibili | Logica auth |
 | ✅ T-2.1.1.5 | Implementare salvataggio token in sessione e header `Authorization: Bearer` su ogni richiesta API | Interceptor HTTP |

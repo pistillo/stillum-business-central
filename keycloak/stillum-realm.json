@@ -6,12 +6,18 @@
   "loginWithEmailAllowed": true,
   "groups": [
     {
-      "name": "00000000-0000-0000-0000-000000000001",
-      "path": "/00000000-0000-0000-0000-000000000001"
-    },
-    {
-      "name": "00000000-0000-0000-0000-000000000002",
-      "path": "/00000000-0000-0000-0000-000000000002"
+      "name": "tenant",
+      "path": "/tenant",
+      "subGroups": [
+        {
+          "name": "00000000-0000-0000-0000-000000000001",
+          "path": "/tenant/00000000-0000-0000-0000-000000000001"
+        },
+        {
+          "name": "00000000-0000-0000-0000-000000000002",
+          "path": "/tenant/00000000-0000-0000-0000-000000000002"
+        }
+      ]
     }
   ],
   "clients": [
@@ -36,7 +42,7 @@
         "http://127.0.0.1:3000"
       ],
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "bearerOnly": false,
       "fullScopeAllowed": true,
       "attributes": {
@@ -45,12 +51,12 @@
       "protocolMappers": [
         {
           "id": "a1b2c3d4-0000-4000-8000-000000000001",
-          "name": "groups",
+          "name": "tenantIds",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-group-membership-mapper",
           "config": {
-            "full.path": "true",
-            "claim.name": "groups",
+            "full.path": "false",
+            "claim.name": "tenantIds",
             "id.token.claim": "true",
             "access.token.claim": "true",
             "userinfo.token.claim": "true"
@@ -67,8 +73,8 @@
       "firstName": "Dev",
       "lastName": "User",
       "groups": [
-        "/00000000-0000-0000-0000-000000000001",
-        "/00000000-0000-0000-0000-000000000002"
+        "/tenant/00000000-0000-0000-0000-000000000001",
+        "/tenant/00000000-0000-0000-0000-000000000002"
       ],
       "credentials": [
         {

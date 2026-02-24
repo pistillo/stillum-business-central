@@ -7,6 +7,7 @@ Il file `stillum-realm.json` viene importato automaticamente all’avvio di Keyc
 - **Realm:** `stillum`
 - **Client OIDC:** `portal-ui` (public, Authorization Code)
   - Redirect URI: `http://localhost:5173/oidc/callback` (e varianti 3000, 127.0.0.1)
+- **Tenant nel token:** claim `tenantIds` (array di UUID) derivato dall’appartenenza ai gruppi sotto `/tenant/<uuid>`
 - **Utente di test:** `developer` / `developer` (email: developer@stillum.local)
 
 ## Portal UI
