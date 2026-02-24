@@ -20,9 +20,9 @@ Riferimento sintetico rispetto all’implementazione presente nel repository.
 
 | EPIC | Stato | % | Note | Evidenza |
 |------|------|---:|------|----------|
-| EPIC 0 | ✅ Completato | 90% | Deliverable documentali + Docker Compose/CI presenti; chart Helm è uno scaffold | [Stato EPIC 0](epic0-stato) |
-| EPIC 1 | 🟡 Quasi completo (MVP) | 90% | Core completo; restano validazioni semantiche e hardening auth tenant | [Stato EPIC 1](epic1-stato) |
-| EPIC 2 | 🟡 Parziale (v0) | 60% | UI v0 operativa (login/tenant/catalogo/dettaglio/editor testuale/publish form); mancano editor integrati e wizard publish | [Stato EPIC 2](epic2-stato) |
+| EPIC 0 | ✅ Completato | 90% | Deliverable documentali + Docker Compose/CI presenti; chart Helm è uno scaffold | [Stato EPIC 0](/docs/EPIC0/epic0-stato) |
+| EPIC 1 | 🟡 Quasi completo (MVP) | 90% | Core completo; restano validazioni semantiche e hardening auth tenant | [Stato EPIC 1](/docs/EPIC1/epic1-stato) |
+| EPIC 2 | 🟡 Parziale (v0) | 60% | UI v0 operativa (login/tenant/catalogo/dettaglio/editor testuale/publish form); mancano editor integrati e wizard publish | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
 | EPIC 3 | 🔴 Non iniziato | 0% | Workflow approvazione e ciclo di vita avanzato | |
 | EPIC 4 | 🟡 In avvio | 10% | Servizio `runtime-gateway` minimale; Temporal disponibile in docker-compose, integrazione applicativa da implementare | |
 | EPIC 5 | 🟡 In parte | 15% | Hardening multi-tenant già avviato (RLS); RBAC/ACL e onboarding tenant non implementati | |
