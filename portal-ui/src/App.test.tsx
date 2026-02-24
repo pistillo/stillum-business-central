@@ -2,6 +2,27 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
+// Evita fetch verso authority OIDC (localhost:8080) in CI dove non c'è Keycloak
+vi.mock('oidc-client-ts', () => {
+  return {
+    UserManager: class FakeUserManager {
+      constructor() {}
+      getUser = vi.fn(() => Promise.resolve(null));
+      signinRedirect = vi.fn(() => Promise.resolve());
+      signoutRedirect = vi.fn(() => Promise.resolve());
+      events = {
+        addUserLoaded: vi.fn(),
+        addUserUnloaded: vi.fn(),
+        removeUserLoaded: vi.fn(),
+        removeUserUnloaded: vi.fn(),
+      };
+    },
+    WebStorageStateStore: class FakeWebStorageStateStore {
+      constructor() {}
+    },
+  };
+});
+
 beforeAll(() => {
   window.matchMedia =
     window.matchMedia ||
