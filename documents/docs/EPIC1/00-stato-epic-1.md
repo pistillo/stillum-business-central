@@ -10,7 +10,7 @@ sidebar_label: Stato EPIC 1
 
 **Contesto:** In questo worktree è già presente una base Quarkus per `registry-api` e `publisher`, oltre a Docker Compose, CI e documentazione di fase (es. `phase1-*`).
 
-**Stato complessivo:** **Parzialmente implementato** — la **Registry API** è operativa per CRUD, versioni, dipendenze, search (FTS + tag) e presigned payload/bundle; il **Publisher** è operativo per publish (validazioni MVP, bundle immutabile, `Publication` e `AuditLog`). La base DB (Flyway, schema, indici, RLS) è presente e l’enforcement RLS per il `tenantId` è integrato in modo sistematico (impostazione `app.current_tenant` all’inizio delle transazioni + hardening role opzionale + test DB-level).
+**Stato complessivo:** **MVP completato** — la **Registry API** è operativa per CRUD, versioni, dipendenze, search (Postgres FTS + tag), presigned payload/bundle e gestione ambienti; il **Publisher** è operativo per publish (validazioni MVP, bundle immutabile, `Publication` e `AuditLog`). La base DB (Flyway, schema, indici, RLS) è presente e l’enforcement RLS per il `tenantId` è integrato in modo sistematico sia in `registry-api` che in `publisher` (impostazione `app.current_tenant` all’inizio delle transazioni + hardening role opzionale + test DB-level).
 
 ---
 
@@ -18,10 +18,10 @@ sidebar_label: Stato EPIC 1
 
 | FEATURE | Stato | Note |
 |--------|--------|------|
-| **1.1** Registry API | 🟡 Parziale | CRUD artefatti/versioni, dipendenze, search e presigned payload presenti; mancano alcune parti (es. search full-text reale, filtro tag completo, environment API) |
-| **1.2** Publisher Service | 🟡 Parziale | Endpoint publish/get presenti; validazione payload base (XML/JSON), check dipendenze Published, creazione bundle zip + upload su S3, persistenza Publication e AuditLog |
-| **1.3** Storage (payload + bundle) | 🟡 Parziale | Presigned URL payload e update `payloadRef` presenti; presigned bundle con no-overwrite presente; integrazione bundle nel publish completata lato Publisher |
-| **1.4** Database multi-tenant (RLS) | 🟢 Completa (per registry-api) | Migrazioni, indici e RLS presenti; enforcement sistematico (`set_config` per transazione) + hardening `FORCE ROW LEVEL SECURITY` + test che verifica RLS a livello DB |
+| **1.1** Registry API | 🟢 Completa (MVP) | CRUD artefatti/versioni, dipendenze (con rilevamento cicli), search (FTS + tag), storage presigned (payload + bundle) e Environment API |
+| **1.2** Publisher Service | 🟢 Completa (MVP) | Endpoint publish/get; validazione payload MVP (XML/JSON); check dipendenze `PUBLISHED`; bundle zip immutabile su storage; persistenza `Publication` e `AuditLog` |
+| **1.3** Storage (payload + bundle) | 🟢 Completa (MVP) | Presigned URL payload e `payloadRef`; presigned bundle no-overwrite; integrazione bundle nel flusso publish |
+| **1.4** Database multi-tenant (RLS) | 🟢 Completa | Migrazioni, indici e RLS; enforcement sistematico (`set_config` per transazione) + hardening `FORCE ROW LEVEL SECURITY`; test che verifica RLS a livello DB |
 
 ---
 
@@ -37,7 +37,7 @@ sidebar_label: Stato EPIC 1
 | T-1.1.1.2 | ✅ | Migrazioni core in `registry-api/src/main/resources/db/migration/` (in particolare `V2__create_core_tables.sql`) |
 | T-1.1.1.3 | ✅ | `POST /api/tenants/{tenantId}/artifacts` in `com.stillum.registry.resource.ArtifactResource` |
 | T-1.1.1.4 | ✅ | `GET /api/tenants/{tenantId}/artifacts` con filtri base incluso `tag` (applicato anche nel conteggio paginato) |
-| T-1.1.1.5 | 🟡 | `GET /api/tenants/{tenantId}/artifacts/{artifactId}` presente; verificare che includa elenco versioni nella response (dipende dai DTO) |
+| T-1.1.1.5 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}` ritorna dettaglio + elenco versioni |
 | T-1.1.1.6 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}` |
 | T-1.1.1.7 | ✅ | `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}` (soft delete, status `RETIRED`) |
 | T-1.1.1.8 | ✅ | Tenant impostato in context e propagato automaticamente al DB (interceptor + `set_config('app.current_tenant', ...)`) |
@@ -50,7 +50,7 @@ sidebar_label: Stato EPIC 1
 | T-1.1.2.1 | ✅ | `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions` |
 | T-1.1.2.2 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` |
 | T-1.1.2.3 | ✅ | `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` |
-| T-1.1.2.4 | 🟡 | `DELETE` bozza implementato; verifica immutabilità `PUBLISHED` coperta da test |
+| T-1.1.2.4 | ✅ | `DELETE` bozza implementato; immutabilità `PUBLISHED` coperta da test |
 | T-1.1.2.5 | ✅ | Immutabilità `PUBLISHED` enforceata con risposta `409` sui path di update/delete |
 | T-1.1.2.6 | ✅ | `ArtifactVersionResourceTest` copre anche i casi `PUBLISHED` (update/delete vietati) |
 
@@ -62,7 +62,7 @@ sidebar_label: Stato EPIC 1
 | T-1.1.3.2 | ✅ | `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` |
 | T-1.1.3.3 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies` |
 | T-1.1.3.4 | ✅ | Risoluzione grafo + cicli in `DependencyService` |
-| T-1.1.3.5 | 🟡 | Test per cicli presenti (`DependencyServiceTest`); manca coverage end-to-end e casi “dipendenze mancanti” |
+| T-1.1.3.5 | ✅ | Test service + end-to-end su risorsa dependencies (`DependencyServiceTest`, `DependencyResourceTest`) |
 
 #### US-1.1.4 – Ricerca e Discovery
 
@@ -109,7 +109,7 @@ sidebar_label: Stato EPIC 1
 | T-1.3.1.3 | ✅ | Presigned download `GET /api/tenants/{tenantId}/storage/download-url` |
 | T-1.3.1.4 | ✅ | Registrazione `payloadRef` via `PUT .../versions/{versionId}/payload-ref` |
 | T-1.3.1.5 | 🟡 | Controllo “tenant autenticato” non applicabile senza auth; path include `tenant-{tenantId}` |
-| T-1.3.1.6 | 🟡 | Dev Services S3 attive in test; bucket creati automaticamente; mancano test integrazione payload upload/download (bundle coperto da test dedicati) |
+| T-1.3.1.6 | ✅ | Test integrazione payload upload/download; in test i bucket sono creati automaticamente (MinIO esterno) |
 
 #### US-1.3.2 – Gestione bundle di pubblicazione
 
@@ -137,10 +137,11 @@ sidebar_label: Stato EPIC 1
 | Deliverable EPIC 1 | Dove si trova |
 |--------------------|---------------|
 | Migrazioni DB + indici + RLS + seed | `registry-api/src/main/resources/db/migration/` |
-| Registry API CRUD/versioni/dipendenze/search/presigned | `registry-api/src/main/java/com/stillum/registry/resource/` |
-| Test base Registry API | `registry-api/src/test/java/com/stillum/registry/` |
-| Enforcement RLS sistematico + test DB-level | `registry-api/src/main/java/com/stillum/registry/filter/` e `registry-api/src/test/java/com/stillum/registry/it/` |
-| Presigned bundle + test (no-overwrite) | `registry-api/src/main/java/com/stillum/registry/resource/StorageResource` e `registry-api/src/test/java/com/stillum/registry/resource/StorageBundleResourceTest` |
+| Registry API CRUD/versioni/dipendenze/search/storage/environments | `registry-api/src/main/java/com/stillum/registry/resource/` |
+| Test Registry API (REST + RLS DB-level) | `registry-api/src/test/java/com/stillum/registry/` |
+| Enforcement RLS sistematico (registry-api + publisher) | `*/src/main/java/**/filter/` |
+| Storage payload/bundle + test | `registry-api/src/main/java/com/stillum/registry/service/StorageService` e `registry-api/src/test/java/com/stillum/registry/resource/Storage*Test` |
+| Publisher publish/get + test (happy path + error path) | `publisher/src/main/java/com/stillum/publisher/resource/PublishResource` e `publisher/src/test/java/com/stillum/publisher/resource/` |
 | Docker Compose (PG + MinIO + Temporal) | `docker-compose.yml` |
 | CI build/test | `.github/workflows/ci.yml` |
 
@@ -149,6 +150,5 @@ sidebar_label: Stato EPIC 1
 ## Azioni consigliate per completare EPIC 1
 
 1. Consolidare le validazioni payload riusando quanto già presente nel progetto Editors (non ancora importato in questo repo) e allineare error reporting.
-2. Definire una Environment API (o un meccanismo equivalente) per ottenere la lista ambienti dal portale e non dipendere dai seed.
-3. Aggiungere test integrazione payload upload/download contro S3 DevServices (LocalStack) e copertura error path.
-4. Valutare la strategia “full-text” definitiva (Postgres FTS vs Elastic/OpenSearch vs approcci multidimensionali/vettoriali) prima di investire in feature avanzate su Search.
+2. Integrare l’Environment API nel portale e definire strategia di provisioning ambienti (seed vs gestione runtime).
+3. Valutare la strategia “full-text” definitiva (Postgres FTS vs Elastic/OpenSearch vs approcci multidimensionali/vettoriali) prima di investire in feature avanzate su Search.

@@ -45,6 +45,12 @@ Le risorse sono montate sotto:
   - `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies/{dependencyId}`
 - Search:
   - `GET /api/tenants/{tenantId}/search/artifacts`
+- Environments:
+  - `POST /api/tenants/{tenantId}/environments`
+  - `GET /api/tenants/{tenantId}/environments`
+  - `GET /api/tenants/{tenantId}/environments/{environmentId}`
+  - `PUT /api/tenants/{tenantId}/environments/{environmentId}`
+  - `DELETE /api/tenants/{tenantId}/environments/{environmentId}`
 - Storage payload:
   - `GET /api/tenants/{tenantId}/storage/upload-url`
   - `GET /api/tenants/{tenantId}/storage/download-url`
@@ -79,11 +85,12 @@ Perché l’RLS sia effettivamente “enforced”, il `tenantId` deve essere imp
 
 #### Configurazione (opzionale)
 
-- `stillum.rls.assume-role`: se valorizzata, il servizio esegue `SET LOCAL ROLE <role>` ad ogni transazione prima del `set_config`. Questo è utile soprattutto in test/DevServices, dove l’utente DB può essere superuser e quindi bypassare RLS.
+- `stillum.rls.assume-role`: se valorizzata, il servizio esegue `SET LOCAL ROLE <role>` ad ogni transazione prima del `set_config`. Questo è utile soprattutto in ambienti dove l’utente DB potrebbe bypassare RLS (es. utente con privilegi elevati).
 
 #### Test (DB-level)
 
 - È presente un test che verifica che la visibilità su `artifact` dipenda da `app.current_tenant` (e non solo dai filtri applicativi) e che RLS sia applicata tramite `SET LOCAL ROLE stillum_app`.
+- Lo stesso approccio (filter + interceptor + `set_config`) è applicato anche in `publisher`.
 
 ---
 
@@ -93,7 +100,7 @@ Perché l’RLS sia effettivamente “enforced”, il `tenantId` deve essere imp
 
 La Registry API usa AWS SDK via Quarkus S3 con parametri esternalizzati (endpoint, credenziali, bucket, expiry).
 
-In test, i bucket vengono creati automaticamente all’avvio del profilo `test` per evitare errori `NoSuchBucket` nelle suite di integrazione storage.
+Nel profilo `test`, i bucket vengono creati automaticamente all’avvio per evitare errori `NoSuchBucket` nelle suite di integrazione storage. I test usano un endpoint S3 compatibile (MinIO) esterno e non DevServices/LocalStack.
 
 Esempi di proprietà:
 
@@ -156,6 +163,7 @@ Il servizio `publisher/` implementa il flusso MVP di pubblicazione e gestisce la
 
 - CI: workflow principale in `.github/workflows/ci.yml`.
 - Stack locale: `docker-compose.yml` include PostgreSQL, MinIO e Temporal.
+- In CI e in locale, i test backend assumono la disponibilità di PostgreSQL e MinIO (avviabili con `docker compose up -d postgres minio minio-init`).
 
 ### Sequenza (request → DB) per enforcement RLS
 

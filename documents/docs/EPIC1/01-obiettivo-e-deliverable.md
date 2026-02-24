@@ -6,7 +6,7 @@ sidebar_label: Obiettivo e deliverable
 
 ## Obiettivo della fase
 
-La Fase 1 (EPIC 1 – MVP Backend) realizza il **backend minimo** necessario a supportare la gestione degli artefatti (processi BPMN, regole DMN, form e request) e la loro pubblicazione su ambienti (DEV/QA/PROD) in modo multi-tenant.
+La Fase 1 (EPIC 1 – MVP Backend) realizza il **backend minimo** necessario a supportare la gestione degli artefatti (processi BPMN, regole DMN, form e request) e la loro pubblicazione su ambienti configurabili (es. DEV/QA/PROD) in modo multi-tenant.
 
 L’EPIC 1 abilita:
 
@@ -35,12 +35,13 @@ Servizio REST per:
 - Ricerca (discovery).
 - Presigned URL upload/download payload.
 - Registrazione `payloadRef` per le versioni.
+- Gestione ambienti (`environments`) per tenant.
 
 ### Publisher
 
 Servizio REST per:
 
-- `POST /tenants/{tenantId}/publish` per pubblicare una versione su un ambiente.
+- `POST /api/tenants/{tenantId}/publish` per pubblicare una versione su un ambiente.
 - Validazioni (BPMN/DMN/Forms/Request).
 - Risoluzione dipendenze (tutte devono essere pubblicate).
 - Generazione bundle zip con manifest + hash e upload su MinIO/S3.

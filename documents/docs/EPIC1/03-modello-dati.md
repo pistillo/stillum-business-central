@@ -14,7 +14,7 @@ Questo documento descrive il modello dati effettivo usato dalla Fase 1 (EPIC 1 �
 - ambienti e pubblicazioni,
 - audit log per la tracciabilità.
 
-Il modello è implementato tramite migrazioni Flyway in `registry-api/src/main/resources/db/migration/`.
+Il modello è implementato tramite migrazioni Flyway in `registry-api/src/main/resources/db/migration/` (e replicate in `publisher/src/main/resources/db/migration/`).
 
 ---
 
@@ -60,7 +60,7 @@ Metadati dell’artefatto (process/rule/form/request).
 - `description` (text)
 - `area` (text)
 - `tags` (text[])
-- `status` (enum)
+- `status` (enum: `DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`)
 - `owner_id` (uuid, opzionale)
 - `created_at`, `updated_at` (timestamptz)
 
@@ -71,7 +71,7 @@ Versione concreta di un artefatto; punta al payload su storage via `payload_ref`
 - `id` (uuid)
 - `artifact_id` (uuid)
 - `version` (text)
-- `state` (enum)
+- `state` (enum: `DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`)
 - `payload_ref` (text, opzionale)
 - `metadata` (jsonb, opzionale)
 - `created_by` (uuid, opzionale)
@@ -79,7 +79,7 @@ Versione concreta di un artefatto; punta al payload su storage via `payload_ref`
 
 ### environment
 
-Ambiente (DEV/QA/PROD) per tenant.
+Ambiente configurabile (es. DEV/QA/PROD) per tenant.
 
 - `id` (uuid)
 - `tenant_id` (uuid)
@@ -104,8 +104,8 @@ Dipendenza fra versioni (grafo).
 
 - `id` (uuid)
 - `artifact_version_id` (uuid)
-- `depends_on_artifact_id` (uuid, opzionale)
-- `depends_on_version_id` (uuid, opzionale)
+- `depends_on_artifact_id` (uuid)
+- `depends_on_version_id` (uuid)
 
 ### audit_log
 
