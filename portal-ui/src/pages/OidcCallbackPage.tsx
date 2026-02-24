@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+import { readPostLoginRedirect } from '../utils/postLoginRedirect';
 
 let oidcCallbackInProgress = false;
 
@@ -11,8 +12,9 @@ export function OidcCallbackPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const redirectTo = readPostLoginRedirect() ?? '/home';
     if (state.status === 'authenticated') {
-      navigate('/select-tenant', { replace: true });
+      navigate(redirectTo, { replace: true });
       return;
     }
     if (oidcCallbackInProgress) return;
@@ -22,7 +24,7 @@ export function OidcCallbackPage() {
       .signinRedirectCallback()
       .then(() => {
         oidcCallbackInProgress = false;
-        navigate('/select-tenant', { replace: true });
+        navigate(redirectTo, { replace: true });
       })
       .catch((e) => {
         oidcCallbackInProgress = false;

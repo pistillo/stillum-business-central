@@ -1,21 +1,38 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Building2, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 import { ThemeToggle } from '../components/ThemeToggle';
+import {
+  consumePostLoginRedirect,
+  readPostLoginRedirect,
+  sanitizeRedirectTo,
+  setPostLoginRedirect,
+} from '../utils/postLoginRedirect';
 
 export function SelectTenantPage() {
   const { state } = useAuth();
   const { tenantId, availableTenantIds, setTenantId } = useTenant();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectFromSearch = sanitizeRedirectTo(
+    new URLSearchParams(location.search).get('redirectTo')
+  );
+  const redirectTo = redirectFromSearch ?? readPostLoginRedirect();
 
   useEffect(() => {
+    if (redirectFromSearch) {
+      setPostLoginRedirect(redirectFromSearch);
+    }
     if (state.status === 'authenticated' && availableTenantIds.length === 1) {
       setTenantId(availableTenantIds[0]);
-      navigate('/home', { replace: true });
+      const target = redirectTo ?? '/home';
+      consumePostLoginRedirect();
+      navigate(target, { replace: true });
     }
-  }, [state, availableTenantIds, setTenantId, navigate]);
+  }, [state, availableTenantIds, setTenantId, navigate, redirectFromSearch, redirectTo]);
 
   if (state.status !== 'authenticated') {
     return (
@@ -56,7 +73,11 @@ export function SelectTenantPage() {
             <button
               className="btn-primary w-full mt-4"
               disabled={!tenantId}
-              onClick={() => navigate('/home', { replace: true })}
+              onClick={() => {
+                const target = redirectTo ?? '/home';
+                consumePostLoginRedirect();
+                navigate(target, { replace: true });
+              }}
             >
               Continua
             </button>
@@ -68,7 +89,9 @@ export function SelectTenantPage() {
                 key={id}
                 onClick={() => {
                   setTenantId(id);
-                  navigate('/home', { replace: true });
+                  const target = redirectTo ?? '/home';
+                  consumePostLoginRedirect();
+                  navigate(target, { replace: true });
                 }}
                 className="card w-full flex items-center gap-4 p-4 hover:border-brand-300 dark:hover:border-brand-600
                            hover:shadow-md transition-all duration-150 group cursor-pointer text-left"

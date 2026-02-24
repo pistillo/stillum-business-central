@@ -1,22 +1,39 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LogIn, Shield } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { ThemeToggle } from '../components/ThemeToggle';
+import {
+  readPostLoginRedirect,
+  sanitizeRedirectTo,
+  setPostLoginRedirect,
+} from '../utils/postLoginRedirect';
 
 export function LoginPage() {
   const { state, login } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (state.status === 'authenticated') {
+      const fromSearch = new URLSearchParams(location.search).get('redirectTo');
+      const fromState = (location.state as { redirectTo?: string } | null)?.redirectTo ?? null;
+      const redirectTo = readPostLoginRedirect() ?? sanitizeRedirectTo(fromSearch ?? fromState);
+      navigate(redirectTo ?? '/home', { replace: true });
       return;
     }
-    const auto = new URLSearchParams(location.search).get('auto') === '1';
+    const searchParams = new URLSearchParams(location.search);
+    const fromSearch = searchParams.get('redirectTo');
+    const fromState = (location.state as { redirectTo?: string } | null)?.redirectTo ?? null;
+    const redirectTo = sanitizeRedirectTo(fromSearch ?? fromState);
+    if (redirectTo && !readPostLoginRedirect()) {
+      setPostLoginRedirect(redirectTo);
+    }
+    const auto = searchParams.get('auto') === '1';
     if (auto) {
       void login();
     }
-  }, [state, login, location.search]);
+  }, [state, login, location.search, location.state, navigate]);
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -58,6 +75,13 @@ export function LoginPage() {
 
           <button
             onClick={() => {
+              const fromSearch = new URLSearchParams(location.search).get('redirectTo');
+              const fromState =
+                (location.state as { redirectTo?: string } | null)?.redirectTo ?? null;
+              const redirectTo = sanitizeRedirectTo(fromSearch ?? fromState);
+              if (redirectTo && !readPostLoginRedirect()) {
+                setPostLoginRedirect(redirectTo);
+              }
               void login();
             }}
             className="btn-primary w-full py-3 text-base"

@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+import { getLocationTarget } from '../utils/postLoginRedirect';
 
 export function RequireAuth() {
   const { state } = useAuth();
@@ -14,7 +15,14 @@ export function RequireAuth() {
     );
   }
   if (state.status !== 'authenticated') {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    const redirectTo = getLocationTarget(location);
+    return (
+      <Navigate
+        to={`/login?auto=1&redirectTo=${encodeURIComponent(redirectTo)}`}
+        replace
+        state={{ redirectTo }}
+      />
+    );
   }
   return <Outlet />;
 }
