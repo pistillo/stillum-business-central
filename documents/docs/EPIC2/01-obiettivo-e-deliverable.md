@@ -48,7 +48,7 @@ Backend per:
 
 Backend per:
 
-- pubblicazione versione su environment (`POST /publish`),
+- pubblicazione versione su environment (`POST /api/tenants/{tenantId}/publish`),
 - creazione bundle immutabile e audit.
 
 ---
@@ -79,4 +79,3 @@ Per la documentazione di fase vedi anche:
 
 - `documents/docs/phase2-overview.md`
 - `documents/docs/phase2-portal-ui.md`
-

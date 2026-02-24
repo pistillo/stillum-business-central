@@ -20,7 +20,7 @@ EPIC 2 non introduce nuove tabelle DB: la UI consuma i modelli esposti da Regist
 ### Tenant selection
 
 - `tenantId`: persistito in `localStorage` con chiave `stillum.tenantId`.
-- `availableTenantIds`: derivato dal JWT (claim array oppure pattern in `groups`/`roles`), con fallback a inserimento manuale.
+- `availableTenantIds`: derivato dal JWT a partire da claim array top-level (`tenants`, `tenant_ids`, `tenantIds`, `stillum_tenants`) e/o pattern su array top-level (`groups`/`roles`), con fallback a inserimento manuale.
 
 ---
 
@@ -32,6 +32,6 @@ La UI usa tipizzazioni TypeScript allineate ai DTO REST:
 - `ArtifactVersion` (versioni e `payloadRef`)
 - `PresignedUrlResponse` (`url`, `key/objectKey`)
 - `Publication` (esito publish)
+- `ArtifactStatus` e `VersionState` includono più stati oltre `DRAFT/PUBLISHED` (es. `REVIEW`, `APPROVED`, `RETIRED`), anche se la v0 ne usa solo una parte.
 
 Definizioni: `portal-ui/src/api/types.ts`.
-

@@ -15,8 +15,9 @@ sidebar_label: Requisiti
 ### Selezione tenant
 
 - Se il token contiene più tenant, la UI deve far scegliere il tenant su `/select-tenant`.
-- Il tenant selezionato deve essere persistito localmente e propagato su tutte le chiamate (`/api/tenants/{tenantId}/...`).
+- Il tenant selezionato deve essere persistito localmente e propagato su tutte le chiamate (`/api/tenants/{tenantId}/...`). Nel client HTTP la base URL può includere già `/api` e quindi i path costruiti lato UI iniziano da `/tenants/{tenantId}/...`.
 - Se il token non contiene tenant, è accettabile un fallback (inserimento manuale del `tenantId`) per la v0.
+- Se il token contiene un solo tenant, la UI può selezionarlo automaticamente senza richiedere una scelta esplicita.
 
 ### Catalogo e dettaglio
 
@@ -51,4 +52,3 @@ sidebar_label: Requisiti
 
 - La strategia di ricerca full-text (Postgres FTS vs motore dedicato come Elastic/OpenSearch) è posticipata.
 - In v0 è accettabile avere solo filtri e paginazione; una barra “q=” potrà essere aggiunta dopo la decisione architetturale.
-

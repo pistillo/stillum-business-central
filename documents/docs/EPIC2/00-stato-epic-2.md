@@ -18,7 +18,7 @@ sidebar_label: Stato EPIC 2
 
 | FEATURE | Stato | Note |
 |--------|--------|------|
-| **2.1** Autenticazione e Selezione Tenant | 🟡 Parziale | OIDC + tenant selection presenti; estrazione tenant dal token è “tollerante” con fallback manuale; Keycloak client config non documentato qui |
+| **2.1** Autenticazione e Selezione Tenant | 🟡 Parziale | OIDC + tenant selection presenti; estrazione tenant dal token è “tollerante” su alcuni claim/pattern; Keycloak client config non documentato qui |
 | **2.2** Dashboard | 🟡 Parziale | Home v0 con quick links; mancano “mie bozze” e “ultime pubblicazioni” |
 | **2.3** Catalogo Artefatti | 🟡 Parziale | Lista paginata con filtri type/status/area/tag; full-text posticipata |
 | **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 è textarea con load/save; mancano embed BPMN/DMN/forms e auto-save |
@@ -49,7 +49,7 @@ sidebar_label: Stato EPIC 2
 |------|--------|----------|
 | T-2.1.2.1 | ✅ | Pagina `/select-tenant` |
 | T-2.1.2.2 | ✅ | Tenant context provider con persistenza locale |
-| T-2.1.2.3 | ✅ | Redirect automatico se tenant unico |
+| T-2.1.2.3 | ✅ | Tenant unico: accesso consentito e selezione automatica supportata |
 | T-2.1.2.4 | ✅ | Propagazione tenantId alle API (path) |
 
 ---
@@ -111,7 +111,7 @@ sidebar_label: Stato EPIC 2
 |------|--------|----------|
 | T-2.5.1.1 | 🟡 | Pagina `/publish/:id/:version` presente ma non è wizard multi-step |
 | T-2.5.1.2–T-2.5.1.6 | 🔴 | Step preview/validazione/ambiente/conferma/esito dettagliato mancanti |
-| T-2.5.1.7 | 🟡 | Chiamata `POST /publish` presente; hook dedicato da introdurre |
+| T-2.5.1.7 | 🟡 | Chiamata `POST /api/tenants/{tenantId}/publish` presente; hook dedicato da introdurre |
 
 ---
 
@@ -136,4 +136,3 @@ sidebar_label: Stato EPIC 2
 | Routing, auth OIDC, tenant context | `portal-ui/src/App.tsx`, `portal-ui/src/auth/`, `portal-ui/src/tenancy/` |
 | Catalogo/dettaglio/bozza/editor v0/publish v0 | `portal-ui/src/pages/` |
 | Client API Registry/Publisher | `portal-ui/src/api/` |
-

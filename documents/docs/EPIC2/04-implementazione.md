@@ -30,6 +30,7 @@ Route guards:
 
 - autenticazione: [RequireAuth.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/routes/RequireAuth.tsx)
 - tenant selection: [RequireTenant.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/routes/RequireTenant.tsx)
+- fallback: utenti non autenticati → `/login`, utenti autenticati → `/home`
 
 ---
 
@@ -54,6 +55,8 @@ Variabili `VITE_*` rilevanti:
 - Contesto tenant + persistenza: [TenantContext.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/tenancy/TenantContext.tsx)
 - Decode/estrazione tenant da JWT: [jwt.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/utils/jwt.ts)
 - UI selezione tenant: [SelectTenantPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/pages/SelectTenantPage.tsx)
+
+Nota: se il token espone un solo tenant, le route protette possono essere accessibili anche prima di una scelta esplicita del tenant.
 
 ---
 
@@ -97,4 +100,3 @@ Implementazione: [EditorPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-
 Publish v0 invoca il Publisher e mostra l’esito base (id + bundleRef):
 
 - [PublishPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/pages/PublishPage.tsx)
-
