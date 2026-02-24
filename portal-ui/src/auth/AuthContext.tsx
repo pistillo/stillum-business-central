@@ -1,28 +1,7 @@
 import { User, UserManager, WebStorageStateStore, type UserManagerSettings } from 'oidc-client-ts';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { config } from '../config';
-
-type AuthState =
-  | { status: 'loading'; userManager: UserManager }
-  | { status: 'anonymous'; userManager: UserManager }
-  | { status: 'authenticated'; userManager: UserManager; user: User };
-
-type AuthContextValue = {
-  state: AuthState;
-  login: () => Promise<void>;
-  logout: () => Promise<void>;
-  getAccessToken: () => string | null;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext, type AuthContextValue, type AuthState } from './auth-context';
 
 function createUserManager(): UserManager {
   const settings: UserManagerSettings = {
