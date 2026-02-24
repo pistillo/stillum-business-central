@@ -20,6 +20,7 @@ class PublishResourceErrorPathsTest {
     static final UUID TENANT_A = UUID.fromString("00000000-0000-0000-0000-000000000001");
     static final UUID TENANT_B = UUID.fromString("00000000-0000-0000-0000-000000000002");
     static final UUID ENV_DEV = UUID.fromString("00000000-0000-0000-0000-000000000020");
+    static final UUID ENV_PROD = UUID.fromString("00000000-0000-0000-0000-000000000022");
 
     @Inject
     EntityManager em;
@@ -69,6 +70,30 @@ class PublishResourceErrorPathsTest {
             .then()
             .statusCode(409)
             .body("error", containsString("already published"))
+            .body("status", is(409));
+
+        long auditAfter = countAudit(TENANT_A, "PUBLISH_FAILURE");
+        org.junit.jupiter.api.Assertions.assertEquals(auditBefore + 1, auditAfter);
+    }
+
+    @Test
+    void publish_toProd_requiresApprovedVersion_returns409() {
+        UUID artifactId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+        String payloadKey = "tenant-" + TENANT_A + "/artifacts/process/" + artifactId + "/" + versionId + ".xml";
+        seedArtifactWithVersion(TENANT_A, "PROCESS", artifactId, versionId, payloadKey, "DRAFT");
+        s3.uploadBytes(s3.getArtifactsBucket(), payloadKey, "<definitions/>".getBytes(), "application/xml");
+
+        long auditBefore = countAudit(TENANT_A, "PUBLISH_FAILURE");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"artifactId\":\"" + artifactId + "\",\"versionId\":\"" + versionId + "\",\"environmentId\":\"" + ENV_PROD + "\"}")
+            .when()
+            .post("/api/tenants/" + TENANT_A + "/publish")
+            .then()
+            .statusCode(409)
+            .body("error", containsString("Cannot publish to PROD unless version is APPROVED"))
             .body("status", is(409));
 
         long auditAfter = countAudit(TENANT_A, "PUBLISH_FAILURE");

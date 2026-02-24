@@ -1,20 +1,32 @@
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { publish } from '../api/publisher';
 import { useAuth } from '../auth/AuthContext';
+import { useEnvironments } from '../hooks/useEnvironments';
 import { useTenant } from '../tenancy/TenantContext';
 
 export function PublishPage() {
   const { getAccessToken } = useAuth();
   const { tenantId } = useTenant();
+  const envs = useEnvironments();
+  const navigate = useNavigate();
   const params = useParams();
   const artifactId = params.artifactId ?? '';
   const versionId = params.versionId ?? '';
 
-  const [environmentId, setEnvironmentId] = useState('00000000-0000-0000-0000-000000000020');
+  const [environmentId, setEnvironmentId] = useState('');
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (!envs.data || envs.data.length === 0) return;
+    setEnvironmentId((prev) => {
+      if (prev && envs.data.some((e) => e.id === prev)) return prev;
+      const dev = envs.data.find((e) => e.name.toUpperCase() === 'DEV')?.id;
+      return dev ?? envs.data[0].id;
+    });
+  }, [envs.data]);
 
   const m = useMutation({
     mutationFn: async () => {
@@ -27,6 +39,9 @@ export function PublishPage() {
         environmentId,
         notes: notes || undefined,
       });
+    },
+    onSuccess: () => {
+      navigate(`/artifact/${artifactId}`, { replace: true });
     },
   });
 
@@ -73,14 +88,39 @@ export function PublishPage() {
       <div className="card p-6 space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Environment ID <span className="text-red-500">*</span>
+            Ambiente <span className="text-red-500">*</span>
           </label>
-          <input
-            className="input font-mono text-sm"
-            value={environmentId}
-            onChange={(e) => setEnvironmentId(e.target.value)}
-            placeholder="00000000-0000-0000-0000-000000000020"
-          />
+          {envs.isSuccess && envs.data.length > 0 ? (
+            <select
+              className="input text-sm"
+              value={environmentId}
+              onChange={(e) => setEnvironmentId(e.target.value)}
+            >
+              {envs.data.map((env) => (
+                <option key={env.id} value={env.id}>
+                  {env.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              className="input font-mono text-sm"
+              value={environmentId}
+              onChange={(e) => setEnvironmentId(e.target.value)}
+              placeholder="00000000-0000-0000-0000-000000000020"
+            />
+          )}
+          {envs.isLoading && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
+              <Loader2 size={14} className="animate-spin" />
+              Caricamento ambienti…
+            </div>
+          )}
+          {envs.isError && (
+            <div className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+              Impossibile caricare gli ambienti dal Registry. Puoi inserire l&apos;ID manualmente.
+            </div>
+          )}
         </div>
 
         <div>

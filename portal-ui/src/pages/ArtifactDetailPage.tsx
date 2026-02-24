@@ -119,14 +119,32 @@ export function ArtifactDetailPage() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <Link to={`/editor/${artifactId}/${v.id}`} className="btn-secondary btn-sm">
-                          <Pencil size={12} />
-                          Modifica
-                        </Link>
-                        <Link to={`/publish/${artifactId}/${v.id}`} className="btn-primary btn-sm">
-                          <Send size={12} />
-                          Pubblica
-                        </Link>
+                        {v.state === 'PUBLISHED' ? (
+                          <Link
+                            to={`/editor/${artifactId}/${v.id}`}
+                            className="btn-secondary btn-sm"
+                          >
+                            <Pencil size={12} />
+                            Apri
+                          </Link>
+                        ) : (
+                          <>
+                            <Link
+                              to={`/editor/${artifactId}/${v.id}`}
+                              className="btn-secondary btn-sm"
+                            >
+                              <Pencil size={12} />
+                              Modifica
+                            </Link>
+                            <Link
+                              to={`/publish/${artifactId}/${v.id}`}
+                              className="btn-primary btn-sm"
+                            >
+                              <Send size={12} />
+                              Pubblica
+                            </Link>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

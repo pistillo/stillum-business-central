@@ -6,6 +6,7 @@ import com.stillum.publisher.dto.response.PublicationResponse;
 import com.stillum.publisher.entity.Artifact;
 import com.stillum.publisher.entity.ArtifactVersion;
 import com.stillum.publisher.entity.Dependency;
+import com.stillum.publisher.entity.Environment;
 import com.stillum.publisher.entity.Publication;
 import com.stillum.publisher.exception.ConflictException;
 import com.stillum.publisher.exception.NotFoundException;
@@ -68,7 +69,7 @@ public class PublishService {
     @Transactional
     public PublicationResponse publish(UUID tenantId, PublishRequest req) {
         try {
-            envRepo.findByIdAndTenant(req.environmentId(), tenantId)
+            Environment env = envRepo.findByIdAndTenant(req.environmentId(), tenantId)
                     .orElseThrow(() -> new NotFoundException("Environment not found: " + req.environmentId()));
 
             Artifact artifact = artifactRepo.findByIdAndTenant(req.artifactId(), tenantId)
@@ -76,6 +77,10 @@ public class PublishService {
 
             ArtifactVersion version = versionRepo.findByIdAndArtifact(req.versionId(), req.artifactId())
                     .orElseThrow(() -> new NotFoundException("Version not found: " + req.versionId()));
+
+            if ("PROD".equalsIgnoreCase(env.name) && !"APPROVED".equalsIgnoreCase(version.state)) {
+                throw new ConflictException("Cannot publish to PROD unless version is APPROVED: " + version.id);
+            }
 
             if ("PUBLISHED".equalsIgnoreCase(version.state)) {
                 throw new ConflictException("Version is already published: " + version.id);

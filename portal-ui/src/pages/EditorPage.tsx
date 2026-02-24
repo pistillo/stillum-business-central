@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import * as yaml from 'js-yaml';
 import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
-import type { ArtifactType } from '../api/types';
+import type { ArtifactType, VersionState } from '../api/types';
 import {
   getArtifact,
   getPayloadDownloadUrl,
@@ -64,6 +64,7 @@ export function EditorPage() {
   const [jsonContent, setJsonContent] = useState('');
   const [xmlContent, setXmlContent] = useState('');
   const [artifactType, setArtifactType] = useState<ArtifactType>('PROCESS');
+  const [versionState, setVersionState] = useState<VersionState>('DRAFT');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState<EditorFormat>('json');
   const [artifactTitle, setArtifactTitle] = useState('');
@@ -89,6 +90,7 @@ export function EditorPage() {
         setArtifactType(a.type);
         setArtifactTitle(a.title);
         setVersionLabel(v.version);
+        setVersionState(v.state);
 
         if (!v.payloadRef) {
           const def = getDefaultContent(a.type);
@@ -185,6 +187,8 @@ export function EditorPage() {
     REQUEST: 'Request',
   };
 
+  const isReadOnly = versionState === 'PUBLISHED';
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       {/* Editor toolbar */}
@@ -201,6 +205,7 @@ export function EditorPage() {
             </div>
             <div className="text-xs text-gray-500 dark:text-slate-400">
               {typeLabels[artifactType]} · v{versionLabel}
+              {isReadOnly ? ' · sola lettura' : ''}
             </div>
           </div>
         </div>
@@ -220,7 +225,7 @@ export function EditorPage() {
           )}
           <button
             className="btn-primary btn-sm"
-            disabled={save.isPending || status !== 'ready'}
+            disabled={save.isPending || status !== 'ready' || isReadOnly}
             onClick={() => save.mutate()}
           >
             {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -288,6 +293,7 @@ export function EditorPage() {
               minimap: { enabled: false },
               fontSize: 13,
               lineNumbers: 'on',
+              readOnly: isReadOnly,
               scrollBeyondLastLine: false,
               wordWrap: 'on',
               tabSize: 2,
