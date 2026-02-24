@@ -9,7 +9,7 @@ Il **Registry degli Artefatti** è il cuore della persistenza e del versionament
 ## Responsabilità
 
 - **Gestione artefatti**: creare, leggere, aggiornare, cancellare (soft delete) oggetti di tipo BPMN, DMN, Modulo, Request.
-- **Versionamento**: ogni artefatto mantiene un log di versioni; ogni versione ha uno stato (bozza, pubblicata, ritirata) e un payload immutabile.
+- **Versionamento**: ogni artefatto mantiene un log di versioni; ogni versione ha uno stato (`DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`). L’immutabilità è garantita sulle versioni `PUBLISHED`.
 - **Dipendenze**: memorizza la relazione tra versioni (es. un processo pubblicato V3 usa la regola DMN V7 e il modulo V2).
 - **Metadata e tag**: permette di assegnare descrizioni, tag, area/modulo, owner e tenant.
 - **Ricerca**: fornisce endpoint per cercare artefatti per testo libero, tag, tipo, stato e versioni.

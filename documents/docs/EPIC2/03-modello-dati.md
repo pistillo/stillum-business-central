@@ -21,6 +21,11 @@ EPIC 2 non introduce nuove tabelle DB: la UI consuma i modelli esposti da Regist
 
 - `tenantId`: persistito in `localStorage` con chiave `stillum.tenantId`.
 - `availableTenantIds`: derivato dal JWT a partire da claim array top-level (`tenants`, `tenant_ids`, `tenantIds`, `stillum_tenants`) e/o pattern su array top-level (`groups`/`roles`), con fallback a inserimento manuale.
+- `defaultTenantId` (opzionale): se presente nel JWT e incluso in `availableTenantIds`, viene usato per la selezione automatica quando l’utente ha più tenant.
+
+### Post-login redirect
+
+- `stillum.postLoginRedirect`: persistito in `sessionStorage` per preservare i deep link tra redirect a `/login`, callback OIDC e selezione tenant.
 
 ---
 

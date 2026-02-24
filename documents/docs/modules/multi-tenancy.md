@@ -17,6 +17,14 @@ La piattaforma è concepita per supportare più tenant (aziende) con isolamento 
 - Gli utenti di un tenant non devono poter vedere artefatti, istanze o configurazioni di altri tenant.
 - Configurazioni (es. ambienti, S3 bucket, provider IAM) possono essere uniche per tenant.
 
+## Tenant Context (IAM/JWT)
+
+- La Portal UI deriva i tenant disponibili dal token OIDC:
+  - `tenantIds`: lista dei tenant assegnati all’utente.
+  - `defaultTenantId` (opzionale): tenant predefinito quando l’utente è associato a più tenant.
+- Se `defaultTenantId` è presente e fa parte di `tenantIds`, la UI seleziona automaticamente quel tenant; altrimenti richiede una scelta esplicita.
+- Il `tenantId` selezionato viene salvato lato client e usato per costruire le chiamate alle API (`/api/tenants/{tenantId}/...`).
+
 ### Enforcement DB (RLS)
 
 - L’isolamento non deve dipendere solo dai filtri applicativi: le tabelle multi-tenant usano Row-Level Security basata su `current_setting('app.current_tenant', true)`.
