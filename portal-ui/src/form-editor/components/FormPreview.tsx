@@ -1,8 +1,16 @@
+import { useDroppable } from '@dnd-kit/core';
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { useMemo } from 'react';
 import { useFormEditorStore } from '../store';
 import { buildTree } from '../utils';
 import type { TreeNode } from '../utils';
 import type { DropletDefinition, PoolDefinition, TriggerDefinition } from '../types';
+import { useDndIndicator } from './DndIndicatorContext';
 
 // ── Layout style builders ──────────────────────────────────────────────────
 
@@ -91,6 +99,75 @@ function placementStyle(node: {
   if (p.justifySelf) style.justifySelf = p.justifySelf as React.CSSProperties['justifySelf'];
   if (p.alignSelf) style.alignSelf = p.alignSelf as React.CSSProperties['alignSelf'];
   return style;
+}
+
+// ── Drop indicator line ───────────────────────────────────────────────────
+
+function DropIndicatorLine({ direction }: { direction: 'horizontal' | 'vertical' }) {
+  if (direction === 'horizontal') {
+    // Vertical line (left/right of element) for horizontal layouts
+    return (
+      <div className="relative z-10 pointer-events-none" style={{ width: 0, alignSelf: 'stretch' }}>
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-brand-500 dark:bg-brand-400 rounded-full"
+          style={{ left: '-1px' }}
+        >
+          <div className="absolute -top-1 -left-[3px] w-2 h-2 rounded-full bg-brand-500 dark:bg-brand-400" />
+          <div className="absolute -bottom-1 -left-[3px] w-2 h-2 rounded-full bg-brand-500 dark:bg-brand-400" />
+        </div>
+      </div>
+    );
+  }
+  // Horizontal line (above/below element) for vertical layouts
+  return (
+    <div className="relative z-10 pointer-events-none" style={{ height: 0 }}>
+      <div
+        className="absolute left-0 right-0 h-0.5 bg-brand-500 dark:bg-brand-400 rounded-full"
+        style={{ top: '-1px' }}
+      >
+        <div className="absolute -left-1 -top-[3px] w-2 h-2 rounded-full bg-brand-500 dark:bg-brand-400" />
+        <div className="absolute -right-1 -top-[3px] w-2 h-2 rounded-full bg-brand-500 dark:bg-brand-400" />
+      </div>
+    </div>
+  );
+}
+
+// ── Sortable wrapper ───────────────────────────────────────────────────────
+
+function SortableItem({
+  id,
+  children,
+}: {
+  id: string;
+  children: (props: { isDragging: boolean }) => React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useSortable({
+    id,
+    data: { fromPreview: true },
+  });
+  const indicator = useDndIndicator();
+  const isOver = indicator.activeId !== null && indicator.overId === id;
+  const showBefore = isOver && indicator.position === 'before';
+  const showAfter = isOver && indicator.position === 'after';
+  const dir = indicator.direction;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        opacity: isDragging ? 0.4 : 1,
+        position: 'relative',
+        display: dir === 'horizontal' && isOver ? 'flex' : undefined,
+        alignItems: dir === 'horizontal' && isOver ? 'stretch' : undefined,
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      {showBefore && <DropIndicatorLine direction={dir} />}
+      {children({ isDragging })}
+      {showAfter && <DropIndicatorLine direction={dir} />}
+    </div>
+  );
 }
 
 // ── Droplet preview ────────────────────────────────────────────────────────
@@ -298,7 +375,7 @@ function TriggerPreview({
   );
 }
 
-// ── Pool preview (recursive) ───────────────────────────────────────────────
+// ── Pool preview (recursive, droppable + sortable children) ────────────────
 
 function PoolPreview({
   treeNode,
@@ -312,16 +389,27 @@ function PoolPreview({
   selectedNodeId: string | null;
 }) {
   const pool = treeNode.node as PoolDefinition;
-  if (pool.visible === false) return null;
 
   const layoutStyle = poolLayoutStyle(pool);
+  const childIds = treeNode.children.map((c) => c.editorId);
+
+  // Make this pool a droppable zone (hooks must be called unconditionally)
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `droppable::${treeNode.editorId}`,
+    data: { poolName: pool.name, kind: 'pool' },
+  });
+
+  if (pool.visible === false) return null;
 
   return (
     <div
+      ref={setDropRef}
       className={`rounded-md border transition-all ${
-        isSelected
-          ? 'border-purple-400 dark:border-purple-500 ring-2 ring-purple-300/50'
-          : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+        isOver
+          ? 'border-brand-400 dark:border-brand-500 bg-brand-50/30 dark:bg-brand-900/10'
+          : isSelected
+            ? 'border-purple-400 dark:border-purple-500 ring-2 ring-purple-300/50'
+            : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
       }`}
       style={{ ...placementStyle(pool), ...(layoutStyle.padding ? {} : { padding: '8px' }) }}
       onClick={(e) => {
@@ -337,27 +425,38 @@ function PoolPreview({
         </div>
       )}
 
-      {/* Pool body */}
-      <div style={layoutStyle}>
-        {treeNode.children.map((child) => (
-          <PreviewNode
-            key={child.editorId}
-            treeNode={child}
-            selectedNodeId={selectedNodeId}
-            onSelectNode={onSelectNode}
-          />
-        ))}
-        {treeNode.children.length === 0 && (
-          <div className="text-[10px] text-gray-300 dark:text-slate-600 italic py-2 text-center">
-            Pool vuoto
-          </div>
-        )}
-      </div>
+      {/* Pool body — sortable context for children */}
+      <SortableContext
+        items={childIds}
+        strategy={
+          pool.type === 'horizontal' ||
+          (pool.type === 'flex' &&
+            (pool.flexDirection === 'row' || pool.flexDirection === 'row-reverse'))
+            ? horizontalListSortingStrategy
+            : verticalListSortingStrategy
+        }
+      >
+        <div style={layoutStyle}>
+          {treeNode.children.map((child) => (
+            <PreviewNode
+              key={child.editorId}
+              treeNode={child}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={onSelectNode}
+            />
+          ))}
+          {treeNode.children.length === 0 && (
+            <div className="text-[10px] text-gray-300 dark:text-slate-600 italic py-2 text-center">
+              {isOver ? 'Rilascia qui' : 'Pool vuoto'}
+            </div>
+          )}
+        </div>
+      </SortableContext>
     </div>
   );
 }
 
-// ── Generic tree node dispatcher ───────────────────────────────────────────
+// ── Generic tree node dispatcher (each child is sortable) ──────────────────
 
 function PreviewNode({
   treeNode,
@@ -370,35 +469,48 @@ function PreviewNode({
 }) {
   const isSelected = selectedNodeId === treeNode.editorId;
 
-  switch (treeNode.kind) {
-    case 'pool':
-      return (
-        <PoolPreview
-          treeNode={treeNode}
-          isSelected={isSelected}
-          onSelectNode={onSelectNode}
-          selectedNodeId={selectedNodeId}
-        />
-      );
-    case 'droplet':
-      return (
-        <DropletPreview
-          droplet={treeNode.node as DropletDefinition}
-          isSelected={isSelected}
-          onSelect={() => onSelectNode(treeNode.editorId)}
-        />
-      );
-    case 'trigger':
-      return (
-        <TriggerPreview
-          trigger={treeNode.node as TriggerDefinition}
-          isSelected={isSelected}
-          onSelect={() => onSelectNode(treeNode.editorId)}
-        />
-      );
-    default:
-      return null;
+  // Pools are sortable too (can be reordered inside parent)
+  if (treeNode.kind === 'pool') {
+    return (
+      <SortableItem id={treeNode.editorId}>
+        {() => (
+          <PoolPreview
+            treeNode={treeNode}
+            isSelected={isSelected}
+            onSelectNode={onSelectNode}
+            selectedNodeId={selectedNodeId}
+          />
+        )}
+      </SortableItem>
+    );
   }
+
+  return (
+    <SortableItem id={treeNode.editorId}>
+      {() => {
+        switch (treeNode.kind) {
+          case 'droplet':
+            return (
+              <DropletPreview
+                droplet={treeNode.node as DropletDefinition}
+                isSelected={isSelected}
+                onSelect={() => onSelectNode(treeNode.editorId)}
+              />
+            );
+          case 'trigger':
+            return (
+              <TriggerPreview
+                trigger={treeNode.node as TriggerDefinition}
+                isSelected={isSelected}
+                onSelect={() => onSelectNode(treeNode.editorId)}
+              />
+            );
+          default:
+            return null;
+        }
+      }}
+    </SortableItem>
+  );
 }
 
 // ── Main FormPreview ───────────────────────────────────────────────────────
@@ -412,6 +524,13 @@ export function FormPreview() {
 
   const rootStyle = poolLayoutStyle(formDefinition);
   const isEmpty = tree.children.length === 0;
+  const rootChildIds = tree.children.map((c) => c.editorId);
+
+  // Root form is also a droppable zone
+  const { setNodeRef: setRootDropRef, isOver: isRootOver } = useDroppable({
+    id: 'droppable::form',
+    data: { poolName: undefined, kind: 'form' },
+  });
 
   return (
     <div className="h-full overflow-auto bg-white dark:bg-slate-900">
@@ -419,34 +538,48 @@ export function FormPreview() {
         Anteprima
       </div>
       <div className="p-4" onClick={() => selectNode('form')}>
-        {/* Form title */}
         {formDefinition.title && (
           <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200 mb-3">
             {formDefinition.title}
           </h2>
         )}
 
-        {/* Form body with root layout */}
         <div
+          ref={setRootDropRef}
           style={rootStyle}
           className={`rounded-lg border border-dashed p-4 transition-all ${
-            selectedNodeId === 'form'
-              ? 'border-brand-400 dark:border-brand-500'
-              : 'border-gray-200 dark:border-slate-700'
+            isRootOver
+              ? 'border-brand-400 dark:border-brand-500 bg-brand-50/30 dark:bg-brand-900/10'
+              : selectedNodeId === 'form'
+                ? 'border-brand-400 dark:border-brand-500'
+                : 'border-gray-200 dark:border-slate-700'
           }`}
         >
-          {tree.children.map((child) => (
-            <PreviewNode
-              key={child.editorId}
-              treeNode={child}
-              selectedNodeId={selectedNodeId}
-              onSelectNode={selectNode}
-            />
-          ))}
+          <SortableContext
+            items={rootChildIds}
+            strategy={
+              formDefinition.type === 'horizontal' ||
+              (formDefinition.type === 'flex' &&
+                (formDefinition as { flexDirection?: string }).flexDirection === 'row')
+                ? horizontalListSortingStrategy
+                : verticalListSortingStrategy
+            }
+          >
+            {tree.children.map((child) => (
+              <PreviewNode
+                key={child.editorId}
+                treeNode={child}
+                selectedNodeId={selectedNodeId}
+                onSelectNode={selectNode}
+              />
+            ))}
+          </SortableContext>
 
           {isEmpty && (
             <div className="text-center text-sm text-gray-400 dark:text-slate-500 py-8">
-              Il form è vuoto. Aggiungi elementi dalla palette.
+              {isRootOver
+                ? 'Rilascia qui per aggiungere'
+                : 'Il form è vuoto. Trascina un elemento dalla palette.'}
             </div>
           )}
         </div>

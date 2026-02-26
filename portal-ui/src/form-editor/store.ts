@@ -42,6 +42,11 @@ interface FormEditorState {
   // Move: change pool parent
   moveNodeToPool: (editorId: string, targetPoolName: string | undefined) => void;
   reorderInArray: (editorId: string, direction: 'up' | 'down') => void;
+  moveNodeToIndex: (
+    editorId: string,
+    targetPoolName: string | undefined,
+    targetIndex: number
+  ) => void;
 
   // History
   undo: () => void;
@@ -284,6 +289,62 @@ export const useFormEditorStore = create<FormEditorState>((set, get) => ({
     fd.pools = reorder(fd.pools ?? []);
     fd.droplets = reorder(fd.droplets ?? []);
     fd.triggers = reorder(fd.triggers ?? []);
+
+    set({
+      formDefinition: { ...fd },
+      dirty: true,
+      ...pushHistory(s.history, s.historyIndex, fd),
+    });
+  },
+
+  moveNodeToIndex: (editorId, targetPoolName, targetIndex) => {
+    const s = get();
+    const fd = s.formDefinition;
+    const found = findNodeByEditorId(fd, editorId);
+    if (!found || found.kind === 'form') return;
+
+    // Update pool reference (hierarchy is defined solely by this property)
+    (found.node as { pool?: string }).pool = targetPoolName;
+
+    // Reorder within the correct flat array.
+    // We compute a relative index among siblings with the same `pool` value,
+    // then translate that to an absolute index in the flat array.
+    const reinsert = <T extends object>(arr: T[]): T[] => {
+      const idx = arr.findIndex((x) => getEditorId(x) === editorId);
+      if (idx === -1) return arr;
+      const copy = [...arr];
+      const [item] = copy.splice(idx, 1);
+
+      // Siblings = items that share the same pool parent
+      const siblings = copy.filter(
+        (x) => (x as unknown as { pool?: string }).pool === targetPoolName
+      );
+
+      if (siblings.length === 0 || targetIndex >= siblings.length) {
+        // No siblings or appending at the end:
+        // Insert after the last sibling, or at the end of the array
+        if (siblings.length > 0) {
+          const lastAbsIdx = copy.indexOf(siblings[siblings.length - 1]);
+          copy.splice(lastAbsIdx + 1, 0, item);
+        } else {
+          copy.push(item);
+        }
+      } else {
+        // Insert before the sibling at targetIndex
+        const refItem = siblings[targetIndex];
+        const absIdx = copy.indexOf(refItem);
+        copy.splice(absIdx, 0, item);
+      }
+      return copy;
+    };
+
+    if (found.kind === 'pool') {
+      fd.pools = reinsert(fd.pools ?? []);
+    } else if (found.kind === 'droplet') {
+      fd.droplets = reinsert(fd.droplets ?? []);
+    } else if (found.kind === 'trigger') {
+      fd.triggers = reinsert(fd.triggers ?? []);
+    }
 
     set({
       formDefinition: { ...fd },
