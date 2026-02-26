@@ -5,6 +5,7 @@ import Editor from '@monaco-editor/react';
 import * as yaml from 'js-yaml';
 import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
 import { FormEditorShell, useFormEditorStore } from '../form-editor';
+import { StillumFormsEditorTab } from '../form-editor/components/StillumFormsEditorTab';
 import type { ArtifactType, VersionState } from '../api/types';
 import {
   getArtifact,
@@ -17,7 +18,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 import { useTheme } from '../theme/ThemeContext';
 
-type EditorFormat = 'json' | 'yaml' | 'xml' | 'visual';
+type EditorFormat = 'json' | 'yaml' | 'xml' | 'visual' | 'stillum-editor';
 
 function getDefaultContent(type: ArtifactType): string {
   if (type === 'FORM' || type === 'REQUEST') return '{}';
@@ -29,7 +30,7 @@ function getDefaultContent(type: ArtifactType): string {
 }
 
 function getFormats(type: ArtifactType): EditorFormat[] {
-  if (type === 'FORM') return ['visual', 'json', 'yaml'];
+  if (type === 'FORM') return ['visual', 'stillum-editor', 'json', 'yaml'];
   if (type === 'REQUEST') return ['json', 'yaml'];
   return ['xml'];
 }
@@ -82,7 +83,7 @@ export function EditorPage() {
     }
   }, [formats, activeTab]);
 
-  // Sync visual editor content when switching tabs
+  // Sync visual editor content when switching to visual tab
   useEffect(() => {
     if (activeTab === 'visual' && jsonContent) {
       setVisualEditorContent(jsonContent);
@@ -169,7 +170,7 @@ export function EditorPage() {
 
   const contentToSave = isJsonBased ? jsonContent : xmlContent;
 
-  // When switching away from visual tab, sync content
+  // When switching tabs, sync content from the active editor
   const handleTabChange = useCallback(
     (tab: EditorFormat) => {
       if (activeTab === 'visual' && tab !== 'visual') {
@@ -178,6 +179,7 @@ export function EditorPage() {
           setJsonContent(json);
         }
       }
+      // stillum-editor tab: content is already in jsonContent via onChange
       if (tab === 'visual') {
         setVisualEditorContent(jsonContent);
       }
@@ -227,7 +229,7 @@ export function EditorPage() {
   const isReadOnly = versionState === 'PUBLISHED';
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="flex flex-1 flex-col min-h-0">
       {/* Editor toolbar */}
       <div className="flex items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -285,7 +287,11 @@ export function EditorPage() {
                     : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
             >
-              {fmt === 'visual' ? 'Visivo' : fmt.toUpperCase()}
+              {fmt === 'visual'
+                ? 'Visivo'
+                : fmt === 'stillum-editor'
+                  ? 'Editor StillumForms'
+                  : fmt.toUpperCase()}
             </button>
           ))}
           <div className="flex-1" />
@@ -295,8 +301,8 @@ export function EditorPage() {
         </div>
       )}
 
-      {/* Editor area */}
-      <div className="flex-1 card overflow-hidden rounded-t-none border-t-0">
+      {/* Editor area: min-h-0 so flex child can shrink and editor gets correct height */}
+      <div className="flex-1 min-h-0 card overflow-hidden rounded-t-none border-t-0 flex flex-col">
         {status === 'loading' && (
           <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-3">
@@ -320,40 +326,54 @@ export function EditorPage() {
         )}
 
         {status === 'ready' && activeTab === 'visual' && (
-          <FormEditorShell
-            initialContent={visualEditorContent}
-            onSave={handleVisualEditorSave}
-            saving={save.isPending}
-            saveSuccess={save.isSuccess}
-            saveError={save.isError}
-            readOnly={isReadOnly}
-          />
+          <div className="flex-1 min-h-0 flex flex-col">
+            <FormEditorShell
+              initialContent={visualEditorContent}
+              onSave={handleVisualEditorSave}
+              saving={save.isPending}
+              saveSuccess={save.isSuccess}
+              saveError={save.isError}
+              readOnly={isReadOnly}
+            />
+          </div>
         )}
 
-        {status === 'ready' && activeTab !== 'visual' && (
-          <Editor
-            height="100%"
-            language={editorLanguage}
-            value={editorValue}
-            onChange={handleEditorChange}
-            theme={theme === 'dark' ? 'vs-dark' : 'light'}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 13,
-              lineNumbers: 'on',
-              readOnly: isReadOnly,
-              scrollBeyondLastLine: false,
-              wordWrap: 'on',
-              tabSize: 2,
-              automaticLayout: true,
-              padding: { top: 12 },
-            }}
-            loading={
-              <div className="flex items-center justify-center h-full">
-                <Loader2 size={24} className="animate-spin text-gray-400" />
-              </div>
-            }
-          />
+        {status === 'ready' && activeTab === 'stillum-editor' && (
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <StillumFormsEditorTab
+              initialContent={jsonContent}
+              onContentChange={setJsonContent}
+              theme={theme === 'dark' ? 'dark' : theme === 'light' ? 'light' : 'system'}
+            />
+          </div>
+        )}
+
+        {status === 'ready' && activeTab !== 'visual' && activeTab !== 'stillum-editor' && (
+          <div className="flex-1 min-h-0 flex flex-col">
+            <Editor
+              height="100%"
+              language={editorLanguage}
+              value={editorValue}
+              onChange={handleEditorChange}
+              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 13,
+                lineNumbers: 'on',
+                readOnly: isReadOnly,
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                tabSize: 2,
+                automaticLayout: true,
+                padding: { top: 12 },
+              }}
+              loading={
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 size={24} className="animate-spin text-gray-400" />
+                </div>
+              }
+            />
+          </div>
         )}
       </div>
     </div>

@@ -131,9 +131,11 @@ export function Layout() {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <Outlet />
+        {/* Page content: flex + min-h-0 so editor pages can fill height correctly */}
+        <main className="flex flex-1 flex-col min-h-0 overflow-hidden p-4 lg:p-6">
+          <div className="flex flex-1 flex-col min-h-0">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
