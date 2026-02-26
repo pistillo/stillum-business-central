@@ -1,3 +1,2 @@
-export { useFormEditorStore } from './store';
-export type { FormDefinition } from './types';
-export { parseFormDefinition, serializeFormDefinition } from './utils';
+export { StillumFormsEditorTab } from './components/StillumFormsEditorTab';
+export type { StillumFormsEditorTabProps } from './components/StillumFormsEditorTab';

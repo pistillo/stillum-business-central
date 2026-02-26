@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import * as yaml from 'js-yaml';
 import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
-import { StillumFormsEditorTab } from '../form-editor/components/StillumFormsEditorTab';
+import { StillumFormsEditorTab } from '../form-editor';
 import type { ArtifactType, VersionState } from '../api/types';
 import {
   getArtifact,
