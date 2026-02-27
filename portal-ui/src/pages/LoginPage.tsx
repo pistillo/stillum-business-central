@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LogIn, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ThemeToggle } from '../components/ThemeToggle';
 import {
   readPostLoginRedirect,
@@ -10,6 +12,7 @@ import {
 } from '../utils/postLoginRedirect';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const { state, login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,9 +47,9 @@ export function LoginPage() {
           <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm mb-8">
             <Shield size={32} className="text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">Stillum Business Central</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">{t('login.appTitle')}</h2>
           <p className="text-brand-100 text-lg leading-relaxed">
-            Gestisci processi, regole decisionali, form e request in un unico portale centralizzato.
+            {t('login.appDescription')}
           </p>
         </div>
         {/* Decorative shapes */}
@@ -56,7 +59,8 @@ export function LoginPage() {
 
       {/* Right login panel */}
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
 
@@ -68,9 +72,9 @@ export function LoginPage() {
             <span className="text-2xl font-semibold text-gray-900 dark:text-white">Stillum</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Benvenuto</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('login.welcome')}</h1>
           <p className="text-gray-500 dark:text-slate-400 mb-8">
-            Accedi con le tue credenziali per continuare.
+            {t('login.loginPrompt')}
           </p>
 
           <button
@@ -87,11 +91,11 @@ export function LoginPage() {
             className="btn-primary w-full py-3 text-base"
           >
             <LogIn size={18} />
-            Accedi con SSO
+            {t('login.ssoButton')}
           </button>
 
           <p className="mt-6 text-center text-xs text-gray-400 dark:text-slate-500">
-            Autenticazione gestita tramite Keycloak (OpenID Connect)
+            {t('login.oidcNote')}
           </p>
         </div>
       </div>

@@ -1,0 +1,160 @@
+{
+  "common": {
+    "loading": "Caricamento…",
+    "error": "Errore",
+    "loadError": "Errore nel caricamento",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "saved": "Salvato",
+    "continue": "Continua",
+    "back": "Indietro",
+    "prev": "Prec.",
+    "next": "Succ.",
+    "all": "Tutti",
+    "logout": "Logout",
+    "user": "Utente",
+    "tenant": "Tenant",
+    "filters": "Filtri",
+    "results_one": "{{count}} risultato",
+    "results_other": "{{count}} risultati",
+    "pageOf": "Pagina {{current}} di {{total}}"
+  },
+
+  "nav": {
+    "dashboard": "Dashboard",
+    "catalogue": "Catalogo",
+    "newArtifact": "Nuovo Artefatto"
+  },
+
+  "theme": {
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "system": "Sistema"
+  },
+
+  "status": {
+    "DRAFT": "Bozza",
+    "PUBLISHED": "Pubblicato",
+    "REVIEW": "In revisione",
+    "APPROVED": "Approvato",
+    "RETIRED": "Ritirato"
+  },
+
+  "type": {
+    "PROCESS": "BPMN",
+    "RULE": "DMN",
+    "FORM": "Form",
+    "REQUEST": "Request"
+  },
+
+  "login": {
+    "appTitle": "Stillum Business Central",
+    "appDescription": "Gestisci processi, regole decisionali, form e request in un unico portale centralizzato.",
+    "welcome": "Benvenuto",
+    "loginPrompt": "Accedi con le tue credenziali per continuare.",
+    "ssoButton": "Accedi con SSO",
+    "oidcNote": "Autenticazione gestita tramite Keycloak (OpenID Connect)"
+  },
+
+  "oidcCallback": {
+    "authError": "Errore di autenticazione",
+    "serverResponse": "Risposta server:",
+    "backToLogin": "Torna al login",
+    "completing": "Completamento accesso in corso…"
+  },
+
+  "selectTenant": {
+    "title": "Seleziona Tenant",
+    "description": "Scegli l'organizzazione con cui vuoi operare.",
+    "noTenantFound": "Nessun tenant trovato nel token. Inserisci manualmente un tenant ID:",
+    "manualPlaceholder": "00000000-0000-0000-0000-000000000001"
+  },
+
+  "home": {
+    "title": "Dashboard",
+    "subtitle": "Panoramica degli artefatti e accesso rapido alle operazioni.",
+    "myDrafts": "Le mie bozze",
+    "viewAll": "Vedi tutte",
+    "recentPublications": "Ultime pubblicazioni",
+    "noDrafts": "Nessuna bozza presente.",
+    "noPublications": "Nessuna pubblicazione recente."
+  },
+
+  "catalogue": {
+    "title": "Catalogo",
+    "subtitle": "Cerca e gestisci tutti gli artefatti del tenant.",
+    "filterType": "Tipo",
+    "filterStatus": "Stato",
+    "filterArea": "Area",
+    "filterTag": "Tag",
+    "filterAreaPlaceholder": "Filtra per area…",
+    "filterTagPlaceholder": "Filtra per tag…",
+    "tableTitle": "Titolo",
+    "tableType": "Tipo",
+    "tableStatus": "Stato",
+    "tableArea": "Area",
+    "noResults": "Nessun artefatto trovato con i filtri selezionati.",
+    "loadError": "Errore nel caricamento dei dati."
+  },
+
+  "artifactDetail": {
+    "backToCatalogue": "Torna al catalogo",
+    "versions": "Versioni",
+    "versionCol": "Versione",
+    "statusCol": "Stato",
+    "actionsCol": "Azioni",
+    "open": "Apri",
+    "edit": "Modifica",
+    "publish": "Pubblica",
+    "noVersions": "Nessuna versione disponibile."
+  },
+
+  "editor": {
+    "back": "Indietro",
+    "readOnly": "sola lettura",
+    "save": "Salva",
+    "saved": "Salvato",
+    "error": "Errore",
+    "loadingPayload": "Caricamento payload…",
+    "loadError": "Errore nel caricamento del payload",
+    "persistence": "Persistenza: JSON",
+    "conversionError": "# Errore conversione JSON -> YAML"
+  },
+
+  "newArtifact": {
+    "backToCatalogue": "Torna al catalogo",
+    "title": "Nuovo Artefatto",
+    "subtitle": "Crea un nuovo artefatto e la sua prima versione.",
+    "typeLabel": "Tipo di artefatto",
+    "typeProcessDesc": "Definizione di processo in formato XML/BPMN",
+    "typeRuleDesc": "Regola decisionale in formato XML/DMN",
+    "typeFormDesc": "Definizione di form in formato JSON",
+    "typeRequestDesc": "Definizione di request in formato JSON",
+    "titleLabel": "Titolo",
+    "titlePlaceholder": "es. Processo approvazione ordini",
+    "areaLabel": "Area",
+    "areaPlaceholder": "es. finance, hr, operations",
+    "tagsLabel": "Tag",
+    "tagsHint": "(separati da virgola)",
+    "tagsPlaceholder": "es. ordini, approvazione, fatturazione",
+    "versionLabel": "Versione iniziale",
+    "createError": "Errore nella creazione dell'artefatto.",
+    "creating": "Creazione…",
+    "createButton": "Crea Artefatto"
+  },
+
+  "publishPage": {
+    "backToArtifact": "Torna all'artefatto",
+    "title": "Pubblica Versione",
+    "subtitle": "Pubblica questa versione in un ambiente specifico.",
+    "environmentLabel": "Ambiente",
+    "loadingEnvs": "Caricamento ambienti…",
+    "envsError": "Impossibile caricare gli ambienti dal Registry. Puoi inserire l'ID manualmente.",
+    "notesLabel": "Note",
+    "notesPlaceholder": "Note opzionali sulla pubblicazione…",
+    "publishError": "Pubblicazione fallita. Verifica i parametri e riprova.",
+    "publishSuccess": "Pubblicazione completata",
+    "publishing": "Pubblicazione…",
+    "publishButton": "Pubblica"
+  }
+}

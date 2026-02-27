@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ArtifactStatus, ArtifactType, VersionState } from '../api/types';
 
 const statusClasses: Record<string, string> = {
@@ -8,29 +9,16 @@ const statusClasses: Record<string, string> = {
   RETIRED: 'badge-retired',
 };
 
-const statusLabels: Record<string, string> = {
-  DRAFT: 'Bozza',
-  PUBLISHED: 'Pubblicato',
-  REVIEW: 'In revisione',
-  APPROVED: 'Approvato',
-  RETIRED: 'Ritirato',
-};
-
 export function StatusBadge({ status }: { status: ArtifactStatus | VersionState }) {
+  const { t } = useTranslation();
   return (
     <span className={statusClasses[status] ?? 'badge bg-gray-100 text-gray-600'}>
-      {statusLabels[status] ?? status}
+      {t(`status.${status}`, status)}
     </span>
   );
 }
 
-const typeLabels: Record<ArtifactType, string> = {
-  PROCESS: 'BPMN',
-  RULE: 'DMN',
-  FORM: 'Form',
-  REQUEST: 'Request',
-};
-
 export function TypeBadge({ type }: { type: ArtifactType }) {
-  return <span className="badge-type">{typeLabels[type] ?? type}</span>;
+  const { t } = useTranslation();
+  return <span className="badge-type">{t(`type.${type}`, type)}</span>;
 }

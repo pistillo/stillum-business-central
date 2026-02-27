@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
 import { readPostLoginRedirect } from '../utils/postLoginRedirect';
 
 let oidcCallbackInProgress = false;
 
 export function OidcCallbackPage() {
+  const { t } = useTranslation();
   const { state } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +35,9 @@ export function OidcCallbackPage() {
           typeof e === 'object' && e !== null && 'response' in e
             ? JSON.stringify((e as { response?: unknown }).response, null, 2)
             : '';
-        setError(extra ? `${msg}\n\nRisposta server:\n${extra}` : msg);
+        setError(extra ? `${msg}\n\n${t('oidcCallback.serverResponse')}\n${extra}` : msg);
       });
-  }, [state, navigate]);
+  }, [state, navigate, t]);
 
   if (error) {
     return (
@@ -45,13 +47,13 @@ export function OidcCallbackPage() {
             <AlertCircle size={24} className="text-red-600 dark:text-red-400" />
           </div>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Errore di autenticazione
+            {t('oidcCallback.authError')}
           </h1>
           <pre className="mt-4 rounded-lg bg-gray-100 dark:bg-slate-700 p-4 text-left text-xs text-gray-700 dark:text-slate-300 overflow-auto max-h-48">
             {error}
           </pre>
           <a href="/login" className="btn-primary mt-6 inline-flex">
-            Torna al login
+            {t('oidcCallback.backToLogin')}
           </a>
         </div>
       </div>
@@ -62,7 +64,7 @@ export function OidcCallbackPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
       <div className="flex flex-col items-center gap-4">
         <Loader2 size={32} className="animate-spin text-brand-600 dark:text-brand-400" />
-        <p className="text-sm text-gray-500 dark:text-slate-400">Completamento accesso in corso…</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">{t('oidcCallback.completing')}</p>
       </div>
     </div>
   );

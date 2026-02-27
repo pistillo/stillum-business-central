@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import * as yaml from 'js-yaml';
 import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ArtifactType, VersionState } from '../api/types';
 import {
   getArtifact,
@@ -37,11 +38,11 @@ function getContentType(type: ArtifactType): string {
   return 'application/xml';
 }
 
-function jsonToYaml(json: string): string {
+function jsonToYaml(json: string, errorMsg: string): string {
   try {
     return yaml.dump(JSON.parse(json), { indent: 2, lineWidth: 120 });
   } catch {
-    return '# Errore conversione JSON -> YAML';
+    return errorMsg;
   }
 }
 
@@ -54,6 +55,7 @@ function yamlToJson(yamlStr: string): string {
 }
 
 export function EditorPage() {
+  const { t } = useTranslation();
   const { getAccessToken } = useAuth();
   const { tenantId } = useTenant();
   const { resolved: theme } = useTheme();
@@ -122,9 +124,9 @@ export function EditorPage() {
 
   const editorValue = useMemo(() => {
     if (!isJsonBased) return xmlContent;
-    if (activeTab === 'yaml') return jsonToYaml(jsonContent);
+    if (activeTab === 'yaml') return jsonToYaml(jsonContent, t('editor.conversionError'));
     return jsonContent;
-  }, [isJsonBased, xmlContent, jsonContent, activeTab]);
+  }, [isJsonBased, xmlContent, jsonContent, activeTab, t]);
 
   const editorLanguage = useMemo(() => {
     if (!isJsonBased) return 'xml';
@@ -180,13 +182,6 @@ export function EditorPage() {
     },
   });
 
-  const typeLabels: Record<ArtifactType, string> = {
-    PROCESS: 'BPMN',
-    RULE: 'DMN',
-    FORM: 'Form',
-    REQUEST: 'Request',
-  };
-
   const isReadOnly = versionState === 'PUBLISHED';
 
   return (
@@ -196,7 +191,7 @@ export function EditorPage() {
         <div className="flex items-center gap-3 min-w-0">
           <Link to={`/artifact/${artifactId}`} className="btn-ghost btn-sm shrink-0">
             <ArrowLeft size={14} />
-            Indietro
+            {t('editor.back')}
           </Link>
           <div className="h-5 w-px bg-gray-200 dark:bg-slate-700 shrink-0" />
           <div className="min-w-0">
@@ -204,8 +199,8 @@ export function EditorPage() {
               {artifactTitle || 'Editor'}
             </div>
             <div className="text-xs text-gray-500 dark:text-slate-400">
-              {typeLabels[artifactType]} · v{versionLabel}
-              {isReadOnly ? ' · sola lettura' : ''}
+              {t(`type.${artifactType}`)} · v{versionLabel}
+              {isReadOnly ? ` · ${t('editor.readOnly')}` : ''}
             </div>
           </div>
         </div>
@@ -214,13 +209,13 @@ export function EditorPage() {
           {save.isSuccess && (
             <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
               <Check size={14} />
-              Salvato
+              {t('editor.saved')}
             </span>
           )}
           {save.isError && (
             <span className="flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
               <AlertCircle size={14} />
-              Errore
+              {t('editor.error')}
             </span>
           )}
           <button
@@ -229,7 +224,7 @@ export function EditorPage() {
             onClick={() => save.mutate()}
           >
             {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            Salva
+            {t('editor.save')}
           </button>
         </div>
       </div>
@@ -253,7 +248,7 @@ export function EditorPage() {
           ))}
           <div className="flex-1" />
           <span className="self-center text-[10px] text-gray-400 dark:text-slate-500 pr-2">
-            Persistenza: JSON
+            {t('editor.persistence')}
           </span>
         </div>
       )}
@@ -265,7 +260,7 @@ export function EditorPage() {
             <div className="flex flex-col items-center gap-3">
               <Loader2 size={28} className="animate-spin text-brand-600 dark:text-brand-400" />
               <span className="text-sm text-gray-500 dark:text-slate-400">
-                Caricamento payload…
+                {t('editor.loadingPayload')}
               </span>
             </div>
           </div>
@@ -276,7 +271,7 @@ export function EditorPage() {
             <div className="flex flex-col items-center gap-3">
               <AlertCircle size={28} className="text-red-500" />
               <span className="text-sm text-red-500 dark:text-red-400">
-                Errore nel caricamento del payload
+                {t('editor.loadError')}
               </span>
             </div>
           </div>
