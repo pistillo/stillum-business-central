@@ -44,6 +44,17 @@ module.exports = {
         },
         {
           type: 'category',
+          label: 'EPIC 10 – Artefatti UI React e Packaging NPM',
+          items: [
+            'EPIC10/epic10-stato',
+            'EPIC10/epic10-obiettivo',
+            'EPIC10/epic10-requisiti',
+            'EPIC10/epic10-modello-dati',
+            'EPIC10/epic10-implementazione',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Fase 1',
           items: [
             'phase1-overview',

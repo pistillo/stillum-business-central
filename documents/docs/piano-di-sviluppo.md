@@ -30,6 +30,7 @@ Riferimento sintetico rispetto all’implementazione presente nel repository.
 | EPIC 7 | 🔴 Non iniziato | 0% | Export/import Git, webhook e diff versioni | |
 | EPIC 8 | 🔴 Non iniziato | 0% | Analytics, SLA e audit consultabile | |
 | EPIC 9 | 🔴 Non iniziato | 0% | Marketplace, assistente AI e plugin | |
+| EPIC 10 | 🔴 Non iniziato | 0% | Artefatti UI React e Packaging NPM (fuori roadmap originale; dipende da EPIC 2 e EPIC 6) | [Stato EPIC 10](/docs/EPIC10/epic10-stato) |
 
 Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/api`. Nei task dove il prefisso non è esplicitato, assumere `/api`.
 
@@ -1044,6 +1045,164 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ---
 
+## EPIC 10 – Artefatti UI React e Packaging NPM
+
+**Obiettivo:** Introdurre i tipi di artefatti `MODULE` e `COMPONENT` per definire pools, droplets e triggers tramite codice React, con editor dedicato, risoluzione dipendenze npm e generazione di pacchetti npm riutilizzabili dal runtime.
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+**Stato task:** 🔴 per tutti i task di questo EPIC (salvo marcatura esplicita).
+
+**Dipendenze:** EPIC 2 (Portal UI) e EPIC 6 (Packaging & Distribuzione).
+
+> **Nota:** questa EPIC è fuori dalla roadmap originale (Fasi 0–9). I Form StillumForms basati su JSON Schema restano artefatti FORM. I nuovi artefatti MODULE e COMPONENT sono destinati alla definizione di pools/droplets/triggers con codice React effettivo.
+
+### FEATURE 10.1 – Backend: Enum, DB e API per MODULE/COMPONENT
+
+**Stato (worktree):** 🔴 Non iniziato (5%) — Enum `ArtifactType` già esteso con MODULE e COMPONENT.
+
+#### US-10.1.1 – Estensione modello dati per artefatti React
+*Come architetto, voglio estendere il modello dati con campi per codice sorgente React e dipendenze npm, in modo da supportare i nuovi tipi di artefatti MODULE e COMPONENT.*
+
+**Stato (worktree):** 🔴 Non iniziato (5%).
+
+| # | Task | Output |
+|---|------|--------|
+| 🟡 T-10.1.1.1 | Aggiungere valori MODULE e COMPONENT all'enum ArtifactType (già presenti) | Enum `ArtifactType.java` |
+| T-10.1.1.2 | Creare migrazione DB: aggiungere campi `source_code` (TEXT), `npm_dependencies` (JSONB), `npm_package_ref` (VARCHAR) alla tabella `artifact_version` | Migrazione Flyway |
+| T-10.1.1.3 | Aggiornare entity JPA `ArtifactVersion` con i nuovi campi e annotazioni | Entity aggiornata |
+| T-10.1.1.4 | Aggiornare StoragePathBuilder per gestire percorsi specifici MODULE/COMPONENT | StoragePathBuilder |
+| T-10.1.1.5 | Scrivere test per i nuovi campi e la persistenza | Suite di test |
+
+#### US-10.1.2 – API CRUD per artefatti MODULE e COMPONENT
+*Come sviluppatore, voglio API CRUD per creare e gestire artefatti MODULE e COMPONENT, in modo da utilizzarli nella UI.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.1.2.1 | Implementare `POST /api/tenants/{tenantId}/artifacts` per tipo MODULE con source_code e npm_dependencies | Endpoint |
+| T-10.1.2.2 | Implementare `POST /api/tenants/{tenantId}/artifacts` per tipo COMPONENT con source_code, npm_dependencies e dipendenza verso MODULE padre | Endpoint |
+| T-10.1.2.3 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}/components` – lista componenti di un MODULE | Endpoint |
+| T-10.1.2.4 | Implementare validazione: un COMPONENT deve avere dipendenza verso un MODULE esistente | Logica di business |
+| T-10.1.2.5 | Aggiornare endpoint di ricerca per supportare filtri su MODULE e COMPONENT | Endpoint aggiornato |
+| T-10.1.2.6 | Scrivere test unitari e di integrazione per le API MODULE/COMPONENT | Suite di test |
+
+### FEATURE 10.2 – Editor React (Monaco + TypeScript)
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+#### US-10.2.1 – Editor di codice React con supporto TypeScript
+*Come sviluppatore, voglio un editor di codice React con IntelliSense e supporto TypeScript, in modo da scrivere pools, droplets e triggers con produttività.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.2.1.1 | Configurare Monaco Editor per linguaggio TypeScript/TSX con IntelliSense e type definitions React | Editor React |
+| T-10.2.1.2 | Implementare load/save del codice sorgente React da/verso Registry API (campo `source_code`) | Integrazione API |
+| T-10.2.1.3 | Implementare pannello laterale per gestire dipendenze npm: ricerca, aggiunta, rimozione | Componente npm deps |
+| T-10.2.1.4 | Integrare validazione TypeScript in-editor con segnalazione errori in tempo reale | Diagnostica TS |
+| T-10.2.1.5 | Implementare anteprima live del componente React (opzionale, sandbox iframe) | Preview component |
+
+#### US-10.2.2 – Wizard di creazione pool/droplet/trigger
+*Come analista, voglio un wizard guidato per creare nuovi pool, droplet e trigger con template iniziali, in modo da iniziare rapidamente.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.2.2.1 | Progettare template di codice React per pool, droplet e trigger | Template di codice |
+| T-10.2.2.2 | Implementare wizard step-by-step: selezione tipo (pool/droplet/trigger) → nome → modulo padre → dipendenze npm → template | Wizard UI |
+| T-10.2.2.3 | Implementare collegamento automatico COMPONENT→MODULE padre via dependency API | Logica di business |
+| T-10.2.2.4 | Aggiornare NewArtifactPage con opzioni MODULE e COMPONENT nel selettore tipo | Pagina aggiornata |
+
+#### US-10.2.3 – Aggiornamento catalogo per MODULE/COMPONENT
+*Come utente del portale, voglio visualizzare moduli e componenti nel catalogo con vista aggregata, in modo da navigare facilmente la struttura pools/droplets/triggers.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.2.3.1 | Aggiornare CataloguePage con filtri per tipo MODULE e COMPONENT | Pagina aggiornata |
+| T-10.2.3.2 | Implementare vista aggregata MODULE: mostrare modulo padre con elenco componenti figli | Componente UI |
+| T-10.2.3.3 | Implementare pagina dettaglio MODULE con tab "Componenti" che lista pool/droplet/trigger collegati | Pagina dettaglio |
+| T-10.2.3.4 | Aggiornare pagina dettaglio COMPONENT con link al MODULE padre | Pagina dettaglio |
+
+### FEATURE 10.3 – Build e Packaging NPM
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+#### US-10.3.1 – NPM Build Service
+*Come piattaforma, voglio compilare il codice React degli artefatti MODULE/COMPONENT e generare pacchetti npm, in modo da distribuirli come plugin riutilizzabili.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.3.1.1 | Progettare architettura NPM Build Service: API REST, container sandbox, input/output | Documento architettura |
+| T-10.3.1.2 | Creare scaffolding progetto `npm-build-service` (Node.js) | Progetto base |
+| T-10.3.1.3 | Implementare endpoint `POST /build` che riceve source_code e npm_dependencies | Endpoint build |
+| T-10.3.1.4 | Implementare risoluzione e installazione dipendenze npm in directory sandbox isolata | Logica installazione |
+| T-10.3.1.5 | Implementare compilazione codice React/TypeScript con Vite o Rollup → bundle JS | Logica bundling |
+| T-10.3.1.6 | Implementare generazione manifest npm (`package.json`) con metadati dell'artefatto | Generatore manifest |
+| T-10.3.1.7 | Implementare `npm audit` sulle dipendenze prima della build (sicurezza) | Verifica sicurezza |
+| T-10.3.1.8 | Scrivere test per il flusso completo di build | Suite di test |
+
+#### US-10.3.2 – Registry npm interno e integrazione Publisher
+*Come piattaforma, voglio pubblicare i pacchetti npm generati su un registry interno e integrare il flusso nel Publisher, in modo da automatizzare la distribuzione.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.3.2.1 | Configurare Verdaccio (o equivalente) come registry npm interno | Docker Compose / Helm |
+| T-10.3.2.2 | Implementare autenticazione per tenant sul registry npm | Configurazione auth |
+| T-10.3.2.3 | Implementare pubblicazione automatica del pacchetto npm su Verdaccio dopo build | Logica publish |
+| T-10.3.2.4 | Integrare il NPM Build Service nel flusso del Publisher: trigger build per artefatti MODULE/COMPONENT | Integrazione Publisher |
+| T-10.3.2.5 | Aggiornare il Publisher per salvare `npm_package_ref` nella versione dopo la build | Logica Publisher |
+| T-10.3.2.6 | Includere riferimento al pacchetto npm nel bundle di pubblicazione | Bundle aggiornato |
+| T-10.3.2.7 | Scrivere test per il flusso Publisher→Build→Publish npm | Suite di test |
+
+### FEATURE 10.4 – Runtime: Caricamento Plugin UI
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+#### US-10.4.1 – Plugin loader per pacchetti npm
+*Come utente del portale, voglio che i pool, droplet e trigger definiti come MODULE/COMPONENT vengano caricati automaticamente dal runtime, in modo da utilizzarli nelle interfacce.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.4.1.1 | Progettare architettura plugin loader: module federation vs dynamic import vs script injection | ADR (Architecture Decision Record) |
+| T-10.4.1.2 | Definire interfaccia/contratto TypeScript per plugin UI: `PoolPlugin`, `DropletPlugin`, `TriggerPlugin` | Interfaccia TypeScript |
+| T-10.4.1.3 | Implementare caricamento dinamico dei pacchetti npm dal registry interno | Plugin loader |
+| T-10.4.1.4 | Implementare sandboxing e isolamento dei plugin (iframe sandbox o shadow DOM) | Logica isolamento |
+| T-10.4.1.5 | Implementare caching locale dei pacchetti caricati | Logica cache |
+| T-10.4.1.6 | Integrare il plugin loader nella Portal UI e/o nel Runtime Gateway | Integrazione runtime |
+| T-10.4.1.7 | Scrivere test per caricamento, isolamento e rendering dei plugin | Suite di test |
+
+### FEATURE 10.5 – Documentazione e Test
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+#### US-10.5.1 – Documentazione e test end-to-end
+*Come sviluppatore, voglio documentazione completa e test end-to-end per il flusso MODULE/COMPONENT, in modo da poter contribuire e verificare il funzionamento.*
+
+**Stato (worktree):** 🔴 Non iniziato (0%).
+
+| # | Task | Output |
+|---|------|--------|
+| T-10.5.1.1 | Aggiornare documentazione architetturale con NPM Build Service, plugin loader e registry npm | Documentazione |
+| T-10.5.1.2 | Scrivere guida sviluppatore: come creare un modulo/componente React step-by-step | Guida |
+| T-10.5.1.3 | Aggiornare diagrammi ER, architetturali e roadmap con i nuovi componenti | Diagrammi aggiornati |
+| T-10.5.1.4 | Scrivere test end-to-end per il flusso completo: creazione → edit → build → publish → runtime load | Suite test e2e |
+| T-10.5.1.5 | Documentare come importare e usare le librerie npm generate in progetti esterni | Guida uso librerie |
+| T-10.5.1.6 | Aggiornare esempi e template nel repository con campioni MODULE/COMPONENT | Esempi |
+
+---
+
 ## Riepilogo Epics e Priorità
 
 | EPIC | Nome | Feature | User Story | Task | Priorità |
@@ -1058,7 +1217,8 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | 7 | Developer Mode & Git | 3 | 4 | 16 | Media |
 | 8 | Analytics & Reporting | 3 | 3 | 16 | Media |
 | 9 | Funzionalità Avanzate | 3 | 5 | 18 | Bassa |
-| **TOTALE** | | **35** | **53** | **232** | |
+| 10 | Artefatti UI React e Packaging NPM | 5 | 7 | 38 | Media |
+| **TOTALE** | | **40** | **60** | **270** | |
 
 ---
 
@@ -1066,30 +1226,38 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ```
 EPIC 0 ──→ EPIC 1 ──→ EPIC 2 ──→ EPIC 3
-                │                    │
-                │                    ▼
-                └──────────────→ EPIC 4
-                                    │
-                    EPIC 5 ◄────────┘
-                      │
-                      ▼
-                    EPIC 6 ──→ EPIC 7
-                                 │
-                    EPIC 8 ◄─────┘
-                      │
-                      ▼
-                    EPIC 9
+                │            │         │
+                │            │         ▼
+                │            │    EPIC 4
+                │            │         │
+                │            │    EPIC 5 ◄────────┐
+                │            │         │          │
+                │            │         ▼          │
+                │            └──→ EPIC 6 ──→ EPIC 7
+                │                  │  │          │
+                │                  │  │    EPIC 8 ◄─┘
+                │                  │  │         │
+                │                  │  │         ▼
+                │                  │  │    EPIC 9
+                │                  │  │
+                └──────────────────┘  │
+                                      │
+                  EPIC 2 ─────────────┤
+                                      ▼
+                                 EPIC 10
+                              (React UI & NPM)
 ```
 
 - **EPIC 0** è prerequisito per tutti
 - **EPIC 1** (backend) è prerequisito per EPIC 2 (UI) e EPIC 4 (runtime)
-- **EPIC 2** (UI) è prerequisito per EPIC 3 (lifecycle)
+- **EPIC 2** (UI) è prerequisito per EPIC 3 (lifecycle) e **EPIC 10** (React UI & NPM)
 - **EPIC 3** e **EPIC 4** possono procedere in parallelo dopo EPIC 2
 - **EPIC 5** (sicurezza) richiede EPIC 4 completata
-- **EPIC 6** (packaging) può iniziare dopo EPIC 5
+- **EPIC 6** (packaging) può iniziare dopo EPIC 5; è prerequisito anche per **EPIC 10**
 - **EPIC 7** (developer) richiede EPIC 6
 - **EPIC 8** (analytics) richiede EPIC 4
-- **EPIC 9** (marketplace/AI/plugin) è l'ultima fase
+- **EPIC 9** (marketplace/AI/plugin) è l'ultima fase della roadmap originale
+- **EPIC 10** (artefatti UI React e packaging NPM) richiede EPIC 2 (UI) e EPIC 6 (packaging); è fuori dalla roadmap originale e può procedere in parallelo con EPIC 7–9
 
 ---
 

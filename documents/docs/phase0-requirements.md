@@ -14,12 +14,14 @@ Questo documento definisce i requisiti iniziali della piattaforma **Stillum Busi
 
 **Architetto:** Quali tipi di artefatti devono essere gestiti dal portale?
 
-**Product Owner:** Il sistema dovrà gestire quattro categorie di artefatti:
+**Product Owner:** Il sistema dovrà gestire sei categorie di artefatti:
 
-- **Processi** (definiti in BPMN) che orchestrano le attività.  
-- **Regole decisionali** (definite in DMN) usate per prendere decisioni all’interno dei processi.  
-- **Moduli** (definiti tramite StillumForms) che rappresentano le interfacce utente e la raccolta dati.  
+- **Processi** (definiti in BPMN) che orchestrano le attività.
+- **Regole decisionali** (definite in DMN) usate per prendere decisioni all’interno dei processi.
+- **Form** (definiti tramite StillumForms in JSON Schema) che rappresentano le interfacce utente e la raccolta dati dichiarativa.
 - **Requests** (contratti di servizio) che descrivono le API o operazioni invocabili dai processi.
+- **Moduli UI** (codice React) che definiscono moduli complessi composti da pools, droplets e triggers, con dipendenze npm e generazione di pacchetti riutilizzabili.
+- **Componenti UI** (codice React) che rappresentano singoli elementi UI (pool, droplet o trigger) collegabili a un modulo padre, con proprie dipendenze npm.
 
 ### Gestione multi‑tenant
 
@@ -77,11 +79,12 @@ Il sistema dovrà essere:
 
 ## Sintesi dei requisiti chiave
 
-- Gestione di processi BPMN, regole DMN, moduli e request con versioning e ciclo di vita formalizzato.  
-- Supporto multi‑tenant con isolamento dati e ambienti configurabili (DEV/QA/PROD).  
-- Sistema di ruoli e permessi con RBAC e ACL su artefatti.  
-- Integrazione con Temporal per l’esecuzione dei processi.  
-- Audit log e conformità a requisiti di tracciabilità.  
+- Gestione di processi BPMN, regole DMN, form StillumForms, request, moduli UI React e componenti UI React con versioning e ciclo di vita formalizzato.
+- Supporto multi‑tenant con isolamento dati e ambienti configurabili (DEV/QA/PROD).
+- Sistema di ruoli e permessi con RBAC e ACL su artefatti.
+- Integrazione con Temporal per l’esecuzione dei processi.
+- Pipeline di build per artefatti MODULE/COMPONENT: risoluzione dipendenze npm e generazione di pacchetti npm riutilizzabili dal runtime.
+- Audit log e conformità a requisiti di tracciabilità.
 - Requisiti non funzionali di sicurezza, scalabilità, performance e disponibilità.
 
 Questa raccolta requisiti servirà come base per la progettazione del modello dati, delle API e dell’infrastruttura nelle fasi successive.
