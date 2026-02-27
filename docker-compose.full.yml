@@ -66,6 +66,8 @@ services:
       QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
       QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      NPM_BUILD_SERVICE_HOST: npm-build-service
+      NPM_BUILD_SERVICE_PORT: "8090"
     ports:
       - "8082:8082"
     depends_on:
@@ -75,6 +77,8 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      npm-build-service:
+        condition: service_healthy
     networks:
       - stillum-net
     healthcheck:
@@ -83,6 +87,42 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # ─── NPM Build Service ─────────────────────────────────────────────────
+  npm-build-service:
+    build:
+      context: ./npm-build-service
+      dockerfile: Dockerfile
+    image: stillum/npm-build-service:local
+    container_name: stillum-npm-build-service
+    environment:
+      PORT: "8090"
+      NEXUS_URL: http://nexus:8081
+      NEXUS_NPM_REGISTRY_URL: http://nexus:8081/repository/npm-hosted/
+      NEXUS_NPM_GROUP_URL: http://nexus:8081/repository/npm-group/
+      NEXUS_USERNAME: ${NEXUS_USERNAME:-admin}
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:-admin123}
+      BUILD_TEMP_DIR: /tmp/stillum-builds
+      BUILD_TIMEOUT_MS: "120000"
+      BUILD_MAX_CONCURRENT: "4"
+    ports:
+      - "8090:8090"
+    depends_on:
+      nexus:
+        condition: service_healthy
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
 
   # ─── Runtime Gateway ─────────────────────────────────────────────────────
   runtime-gateway:

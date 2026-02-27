@@ -12,12 +12,14 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "artifact_version")
+@DynamicUpdate
 public class ArtifactVersion extends PanacheEntityBase {
 
     @Id

@@ -4,7 +4,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Loader2, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ArtifactType } from '../api/types';
-import { addDependency, createArtifact, createVersion, listArtifacts, listVersions } from '../api/registry';
+import {
+  createArtifact,
+  createComponent,
+  createModule,
+  createVersion,
+  listArtifacts,
+  listVersions,
+} from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 
@@ -71,42 +78,46 @@ export function NewArtifactPage() {
   const m = useMutation({
     mutationFn: async () => {
       if (!tenantId) throw new Error('Tenant not selected');
-      const a = await createArtifact({
+
+      const commonParams = {
         token: getAccessToken(),
         tenantId,
-        type,
         title,
         area: area || undefined,
         tags: tagList.length ? tagList : undefined,
-      });
+      };
+
+      // MODULE: use dedicated API (auto-creates v0.1.0)
+      if (type === 'MODULE') {
+        const a = await createModule(commonParams);
+        const versions = await listVersions({
+          token: getAccessToken(),
+          tenantId,
+          artifactId: a.id,
+        });
+        return { artifactId: a.id, versionId: versions[0].id };
+      }
+
+      // COMPONENT: use dedicated API with parent module (auto-creates v0.1.0 + dependency)
+      if (type === 'COMPONENT') {
+        if (!parentModuleId) throw new Error('Parent module is required for COMPONENT');
+        const a = await createComponent({ ...commonParams, parentModuleId });
+        const versions = await listVersions({
+          token: getAccessToken(),
+          tenantId,
+          artifactId: a.id,
+        });
+        return { artifactId: a.id, versionId: versions[0].id };
+      }
+
+      // Other types: standard flow
+      const a = await createArtifact({ ...commonParams, type });
       const v = await createVersion({
         token: getAccessToken(),
         tenantId,
         artifactId: a.id,
         version,
       });
-
-      // If COMPONENT with parent module, create dependency
-      if (type === 'COMPONENT' && parentModuleId) {
-        const moduleVersions = await listVersions({
-          token: getAccessToken(),
-          tenantId,
-          artifactId: parentModuleId,
-        });
-        if (moduleVersions.length > 0) {
-          // Link to the latest version of the module
-          const latestModuleVersion = moduleVersions[moduleVersions.length - 1];
-          await addDependency({
-            token: getAccessToken(),
-            tenantId,
-            artifactId: a.id,
-            versionId: v.id,
-            dependsOnArtifactId: parentModuleId,
-            dependsOnVersionId: latestModuleVersion.id,
-          });
-        }
-      }
-
       return { artifactId: a.id, versionId: v.id };
     },
     onSuccess: (r) => navigate(`/editor/${r.artifactId}/${r.versionId}`),
@@ -232,18 +243,20 @@ export function NewArtifactPage() {
           />
         </div>
 
-        {/* Version */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            {t('newArtifact.versionLabel')}
-          </label>
-          <input
-            className="input max-w-[200px]"
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
-            placeholder="1.0.0"
-          />
-        </div>
+        {/* Version (hidden for MODULE/COMPONENT as they auto-generate v0.1.0) */}
+        {type !== 'MODULE' && type !== 'COMPONENT' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t('newArtifact.versionLabel')}
+            </label>
+            <input
+              className="input max-w-[200px]"
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+              placeholder="1.0.0"
+            />
+          </div>
+        )}
 
         {/* Error */}
         {m.isError && (
@@ -262,7 +275,7 @@ export function NewArtifactPage() {
           </Link>
           <button
             className="btn-primary"
-            disabled={!title || m.isPending}
+            disabled={!title || m.isPending || (type === 'COMPONENT' && !parentModuleId)}
             onClick={() => m.mutate()}
           >
             {m.isPending ? (

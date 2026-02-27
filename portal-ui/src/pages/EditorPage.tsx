@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Editor, { type Monaco } from '@monaco-editor/react';
@@ -100,6 +100,7 @@ export function EditorPage() {
   const { getAccessToken } = useAuth();
   const { tenantId } = useTenant();
   const { resolved: theme } = useTheme();
+  const queryClient = useQueryClient();
   const params = useParams();
   const artifactId = params.artifactId ?? '';
   const versionId = params.versionId ?? '';
@@ -155,10 +156,10 @@ export function EditorPage() {
 
   // Load payload for non-TS artifacts
   useEffect(() => {
-    if (!version || isTypeScriptBased || !tenantId) return;
+    if (!version || !artifact || isTypeScriptBased || !tenantId) return;
 
     if (!version.payloadRef) {
-      const def = getDefaultContent(artifact!.type);
+      const def = getDefaultContent(artifact.type);
       if (isJsonBased) setJsonContent(def);
       else setXmlContent(def);
       return;
@@ -301,6 +302,11 @@ export function EditorPage() {
         payloadRef: key,
       });
       return key;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['version', tenantId, artifactId, versionId],
+      });
     },
   });
 

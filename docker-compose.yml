@@ -105,6 +105,23 @@ services:
       retries: 10
       start_period: 45s
 
+  # ─── Nexus Repository Manager ──────────────────────────────────────────────
+  nexus:
+    image: sonatype/nexus3:latest
+    container_name: stillum-nexus
+    ports:
+      - "8070:8081"
+    volumes:
+      - nexus-data:/nexus-data
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/service/rest/v1/status || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
 networks:
   stillum-net:
     driver: bridge
@@ -112,3 +129,4 @@ networks:
 volumes:
   postgres-data:
   minio-data:
+  nexus-data:
