@@ -4,5 +4,7 @@ public enum ArtifactType {
     PROCESS,
     RULE,
     FORM,
-    REQUEST
+    REQUEST,
+    MODULE,
+    COMPONENT
 }

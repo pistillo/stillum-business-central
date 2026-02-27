@@ -1,20 +1,22 @@
-import { useMutation } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Loader2, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ArtifactType } from '../api/types';
-import { createArtifact, createVersion } from '../api/registry';
+import { addDependency, createArtifact, createVersion, listArtifacts, listVersions } from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 
-const TYPE_VALUES: ArtifactType[] = ['PROCESS', 'RULE', 'FORM', 'REQUEST'];
+const TYPE_VALUES: ArtifactType[] = ['PROCESS', 'RULE', 'FORM', 'REQUEST', 'MODULE', 'COMPONENT'];
 
 const TYPE_LABELS: Record<ArtifactType, string> = {
   PROCESS: 'BPMN Process',
   RULE: 'DMN Rule',
   FORM: 'Form',
   REQUEST: 'Request',
+  MODULE: 'Module',
+  COMPONENT: 'Component',
 };
 
 const TYPE_DESC_KEYS: Record<ArtifactType, string> = {
@@ -22,6 +24,8 @@ const TYPE_DESC_KEYS: Record<ArtifactType, string> = {
   RULE: 'newArtifact.typeRuleDesc',
   FORM: 'newArtifact.typeFormDesc',
   REQUEST: 'newArtifact.typeRequestDesc',
+  MODULE: 'newArtifact.typeModuleDesc',
+  COMPONENT: 'newArtifact.typeComponentDesc',
 };
 
 export function NewArtifactPage() {
@@ -35,6 +39,7 @@ export function NewArtifactPage() {
   const [area, setArea] = useState('');
   const [tags, setTags] = useState('');
   const [version, setVersion] = useState('1.0.0');
+  const [parentModuleId, setParentModuleId] = useState('');
 
   const tagList = useMemo(
     () =>
@@ -44,6 +49,24 @@ export function NewArtifactPage() {
         .filter(Boolean),
     [tags]
   );
+
+  // Fetch available modules when COMPONENT is selected
+  const modulesQuery = useQuery({
+    queryKey: ['modules', tenantId],
+    queryFn: () =>
+      listArtifacts({
+        token: getAccessToken(),
+        tenantId: tenantId!,
+        type: 'MODULE',
+        size: 100,
+      }),
+    enabled: type === 'COMPONENT' && !!tenantId,
+  });
+
+  // Reset parent module when type changes away from COMPONENT
+  useEffect(() => {
+    if (type !== 'COMPONENT') setParentModuleId('');
+  }, [type]);
 
   const m = useMutation({
     mutationFn: async () => {
@@ -62,6 +85,28 @@ export function NewArtifactPage() {
         artifactId: a.id,
         version,
       });
+
+      // If COMPONENT with parent module, create dependency
+      if (type === 'COMPONENT' && parentModuleId) {
+        const moduleVersions = await listVersions({
+          token: getAccessToken(),
+          tenantId,
+          artifactId: parentModuleId,
+        });
+        if (moduleVersions.length > 0) {
+          // Link to the latest version of the module
+          const latestModuleVersion = moduleVersions[moduleVersions.length - 1];
+          await addDependency({
+            token: getAccessToken(),
+            tenantId,
+            artifactId: a.id,
+            versionId: v.id,
+            dependsOnArtifactId: parentModuleId,
+            dependsOnVersionId: latestModuleVersion.id,
+          });
+        }
+      }
+
       return { artifactId: a.id, versionId: v.id };
     },
     onSuccess: (r) => navigate(`/editor/${r.artifactId}/${r.versionId}`),
@@ -120,6 +165,30 @@ export function NewArtifactPage() {
             ))}
           </div>
         </div>
+
+        {/* Parent module selector (only for COMPONENT) */}
+        {type === 'COMPONENT' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t('newArtifact.parentModuleLabel')}
+            </label>
+            <select
+              className="select"
+              value={parentModuleId}
+              onChange={(e) => setParentModuleId(e.target.value)}
+            >
+              <option value="">{t('newArtifact.parentModuleNone')}</option>
+              {modulesQuery.data?.items.map((mod) => (
+                <option key={mod.id} value={mod.id}>
+                  {mod.title}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+              {t('newArtifact.parentModuleHint')}
+            </p>
+          </div>
+        )}
 
         {/* Title */}
         <div>

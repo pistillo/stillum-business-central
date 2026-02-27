@@ -21,7 +21,7 @@ import { useTheme } from '../theme/ThemeContext';
 type EditorFormat = 'json' | 'yaml' | 'xml' | 'stillum-editor';
 
 function getDefaultContent(type: ArtifactType): string {
-  if (type === 'FORM' || type === 'REQUEST') return '{}';
+  if (type === 'FORM' || type === 'REQUEST' || type === 'MODULE' || type === 'COMPONENT') return '{}';
   if (type === 'PROCESS')
     return '<?xml version="1.0" encoding="UTF-8"?>\n<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"/>';
   if (type === 'RULE')
@@ -31,12 +31,13 @@ function getDefaultContent(type: ArtifactType): string {
 
 function getFormats(type: ArtifactType): EditorFormat[] {
   if (type === 'FORM') return ['stillum-editor', 'json', 'yaml'];
-  if (type === 'REQUEST') return ['json', 'yaml'];
+  if (type === 'REQUEST' || type === 'MODULE' || type === 'COMPONENT') return ['json', 'yaml'];
   return ['xml'];
 }
 
 function getContentType(type: ArtifactType): string {
-  if (type === 'FORM' || type === 'REQUEST') return 'application/json';
+  if (type === 'FORM' || type === 'REQUEST' || type === 'MODULE' || type === 'COMPONENT')
+    return 'application/json';
   return 'application/xml';
 }
 
@@ -75,7 +76,11 @@ export function EditorPage() {
   const [versionLabel, setVersionLabel] = useState('');
 
   const formats = useMemo(() => getFormats(artifactType), [artifactType]);
-  const isJsonBased = artifactType === 'FORM' || artifactType === 'REQUEST';
+  const isJsonBased =
+    artifactType === 'FORM' ||
+    artifactType === 'REQUEST' ||
+    artifactType === 'MODULE' ||
+    artifactType === 'COMPONENT';
 
   useEffect(() => {
     if (formats.length > 0 && !formats.includes(activeTab)) {
@@ -96,9 +101,12 @@ export function EditorPage() {
         setVersionLabel(v.version);
         setVersionState(v.state);
 
+        const jsonBased =
+          a.type === 'FORM' || a.type === 'REQUEST' || a.type === 'MODULE' || a.type === 'COMPONENT';
+
         if (!v.payloadRef) {
           const def = getDefaultContent(a.type);
-          if (a.type === 'FORM' || a.type === 'REQUEST') {
+          if (jsonBased) {
             setJsonContent(def);
           } else {
             setXmlContent(def);
@@ -114,7 +122,7 @@ export function EditorPage() {
         });
         const res = await fetch(d.url);
         const text = await res.text();
-        if (a.type === 'FORM' || a.type === 'REQUEST') {
+        if (jsonBased) {
           setJsonContent(text);
         } else {
           setXmlContent(text);

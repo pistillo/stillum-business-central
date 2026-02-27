@@ -5,7 +5,7 @@ import type { ArtifactStatus, ArtifactType } from '../api/types';
 import { useArtifacts } from '../hooks/useArtifacts';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
 
-const TYPES: ArtifactType[] = ['PROCESS', 'RULE', 'FORM', 'REQUEST'];
+const TYPES: ArtifactType[] = ['PROCESS', 'RULE', 'FORM', 'REQUEST', 'MODULE', 'COMPONENT'];
 const STATUSES: ArtifactStatus[] = ['DRAFT', 'PUBLISHED', 'RETIRED', 'REVIEW', 'APPROVED'];
 
 export function CataloguePage() {

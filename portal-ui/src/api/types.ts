@@ -1,4 +1,4 @@
-export type ArtifactType = 'PROCESS' | 'RULE' | 'FORM' | 'REQUEST';
+export type ArtifactType = 'PROCESS' | 'RULE' | 'FORM' | 'REQUEST' | 'MODULE' | 'COMPONENT';
 export type ArtifactStatus = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'RETIRED';
 export type VersionState = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'RETIRED';
 

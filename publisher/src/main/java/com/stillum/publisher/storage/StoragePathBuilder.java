@@ -16,7 +16,7 @@ public final class StoragePathBuilder {
     public static String extensionFor(String artifactType) {
         return switch (artifactType.toUpperCase()) {
             case "PROCESS", "RULE" -> "xml";
-            case "FORM", "REQUEST" -> "json";
+            case "FORM", "REQUEST", "MODULE", "COMPONENT" -> "json";
             default -> "bin";
         };
     }
