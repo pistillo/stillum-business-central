@@ -1,11 +1,7 @@
 import { Menu } from '@ark-ui/react';
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {
-  languageLabels,
-  supportedLanguages,
-  type SupportedLanguage,
-} from '../i18n';
+import { languageLabels, supportedLanguages, type SupportedLanguage } from '../i18n';
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();

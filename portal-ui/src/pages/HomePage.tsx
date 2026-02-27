@@ -85,9 +85,7 @@ export function HomePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('home.title')}</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            {t('home.subtitle')}
-          </p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t('home.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Link to="/catalogue" className="btn-secondary btn-sm">
@@ -105,7 +103,9 @@ export function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700/50">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">{t('home.myDrafts')}</h2>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+              {t('home.myDrafts')}
+            </h2>
             <Link
               to="/catalogue?status=DRAFT"
               className="text-xs text-brand-600 dark:text-brand-400 hover:underline"

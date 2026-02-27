@@ -8,7 +8,7 @@ Il **Catalogo** è l’elemento chiave per la navigazione e la ricerca degli art
 
 ## Requisiti
 
-- Dividere il catalogo per tipo di artefatto (Processi, Regole, Moduli, Requests).
+- Dividere il catalogo per tipo di artefatto (Processi, Regole, Form, Request, Moduli, Componenti).
 - Consentire filtri per area/modulo, stato, tag, proprietario, ambiente, data di creazione e tenant.
 - Ricerca full-text su titolo, descrizione, metadati e contenuti (dove possibile).
 - Pagine di dettaglio per ogni artefatto con anteprima del modello, versione corrente e cronologia.

@@ -158,3 +158,26 @@ export async function listEnvironments(params: {
     token: params.token,
   });
 }
+
+export async function addDependency(params: {
+  token: string | null;
+  tenantId: string;
+  artifactId: string;
+  versionId: string;
+  dependsOnArtifactId: string;
+  dependsOnVersionId: string;
+}): Promise<unknown> {
+  return apiFetch(
+    registryUrl(
+      `/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions/${params.versionId}/dependencies`
+    ),
+    {
+      method: 'POST',
+      token: params.token,
+      body: JSON.stringify({
+        dependsOnArtifactId: params.dependsOnArtifactId,
+        dependsOnVersionId: params.dependsOnVersionId,
+      }),
+    }
+  );
+}
