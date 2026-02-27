@@ -1,0 +1,160 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "error": "Error",
+    "loadError": "Loading error",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Saved",
+    "continue": "Continue",
+    "back": "Back",
+    "prev": "Prev",
+    "next": "Next",
+    "all": "All",
+    "logout": "Logout",
+    "user": "User",
+    "tenant": "Tenant",
+    "filters": "Filters",
+    "results_one": "{{count}} result",
+    "results_other": "{{count}} results",
+    "pageOf": "Page {{current}} of {{total}}"
+  },
+
+  "nav": {
+    "dashboard": "Dashboard",
+    "catalogue": "Catalogue",
+    "newArtifact": "New Artifact"
+  },
+
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+
+  "status": {
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published",
+    "REVIEW": "In review",
+    "APPROVED": "Approved",
+    "RETIRED": "Retired"
+  },
+
+  "type": {
+    "PROCESS": "BPMN",
+    "RULE": "DMN",
+    "FORM": "Form",
+    "REQUEST": "Request"
+  },
+
+  "login": {
+    "appTitle": "Stillum Business Central",
+    "appDescription": "Manage processes, decision rules, forms and requests in a single centralised portal.",
+    "welcome": "Welcome",
+    "loginPrompt": "Sign in with your credentials to continue.",
+    "ssoButton": "Sign in with SSO",
+    "oidcNote": "Authentication managed via Keycloak (OpenID Connect)"
+  },
+
+  "oidcCallback": {
+    "authError": "Authentication error",
+    "serverResponse": "Server response:",
+    "backToLogin": "Back to login",
+    "completing": "Completing sign-in…"
+  },
+
+  "selectTenant": {
+    "title": "Select Tenant",
+    "description": "Choose the organisation you want to work with.",
+    "noTenantFound": "No tenant found in the token. Enter a tenant ID manually:",
+    "manualPlaceholder": "00000000-0000-0000-0000-000000000001"
+  },
+
+  "home": {
+    "title": "Dashboard",
+    "subtitle": "Overview of artifacts and quick access to operations.",
+    "myDrafts": "My drafts",
+    "viewAll": "View all",
+    "recentPublications": "Recent publications",
+    "noDrafts": "No drafts available.",
+    "noPublications": "No recent publications."
+  },
+
+  "catalogue": {
+    "title": "Catalogue",
+    "subtitle": "Search and manage all tenant artifacts.",
+    "filterType": "Type",
+    "filterStatus": "Status",
+    "filterArea": "Area",
+    "filterTag": "Tag",
+    "filterAreaPlaceholder": "Filter by area…",
+    "filterTagPlaceholder": "Filter by tag…",
+    "tableTitle": "Title",
+    "tableType": "Type",
+    "tableStatus": "Status",
+    "tableArea": "Area",
+    "noResults": "No artifacts found with the selected filters.",
+    "loadError": "Error loading data."
+  },
+
+  "artifactDetail": {
+    "backToCatalogue": "Back to catalogue",
+    "versions": "Versions",
+    "versionCol": "Version",
+    "statusCol": "Status",
+    "actionsCol": "Actions",
+    "open": "Open",
+    "edit": "Edit",
+    "publish": "Publish",
+    "noVersions": "No versions available."
+  },
+
+  "editor": {
+    "back": "Back",
+    "readOnly": "read-only",
+    "save": "Save",
+    "saved": "Saved",
+    "error": "Error",
+    "loadingPayload": "Loading payload…",
+    "loadError": "Error loading payload",
+    "persistence": "Persistence: JSON",
+    "conversionError": "# Error converting JSON -> YAML"
+  },
+
+  "newArtifact": {
+    "backToCatalogue": "Back to catalogue",
+    "title": "New Artifact",
+    "subtitle": "Create a new artifact and its first version.",
+    "typeLabel": "Artifact type",
+    "typeProcessDesc": "Process definition in XML/BPMN format",
+    "typeRuleDesc": "Decision rule in XML/DMN format",
+    "typeFormDesc": "Form definition in JSON format",
+    "typeRequestDesc": "Request definition in JSON format",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Order approval process",
+    "areaLabel": "Area",
+    "areaPlaceholder": "e.g. finance, hr, operations",
+    "tagsLabel": "Tags",
+    "tagsHint": "(comma-separated)",
+    "tagsPlaceholder": "e.g. orders, approval, billing",
+    "versionLabel": "Initial version",
+    "createError": "Error creating the artifact.",
+    "creating": "Creating…",
+    "createButton": "Create Artifact"
+  },
+
+  "publishPage": {
+    "backToArtifact": "Back to artifact",
+    "title": "Publish Version",
+    "subtitle": "Publish this version to a specific environment.",
+    "environmentLabel": "Environment",
+    "loadingEnvs": "Loading environments…",
+    "envsError": "Unable to load environments from Registry. You can enter the ID manually.",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Optional notes about the publication…",
+    "publishError": "Publishing failed. Check the parameters and try again.",
+    "publishSuccess": "Publishing completed",
+    "publishing": "Publishing…",
+    "publishButton": "Publish"
+  }
+}

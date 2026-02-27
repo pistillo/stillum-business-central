@@ -2,19 +2,30 @@ import { useMutation } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Loader2, PlusCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ArtifactType } from '../api/types';
 import { createArtifact, createVersion } from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 
-const TYPES: { value: ArtifactType; label: string; desc: string }[] = [
-  { value: 'PROCESS', label: 'BPMN Process', desc: 'Definizione di processo in formato XML/BPMN' },
-  { value: 'RULE', label: 'DMN Rule', desc: 'Regola decisionale in formato XML/DMN' },
-  { value: 'FORM', label: 'Form', desc: 'Definizione di form in formato JSON' },
-  { value: 'REQUEST', label: 'Request', desc: 'Definizione di request in formato JSON' },
-];
+const TYPE_VALUES: ArtifactType[] = ['PROCESS', 'RULE', 'FORM', 'REQUEST'];
+
+const TYPE_LABELS: Record<ArtifactType, string> = {
+  PROCESS: 'BPMN Process',
+  RULE: 'DMN Rule',
+  FORM: 'Form',
+  REQUEST: 'Request',
+};
+
+const TYPE_DESC_KEYS: Record<ArtifactType, string> = {
+  PROCESS: 'newArtifact.typeProcessDesc',
+  RULE: 'newArtifact.typeRuleDesc',
+  FORM: 'newArtifact.typeFormDesc',
+  REQUEST: 'newArtifact.typeRequestDesc',
+};
 
 export function NewArtifactPage() {
+  const { t } = useTranslation();
   const { getAccessToken } = useAuth();
   const { tenantId } = useTenant();
   const navigate = useNavigate();
@@ -65,11 +76,11 @@ export function NewArtifactPage() {
           className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 mb-4"
         >
           <ArrowLeft size={14} />
-          Torna al catalogo
+          {t('newArtifact.backToCatalogue')}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nuovo Artefatto</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('newArtifact.title')}</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          Crea un nuovo artefatto e la sua prima versione.
+          {t('newArtifact.subtitle')}
         </p>
       </div>
 
@@ -77,30 +88,30 @@ export function NewArtifactPage() {
         {/* Type selector */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-            Tipo di artefatto
+            {t('newArtifact.typeLabel')}
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {TYPES.map((t) => (
+            {TYPE_VALUES.map((val) => (
               <button
-                key={t.value}
+                key={val}
                 type="button"
-                onClick={() => setType(t.value)}
+                onClick={() => setType(val)}
                 className={`rounded-lg border-2 p-3 text-left transition-all ${
-                  type === t.value
+                  type === val
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-400'
                     : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
               >
                 <div
                   className={`text-sm font-semibold ${
-                    type === t.value
+                    type === val
                       ? 'text-brand-700 dark:text-brand-400'
                       : 'text-gray-900 dark:text-slate-200'
                   }`}
                 >
-                  {t.label}
+                  {TYPE_LABELS[val]}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t.desc}</div>
+                <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t(TYPE_DESC_KEYS[val])}</div>
               </button>
             ))}
           </div>
@@ -109,49 +120,49 @@ export function NewArtifactPage() {
         {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Titolo <span className="text-red-500">*</span>
+            {t('newArtifact.titleLabel')} <span className="text-red-500">*</span>
           </label>
           <input
             className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="es. Processo approvazione ordini"
+            placeholder={t('newArtifact.titlePlaceholder')}
           />
         </div>
 
         {/* Area */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Area
+            {t('newArtifact.areaLabel')}
           </label>
           <input
             className="input"
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            placeholder="es. finance, hr, operations"
+            placeholder={t('newArtifact.areaPlaceholder')}
           />
         </div>
 
         {/* Tags */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Tag{' '}
+            {t('newArtifact.tagsLabel')}{' '}
             <span className="text-xs text-gray-400 dark:text-slate-500 font-normal">
-              (separati da virgola)
+              {t('newArtifact.tagsHint')}
             </span>
           </label>
           <input
             className="input"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="es. ordini, approvazione, fatturazione"
+            placeholder={t('newArtifact.tagsPlaceholder')}
           />
         </div>
 
         {/* Version */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Versione iniziale
+            {t('newArtifact.versionLabel')}
           </label>
           <input
             className="input max-w-[200px]"
@@ -166,7 +177,7 @@ export function NewArtifactPage() {
           <div className="flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
             <AlertCircle size={16} className="text-red-500 shrink-0" />
             <span className="text-sm text-red-700 dark:text-red-400">
-              Errore nella creazione dell&apos;artefatto.
+              {t('newArtifact.createError')}
             </span>
           </div>
         )}
@@ -174,7 +185,7 @@ export function NewArtifactPage() {
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-700/50">
           <Link to="/catalogue" className="btn-secondary">
-            Annulla
+            {t('common.cancel')}
           </Link>
           <button
             className="btn-primary"
@@ -186,7 +197,7 @@ export function NewArtifactPage() {
             ) : (
               <PlusCircle size={16} />
             )}
-            {m.isPending ? 'Creazione…' : 'Crea Artefatto'}
+            {m.isPending ? t('newArtifact.creating') : t('newArtifact.createButton')}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight, BookOpen, FileText, Loader2, PlusCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useMyDrafts } from '../hooks/useMyDrafts';
 import { useRecentPublications } from '../hooks/useRecentPublications';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
@@ -18,6 +19,8 @@ function ArtifactList({
   emptyMessage: string;
   emptyIcon: typeof FileText;
 }) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -29,7 +32,7 @@ function ArtifactList({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-red-500 dark:text-red-400 gap-2">
         <AlertCircle size={24} />
-        <span className="text-sm">Errore nel caricamento</span>
+        <span className="text-sm">{t('common.loadError')}</span>
       </div>
     );
   }
@@ -72,6 +75,7 @@ function ArtifactList({
 }
 
 export function HomePage() {
+  const { t } = useTranslation();
   const drafts = useMyDrafts();
   const publications = useRecentPublications();
 
@@ -80,19 +84,19 @@ export function HomePage() {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('home.title')}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            Panoramica degli artefatti e accesso rapido alle operazioni.
+            {t('home.subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
           <Link to="/catalogue" className="btn-secondary btn-sm">
             <BookOpen size={14} />
-            Catalogo
+            {t('nav.catalogue')}
           </Link>
           <Link to="/catalogue/new" className="btn-primary btn-sm">
             <PlusCircle size={14} />
-            Nuovo Artefatto
+            {t('nav.newArtifact')}
           </Link>
         </div>
       </div>
@@ -101,19 +105,19 @@ export function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700/50">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Le mie bozze</h2>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">{t('home.myDrafts')}</h2>
             <Link
               to="/catalogue?status=DRAFT"
               className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
             >
-              Vedi tutte
+              {t('home.viewAll')}
             </Link>
           </div>
           <ArtifactList
             data={drafts.data?.items}
             isLoading={drafts.isLoading}
             isError={drafts.isError}
-            emptyMessage="Nessuna bozza presente."
+            emptyMessage={t('home.noDrafts')}
             emptyIcon={FileText}
           />
         </section>
@@ -121,20 +125,20 @@ export function HomePage() {
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700/50">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              Ultime pubblicazioni
+              {t('home.recentPublications')}
             </h2>
             <Link
               to="/catalogue?status=PUBLISHED"
               className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
             >
-              Vedi tutte
+              {t('home.viewAll')}
             </Link>
           </div>
           <ArtifactList
             data={publications.data?.items}
             isLoading={publications.isLoading}
             isError={publications.isError}
-            emptyMessage="Nessuna pubblicazione recente."
+            emptyMessage={t('home.noPublications')}
             emptyIcon={BookOpen}
           />
         </section>

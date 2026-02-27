@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Filter, Loader2, PlusCircle, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ArtifactStatus, ArtifactType } from '../api/types';
 import { useArtifacts } from '../hooks/useArtifacts';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
@@ -8,6 +9,7 @@ const TYPES: ArtifactType[] = ['PROCESS', 'RULE', 'FORM', 'REQUEST'];
 const STATUSES: ArtifactStatus[] = ['DRAFT', 'PUBLISHED', 'RETIRED', 'REVIEW', 'APPROVED'];
 
 export function CataloguePage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useSearchParams();
 
   const type = (search.get('type') as ArtifactType | null) ?? undefined;
@@ -25,14 +27,14 @@ export function CataloguePage() {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Catalogo</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('catalogue.title')}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            Cerca e gestisci tutti gli artefatti del tenant.
+            {t('catalogue.subtitle')}
           </p>
         </div>
         <Link to="/catalogue/new" className="btn-primary">
           <PlusCircle size={16} />
-          Nuovo Artefatto
+          {t('nav.newArtifact')}
         </Link>
       </div>
 
@@ -40,12 +42,12 @@ export function CataloguePage() {
       <div className="card p-4">
         <div className="flex items-center gap-2 mb-3">
           <Filter size={16} className="text-gray-400 dark:text-slate-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Filtri</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('common.filters')}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">
-              Tipo
+              {t('catalogue.filterType')}
             </label>
             <select
               className="select"
@@ -58,7 +60,7 @@ export function CataloguePage() {
                 setSearch(search);
               }}
             >
-              <option value="">Tutti</option>
+              <option value="">{t('common.all')}</option>
               {TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -69,7 +71,7 @@ export function CataloguePage() {
 
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">
-              Stato
+              {t('catalogue.filterStatus')}
             </label>
             <select
               className="select"
@@ -82,7 +84,7 @@ export function CataloguePage() {
                 setSearch(search);
               }}
             >
-              <option value="">Tutti</option>
+              <option value="">{t('common.all')}</option>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -93,7 +95,7 @@ export function CataloguePage() {
 
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">
-              Area
+              {t('catalogue.filterArea')}
             </label>
             <div className="relative">
               <Search
@@ -102,7 +104,7 @@ export function CataloguePage() {
               />
               <input
                 className="input pl-8"
-                placeholder="Filtra per area…"
+                placeholder={t('catalogue.filterAreaPlaceholder')}
                 value={area ?? ''}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -117,7 +119,7 @@ export function CataloguePage() {
 
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">
-              Tag
+              {t('catalogue.filterTag')}
             </label>
             <div className="relative">
               <Search
@@ -126,7 +128,7 @@ export function CataloguePage() {
               />
               <input
                 className="input pl-8"
-                placeholder="Filtra per tag…"
+                placeholder={t('catalogue.filterTagPlaceholder')}
                 value={tag ?? ''}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -150,7 +152,7 @@ export function CataloguePage() {
 
       {q.isError && (
         <div className="card p-8 text-center">
-          <p className="text-sm text-red-500 dark:text-red-400">Errore nel caricamento dei dati.</p>
+          <p className="text-sm text-red-500 dark:text-red-400">{t('catalogue.loadError')}</p>
         </div>
       )}
 
@@ -161,16 +163,16 @@ export function CataloguePage() {
               <thead>
                 <tr className="border-b border-gray-200 dark:border-slate-700">
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Titolo
+                    {t('catalogue.tableTitle')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Tipo
+                    {t('catalogue.tableType')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Stato
+                    {t('catalogue.tableStatus')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Area
+                    {t('catalogue.tableArea')}
                   </th>
                 </tr>
               </thead>
@@ -205,7 +207,7 @@ export function CataloguePage() {
                       colSpan={4}
                       className="px-5 py-12 text-center text-sm text-gray-400 dark:text-slate-500"
                     >
-                      Nessun artefatto trovato con i filtri selezionati.
+                      {t('catalogue.noResults')}
                     </td>
                   </tr>
                 )}
@@ -216,8 +218,7 @@ export function CataloguePage() {
           {/* Pagination */}
           <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700 px-5 py-3">
             <div className="text-xs text-gray-500 dark:text-slate-400">
-              {q.data.total} risultat{q.data.total === 1 ? 'o' : 'i'} — Pagina {page + 1} di{' '}
-              {totalPages}
+              {t('common.results', { count: q.data.total })} — {t('common.pageOf', { current: page + 1, total: totalPages })}
             </div>
             <div className="flex gap-1">
               <button
@@ -229,7 +230,7 @@ export function CataloguePage() {
                 }}
               >
                 <ChevronLeft size={14} />
-                Prec.
+                {t('common.prev')}
               </button>
               <button
                 className="btn-ghost btn-sm"
@@ -239,7 +240,7 @@ export function CataloguePage() {
                   setSearch(search);
                 }}
               >
-                Succ.
+                {t('common.next')}
                 <ChevronRight size={14} />
               </button>
             </div>
