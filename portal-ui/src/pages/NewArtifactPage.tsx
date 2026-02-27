@@ -78,7 +78,9 @@ export function NewArtifactPage() {
           <ArrowLeft size={14} />
           {t('newArtifact.backToCatalogue')}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('newArtifact.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('newArtifact.title')}
+        </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
           {t('newArtifact.subtitle')}
         </p>
@@ -111,7 +113,9 @@ export function NewArtifactPage() {
                 >
                   {TYPE_LABELS[val]}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t(TYPE_DESC_KEYS[val])}</div>
+                <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  {t(TYPE_DESC_KEYS[val])}
+                </div>
               </button>
             ))}
           </div>

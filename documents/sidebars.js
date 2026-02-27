@@ -39,6 +39,7 @@ module.exports = {
             'EPIC2/epic2-requisiti',
             'EPIC2/epic2-modello-dati',
             'EPIC2/epic2-implementazione',
+            'EPIC2/epic2-form-editor-blueprint',
           ],
         },
         {

@@ -27,7 +27,9 @@ export function CataloguePage() {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('catalogue.title')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('catalogue.title')}
+          </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
             {t('catalogue.subtitle')}
           </p>
@@ -42,7 +44,9 @@ export function CataloguePage() {
       <div className="card p-4">
         <div className="flex items-center gap-2 mb-3">
           <Filter size={16} className="text-gray-400 dark:text-slate-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('common.filters')}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            {t('common.filters')}
+          </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
@@ -218,7 +222,8 @@ export function CataloguePage() {
           {/* Pagination */}
           <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700 px-5 py-3">
             <div className="text-xs text-gray-500 dark:text-slate-400">
-              {t('common.results', { count: q.data.total })} — {t('common.pageOf', { current: page + 1, total: totalPages })}
+              {t('common.results', { count: q.data.total })} —{' '}
+              {t('common.pageOf', { current: page + 1, total: totalPages })}
             </div>
             <div className="flex gap-1">
               <button

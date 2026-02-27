@@ -48,9 +48,7 @@ export function LoginPage() {
             <Shield size={32} className="text-white" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">{t('login.appTitle')}</h2>
-          <p className="text-brand-100 text-lg leading-relaxed">
-            {t('login.appDescription')}
-          </p>
+          <p className="text-brand-100 text-lg leading-relaxed">{t('login.appDescription')}</p>
         </div>
         {/* Decorative shapes */}
         <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-brand-400/20" />
@@ -72,10 +70,10 @@ export function LoginPage() {
             <span className="text-2xl font-semibold text-gray-900 dark:text-white">Stillum</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('login.welcome')}</h1>
-          <p className="text-gray-500 dark:text-slate-400 mb-8">
-            {t('login.loginPrompt')}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {t('login.welcome')}
+          </h1>
+          <p className="text-gray-500 dark:text-slate-400 mb-8">{t('login.loginPrompt')}</p>
 
           <button
             onClick={() => {
