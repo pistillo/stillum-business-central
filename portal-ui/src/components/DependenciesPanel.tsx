@@ -25,9 +25,15 @@ export function DependenciesPanel({
   const { getAccessToken } = useAuth();
   const queryClient = useQueryClient();
 
-  const dependencies: NpmDependencies = version?.npmDependencies
-    ? JSON.parse(version.npmDependencies)
-    : {};
+  const dependencies: NpmDependencies = (() => {
+    if (!version?.npmDependencies) return {};
+    try {
+      return JSON.parse(version.npmDependencies);
+    } catch (error) {
+      console.error('Error parsing npmDependencies:', error);
+      return {};
+    }
+  })();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -40,6 +46,9 @@ export function DependenciesPanel({
       const res = await fetch(
         `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=5`
       );
+      if (!res.ok) {
+        throw new Error(`Failed to search npm packages: ${res.status} ${res.statusText}`);
+      }
       const data = (await res.json()) as {
         objects: Array<{ package: { name: string; version: string } }>;
       };
@@ -50,6 +59,10 @@ export function DependenciesPanel({
     },
     onSuccess: (results) => {
       setSearchResults(results);
+    },
+    onError: (error) => {
+      console.error('Error searching npm packages:', error);
+      setSearchResults([]);
     },
   });
 
@@ -71,6 +84,9 @@ export function DependenciesPanel({
       setNewPackageName('');
       setNewPackageVersion('');
       setSearchResults([]);
+    },
+    onError: (error) => {
+      console.error('Error updating dependencies:', error);
     },
   });
 

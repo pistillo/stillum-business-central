@@ -158,7 +158,12 @@ export function EditorPage() {
           return;
         }
         fetch(`/api/tenants/${tenantId}/artifacts/${artifactId}/versions/${versionId}/payload`)
-          .then((res) => res.text())
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`Failed to fetch payload: ${res.status} ${res.statusText}`);
+            }
+            return res.text();
+          })
           .then((text) => {
             if (jsonBased) {
               setJsonContent(text);
@@ -167,7 +172,10 @@ export function EditorPage() {
             }
             setStatus('ready');
           })
-          .catch(() => setStatus('error'));
+          .catch((error) => {
+            console.error('Error fetching payload:', error);
+            setStatus('error');
+          });
       })
       .catch(() => setStatus('error'));
   }, [tenantId, artifactId, versionId, getAccessToken]);
