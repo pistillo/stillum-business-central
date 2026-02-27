@@ -13,15 +13,15 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: portal-ui/pnpm-lock.yaml
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-      - name: Install pnpm
-        run: corepack prepare pnpm@latest --activate
       - name: Install and lint portal-ui
         working-directory: portal-ui
         run: |
@@ -77,15 +77,15 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: portal-ui/pnpm-lock.yaml
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-      - name: Install pnpm
-        run: corepack prepare pnpm@latest --activate
       - name: Install and build portal-ui
         working-directory: portal-ui
         run: |
@@ -160,15 +160,15 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: portal-ui/pnpm-lock.yaml
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-      - name: Install pnpm
-        run: corepack prepare pnpm@latest --activate
       - name: Install and test portal-ui
         working-directory: portal-ui
         run: |
