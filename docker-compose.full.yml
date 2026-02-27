@@ -151,6 +151,8 @@ services:
       context: ./portal-ui
       dockerfile: Dockerfile
       args:
+        # Token per il registry npm privato Azure DevOps (@tecnosys packages)
+        NPM_TOKEN: ${NPM_TOKEN}
         # Le VITE_* vengono baked nel bundle JS a build-time.
         # Keycloak e le API sono raggiunte dal browser (localhost), non dal container.
         VITE_OIDC_AUTHORITY: http://localhost:8080/realms/stillum
