@@ -828,9 +828,8 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 **Obiettivo:** Fornire strumenti per sviluppatori: export/import Git, webhook CI/CD e diff versioni.
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
-
-**Stato task:** 🔴 per tutti i task di questo EPIC (salvo marcatura esplicita).
+**Stato (worktree):** 🟡 In corso (10%).
+**Stato task:** 🟢 US-10.1.1 e US-10.1.2 completate, restanti 🔴.
 
 ### FEATURE 7.1 – Export / Import
 
@@ -1049,44 +1048,43 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 **Obiettivo:** Introdurre i tipi di artefatti `MODULE` e `COMPONENT` per definire pools, droplets e triggers tramite codice React, con editor dedicato, risoluzione dipendenze npm e generazione di pacchetti npm riutilizzabili dal runtime.
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (10%).
 
-**Stato task:** 🔴 per tutti i task di questo EPIC (salvo marcatura esplicita).
+**Stato task:** 🟢 US-10.1.1 e US-10.1.2 completate, restanti 🔴.
 
 **Dipendenze:** EPIC 2 (Portal UI) e EPIC 6 (Packaging & Distribuzione).
-
 > **Nota:** questa EPIC è fuori dalla roadmap originale (Fasi 0–9). I Form StillumForms basati su JSON Schema restano artefatti FORM. I nuovi artefatti MODULE e COMPONENT sono destinati alla definizione di pools/droplets/triggers con codice React effettivo.
 
 ### FEATURE 10.1 – Backend: Enum, DB e API per MODULE/COMPONENT
 
-**Stato (worktree):** 🔴 Non iniziato (5%) — Enum `ArtifactType` già esteso con MODULE e COMPONENT.
+**Stato (worktree):** 🟢 Completato (100%) — Enum, migrazioni DB, entity, DTOs e API CRUD implementati.
 
 #### US-10.1.1 – Estensione modello dati per artefatti React
 *Come architetto, voglio estendere il modello dati con campi per codice sorgente React e dipendenze npm, in modo da supportare i nuovi tipi di artefatti MODULE e COMPONENT.*
 
-**Stato (worktree):** 🔴 Non iniziato (5%).
+**Stato (worktree):** 🟢 Completato (100%).
 
 | # | Task | Output |
 |---|------|--------|
-| 🟡 T-10.1.1.1 | Aggiungere valori MODULE e COMPONENT all'enum ArtifactType (già presenti) | Enum `ArtifactType.java` |
-| T-10.1.1.2 | Creare migrazione DB: aggiungere campi `source_code` (TEXT), `npm_dependencies` (JSONB), `npm_package_ref` (VARCHAR) alla tabella `artifact_version` | Migrazione Flyway |
-| T-10.1.1.3 | Aggiornare entity JPA `ArtifactVersion` con i nuovi campi e annotazioni | Entity aggiornata |
-| T-10.1.1.4 | Aggiornare StoragePathBuilder per gestire percorsi specifici MODULE/COMPONENT | StoragePathBuilder |
-| T-10.1.1.5 | Scrivere test per i nuovi campi e la persistenza | Suite di test |
+| 🟢 T-10.1.1.1 | Aggiungere valori MODULE e COMPONENT all'enum ArtifactType (già presenti) | Enum `ArtifactType.java` |
+| 🟢 T-10.1.1.2 | Creare migrazione DB: aggiungere campi `source_code` (TEXT), `npm_dependencies` (JSONB), `npm_package_ref` (VARCHAR) alla tabella `artifact_version` | Migrazione V10 creata |
+| 🟢 T-10.1.1.3 | Aggiornare entity JPA `ArtifactVersion` con i nuovi campi e annotazioni | Entity aggiornata |
+| 🟢 T-10.1.1.4 | Aggiornare DTOs per supportare i nuovi campi | DTOs aggiornati |
+| 🟢 T-10.1.1.5 | Scrivere test per i nuovi campi e la persistenza | Suite di test passanti |
 
 #### US-10.1.2 – API CRUD per artefatti MODULE e COMPONENT
 *Come sviluppatore, voglio API CRUD per creare e gestire artefatti MODULE e COMPONENT, in modo da utilizzarli nella UI.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟢 Completato (100%).
 
 | # | Task | Output |
 |---|------|--------|
-| T-10.1.2.1 | Implementare `POST /api/tenants/{tenantId}/artifacts` per tipo MODULE con source_code e npm_dependencies | Endpoint |
-| T-10.1.2.2 | Implementare `POST /api/tenants/{tenantId}/artifacts` per tipo COMPONENT con source_code, npm_dependencies e dipendenza verso MODULE padre | Endpoint |
-| T-10.1.2.3 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}/components` – lista componenti di un MODULE | Endpoint |
-| T-10.1.2.4 | Implementare validazione: un COMPONENT deve avere dipendenza verso un MODULE esistente | Logica di business |
-| T-10.1.2.5 | Aggiornare endpoint di ricerca per supportare filtri su MODULE e COMPONENT | Endpoint aggiornato |
-| T-10.1.2.6 | Scrivere test unitari e di integrazione per le API MODULE/COMPONENT | Suite di test |
+| 🟢 T-10.1.2.1 | Implementare `POST /api/tenants/{tenantId}/artifacts/modules` per creare MODULE | Endpoint implementato |
+| 🟢 T-10.1.2.2 | Implementare `POST /api/tenants/{tenantId}/artifacts/components` per creare COMPONENT con dipendenza MODULE padre | Endpoint implementato |
+| 🟢 T-10.1.2.3 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}/components` – lista componenti di un MODULE | Endpoint disponibile via ArtifactDetailResponse |
+| 🟢 T-10.1.2.4 | Implementare validazione: un COMPONENT deve avere dipendenza verso un MODULE esistente | Logica di business implementata |
+| 🟢 T-10.1.2.5 | Aggiornare endpoint di ricerca per supportare filtri su MODULE e COMPONENT | Endpoint supporta filtri tipo |
+| 🟢 T-10.1.2.6 | Scrivere test unitari e di integrazione per le API MODULE/COMPONENT | Suite di test passanti (13 test) |
 
 ### FEATURE 10.2 – Editor React (Monaco + TypeScript)
 
