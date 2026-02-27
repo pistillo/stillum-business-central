@@ -12,7 +12,7 @@ sidebar_label: Stato EPIC 10
 
 **Dipendenze:** EPIC 2 (Portal UI) e EPIC 6 (Packaging & Distribuzione).
 
-**Stato complessivo:** **Non iniziato** (0%).
+**Stato complessivo:** **In corso** (10%).
 
 ---
 
@@ -20,7 +20,7 @@ sidebar_label: Stato EPIC 10
 
 | FEATURE | Stato | Note |
 |---------|-------|------|
-| **10.1** Backend: Enum, DB e API per MODULE/COMPONENT | 🔴 Non iniziato | Enum già aggiunto nel codice; migrazioni DB e API CRUD da completare |
+| **10.1** Backend: Enum, DB e API per MODULE/COMPONENT | 🟢 Completato | Enum, migrazioni DB, entity, DTOs e API CRUD implementati |
 | **10.2** Editor React (Monaco + TypeScript) | 🔴 Non iniziato | Editor Monaco presente per XML/JSON; estensione per React/TS da sviluppare |
 | **10.3** Build e Packaging NPM | 🔴 Non iniziato | NPM Build Service e registry interno da progettare |
 | **10.4** Runtime: Caricamento Plugin UI | 🔴 Non iniziato | Definire architettura plugin loader |
@@ -32,18 +32,18 @@ sidebar_label: Stato EPIC 10
 
 ### FEATURE 10.1 – Backend: Enum, DB e API per MODULE/COMPONENT
 
-**Stato (worktree):** 🔴 Non iniziato (5%) — Enum `ArtifactType` già esteso con MODULE e COMPONENT.
+**Stato (worktree):** 🟢 Completato (100%) — Enum, migrazioni DB, entity, DTOs e API CRUD implementati.
 
 #### US-10.1.1 – Estensione modello dati per artefatti React
 
 | Task | Stato | Evidenza |
 |------|-------|----------|
-| T-10.1.1.1 Aggiungere valori MODULE e COMPONENT all'enum ArtifactType | 🟡 | Enum già presente in `ArtifactType.java` |
-| T-10.1.1.2 Creare migrazione DB: campi `source_code`, `npm_dependencies`, `npm_package_ref` su `artifact_version` | 🔴 | |
-| T-10.1.1.3 Aggiornare entity JPA `ArtifactVersion` con i nuovi campi | 🔴 | |
-| T-10.1.1.4 Implementare API CRUD specifiche per MODULE e COMPONENT | 🔴 | |
-| T-10.1.1.5 Gestire relazione Modulo→Componenti via tabella `dependency` | 🔴 | |
-| T-10.1.1.6 Scrivere test unitari e di integrazione per i nuovi endpoint | 🔴 | |
+| T-10.1.1.1 Aggiungere valori MODULE e COMPONENT all'enum ArtifactType | 🟢 | Enum presente in `ArtifactType.java` |
+| T-10.1.1.2 Creare migrazione DB: campi `source_code`, `npm_dependencies`, `npm_package_ref` su `artifact_version` | 🟢 | Migrazione V10 creata e applicata |
+| T-10.1.1.3 Aggiornare entity JPA `ArtifactVersion` con i nuovi campi | 🟢 | Entity aggiornata con sourceCode, npmDependencies, npmPackageRef |
+| T-10.1.1.4 Implementare API CRUD specifiche per MODULE e COMPONENT | 🟢 | Endpoint POST /modules e /components implementati |
+| T-10.1.1.5 Gestire relazione Modulo→Componenti via tabella `dependency` | 🟢 | Validazione COMPONENT→MODULE implementata in ArtifactService |
+| T-10.1.1.6 Scrivere test unitari e di integrazione per i nuovi endpoint | 🟢 | Test ArtifactResourceTest estesi (13 test, tutti passanti) |
 
 ---
 
