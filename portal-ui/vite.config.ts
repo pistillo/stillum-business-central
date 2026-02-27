@@ -14,6 +14,9 @@ export default defineConfig({
         __dirname,
         'node_modules/@tecnosys/erp-design-system/dist/index.js'
       ),
+      // Shim i18n: il modulo stillum-forms-core/i18n è CJS e in bundle .default può non essere
+      // l'istanza i18next, causando "i18n.exists is not a function" in ElementPropertiesEditor
+      '@tecnosys/stillum-forms-core/i18n': path.resolve(__dirname, 'src/i18n-shim.ts'),
     },
   },
 });
