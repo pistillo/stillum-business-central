@@ -1,17 +1,20 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { BookOpen, Home, LogOut, Menu, PlusCircle, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
-  { to: '/home', label: 'Dashboard', icon: Home },
-  { to: '/catalogue', label: 'Catalogo', icon: BookOpen },
-  { to: '/catalogue/new', label: 'Nuovo Artefatto', icon: PlusCircle },
-];
+  { to: '/home', labelKey: 'nav.dashboard', icon: Home },
+  { to: '/catalogue', labelKey: 'nav.catalogue', icon: BookOpen },
+  { to: '/catalogue/new', labelKey: 'nav.newArtifact', icon: PlusCircle },
+] as const;
 
 export function Layout() {
+  const { t } = useTranslation();
   const { state, logout } = useAuth();
   const { tenantId } = useTenant();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,8 +24,8 @@ export function Layout() {
       ? (state.user.profile?.preferred_username ??
         state.user.profile?.name ??
         state.user.profile?.email ??
-        'Utente')
-      : 'Utente';
+        t('common.user'))
+      : t('common.user');
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-slate-900">
@@ -63,7 +66,7 @@ export function Layout() {
         {/* Tenant info */}
         <div className="px-5 py-3 border-b border-gray-100 dark:border-slate-700/50">
           <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500">
-            Tenant
+            {t('common.tenant')}
           </div>
           <div className="mt-0.5 text-xs font-mono text-gray-600 dark:text-slate-400 truncate">
             {tenantId ?? '—'}
@@ -88,7 +91,7 @@ export function Layout() {
               }
             >
               <item.icon size={18} />
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -109,7 +112,7 @@ export function Layout() {
                 onClick={() => void logout()}
                 className="rounded-lg p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50
                            dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-colors"
-                title="Logout"
+                title={t('common.logout')}
               >
                 <LogOut size={16} />
               </button>
@@ -127,6 +130,7 @@ export function Layout() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </header>

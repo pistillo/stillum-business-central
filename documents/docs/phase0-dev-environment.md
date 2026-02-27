@@ -77,7 +77,7 @@ stillum-business-central/
   registry-api/     # API per artefatti e versioni
   publisher/        # servizio per la pubblicazione
   runtime-gateway/  # interfaccia con Temporal
-  docs/             # documentazione Docusaurus
+  documents/        # progetto Docusaurus con la documentazione
   charts/           # Helm charts per i deploy
   ci/               # script e config per pipeline CI
 ```

@@ -2,12 +2,14 @@ import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Send } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { publish } from '../api/publisher';
 import { useAuth } from '../auth/AuthContext';
 import { useEnvironments } from '../hooks/useEnvironments';
 import { useTenant } from '../tenancy/TenantContext';
 
 export function PublishPage() {
+  const { t } = useTranslation();
   const { getAccessToken } = useAuth();
   const { tenantId } = useTenant();
   const envs = useEnvironments();
@@ -54,11 +56,13 @@ export function PublishPage() {
           className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 mb-4"
         >
           <ArrowLeft size={14} />
-          Torna all&apos;artefatto
+          {t('publishPage.backToArtifact')}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pubblica Versione</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('publishPage.title')}
+        </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          Pubblica questa versione in un ambiente specifico.
+          {t('publishPage.subtitle')}
         </p>
       </div>
 
@@ -88,7 +92,7 @@ export function PublishPage() {
       <div className="card p-6 space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Ambiente <span className="text-red-500">*</span>
+            {t('publishPage.environmentLabel')} <span className="text-red-500">*</span>
           </label>
           {envs.isSuccess && envs.data.length > 0 ? (
             <select
@@ -113,25 +117,25 @@ export function PublishPage() {
           {envs.isLoading && (
             <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
               <Loader2 size={14} className="animate-spin" />
-              Caricamento ambienti…
+              {t('publishPage.loadingEnvs')}
             </div>
           )}
           {envs.isError && (
             <div className="mt-2 text-xs text-amber-700 dark:text-amber-400">
-              Impossibile caricare gli ambienti dal Registry. Puoi inserire l&apos;ID manualmente.
+              {t('publishPage.envsError')}
             </div>
           )}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Note
+            {t('publishPage.notesLabel')}
           </label>
           <textarea
             className="input min-h-[80px] resize-y"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Note opzionali sulla pubblicazione…"
+            placeholder={t('publishPage.notesPlaceholder')}
           />
         </div>
 
@@ -140,7 +144,7 @@ export function PublishPage() {
           <div className="flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
             <AlertCircle size={16} className="text-red-500 shrink-0" />
             <span className="text-sm text-red-700 dark:text-red-400">
-              Pubblicazione fallita. Verifica i parametri e riprova.
+              {t('publishPage.publishError')}
             </span>
           </div>
         )}
@@ -151,7 +155,7 @@ export function PublishPage() {
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 size={18} className="text-green-600 dark:text-green-400" />
               <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-                Pubblicazione completata
+                {t('publishPage.publishSuccess')}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
@@ -178,7 +182,7 @@ export function PublishPage() {
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-700/50">
           <Link to={`/artifact/${artifactId}`} className="btn-secondary">
-            Annulla
+            {t('common.cancel')}
           </Link>
           <button
             className="btn-primary"
@@ -186,7 +190,7 @@ export function PublishPage() {
             onClick={() => m.mutate()}
           >
             {m.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-            {m.isPending ? 'Pubblicazione…' : 'Pubblica'}
+            {m.isPending ? t('publishPage.publishing') : t('publishPage.publishButton')}
           </button>
         </div>
       </div>

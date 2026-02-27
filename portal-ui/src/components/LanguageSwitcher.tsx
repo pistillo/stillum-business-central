@@ -1,19 +1,11 @@
 import { Menu } from '@ark-ui/react';
-import { Monitor, Moon, Sun } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useTheme, type ThemeMode } from '../theme/ThemeContext';
+import { languageLabels, supportedLanguages, type SupportedLanguage } from '../i18n';
 
-const options: { value: ThemeMode; labelKey: string; icon: typeof Sun }[] = [
-  { value: 'light', labelKey: 'theme.light', icon: Sun },
-  { value: 'dark', labelKey: 'theme.dark', icon: Moon },
-  { value: 'system', labelKey: 'theme.system', icon: Monitor },
-];
-
-export function ThemeToggle() {
-  const { t } = useTranslation();
-  const { mode, resolved, setMode } = useTheme();
-
-  const CurrentIcon = resolved === 'dark' ? Moon : Sun;
+export function LanguageSwitcher() {
+  const { i18n } = useTranslation();
+  const current = i18n.language as SupportedLanguage;
 
   return (
     <Menu.Root>
@@ -21,28 +13,27 @@ export function ThemeToggle() {
         className="btn-icon rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100
                    dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
       >
-        <CurrentIcon size={18} />
+        <Globe size={18} />
       </Menu.Trigger>
       <Menu.Positioner>
         <Menu.Content
           className="z-50 min-w-[140px] rounded-lg border border-gray-200 dark:border-slate-700
                      bg-white dark:bg-slate-800 p-1 shadow-lg animate-in fade-in-0 zoom-in-95"
         >
-          {options.map((opt) => (
+          {supportedLanguages.map((lang) => (
             <Menu.Item
-              key={opt.value}
-              value={opt.value}
+              key={lang}
+              value={lang}
               className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm cursor-pointer
                 transition-colors
                 ${
-                  mode === opt.value
+                  current === lang
                     ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
                     : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
                 }`}
-              onClick={() => setMode(opt.value)}
+              onClick={() => i18n.changeLanguage(lang)}
             >
-              <opt.icon size={16} />
-              {t(opt.labelKey)}
+              {languageLabels[lang]}
             </Menu.Item>
           ))}
         </Menu.Content>

@@ -10,7 +10,7 @@ sidebar_label: Stato EPIC 2
 
 **Contesto:** La UI vive nel progetto `portal-ui/` e integra **Registry API** (`registry-api`) e **Publisher** (`publisher`) tramite chiamate REST con `Authorization: Bearer <token>`.
 
-**Stato complessivo:** **Parzialmente implementato** — disponibili login OIDC, selezione tenant (con auto-select via `defaultTenantId`), home v0, catalogo, dettaglio artefatto, creazione bozza, editor v0 (Monaco) con presigned URL e pubblicazione v0 (scelta ambiente da Registry + redirect automatico al dettaglio). Restano da completare editor BPMN/DMN/forms “real”, wizard publish multi-step, i18n/toast/error boundary e decisione su ricerca full-text.
+**Stato complessivo:** **Parzialmente implementato** — disponibili login OIDC, selezione tenant (con auto-select via `defaultTenantId` e post-login redirect), home v0, catalogo, dettaglio artefatto, creazione bozza, editor v0 (Monaco) con presigned URL e pubblicazione v0 (hook `useEnvironments`, dropdown ambienti da Registry, auto-selezione DEV, validazione PROD per versioni non approvate, redirect al dettaglio). **Completati:** i18n con i18next (LanguageSwitcher, traduzioni it/en su tutte le pagine), CI/build portal-ui con pnpm, mock OIDC per test in CI. Restano da completare editor BPMN/DMN/forms “real”, wizard publish multi-step, toast/error boundary e decisione su ricerca full-text.
 
 ---
 
@@ -22,8 +22,8 @@ sidebar_label: Stato EPIC 2
 | **2.2** Dashboard | ✅ Completato | Home con sezioni “Le mie bozze” e “Ultime pubblicazioni” + hook dedicati + test unitari |
 | **2.3** Catalogo Artefatti | 🟡 Parziale | Lista paginata con filtri type/status/area/tag; full-text posticipata |
 | **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 usa Monaco (XML/JSON) con load/save; mancano embed BPMN/DMN/forms e auto-save |
-| **2.5** Pubblicazione Guidata | 🟡 Parziale | Publish v0 è form semplice con dropdown ambienti (da Registry) e redirect al dettaglio; mancano step e gestione errori validazione dettagliata |
-| **2.6** Infrastruttura UI | 🟡 Parziale | Layout+router presenti; mancano i18n, toast, error boundary, audit a11y |
+| **2.5** Pubblicazione Guidata | 🟡 Parziale | Publish v0 con useEnvironments, dropdown ambienti (auto-selezione DEV), validazione PROD (blocco versione non approvata); EditorPage read-only per PUBLISHED; mancano wizard multi-step e step preview/validazione/conferma |
+| **2.6** Infrastruttura UI | 🟡 Parziale | Layout+router+i18n (i18next, LanguageSwitcher, it/en) completati; CI/build con pnpm; mancano toast, error boundary, audit a11y |
 
 ---
 
@@ -112,9 +112,12 @@ sidebar_label: Stato EPIC 2
 
 | Task | Stato | Evidenza |
 |------|--------|----------|
-| T-2.5.1.1 | 🟡 | Pagina `/publish/:id/:version` presente ma non è wizard multi-step |
-| T-2.5.1.2–T-2.5.1.6 | 🔴 | Step preview/validazione/ambiente/conferma/esito dettagliato mancanti |
-| T-2.5.1.7 | 🟡 | Chiamata `POST /api/tenants/{tenantId}/publish` presente; hook dedicato da introdurre |
+| T-2.5.1.1 | 🟡 | Pagina `/publish/:id/:version` presente (form singola), non wizard multi-step |
+| T-2.5.1.2–T-2.5.1.3 | 🔴 | Step preview e validazione non implementati |
+| T-2.5.1.4 | ✅ | Dropdown ambienti da Registry tramite `useEnvironments`, auto-selezione DEV |
+| T-2.5.1.5 | 🔴 | Step conferma non presente |
+| T-2.5.1.6 | ✅ | Esito (successo/fallimento) e redirect al dettaglio; validazione PROD (blocco pubblicazione versione non approvata su PROD) |
+| T-2.5.1.7 | 🟡 | Chiamata publish via `useMutation` + `publish()` in `api/publisher`; hook `usePublish` dedicato opzionale |
 
 ---
 
@@ -124,7 +127,7 @@ sidebar_label: Stato EPIC 2
 |------|--------|----------|
 | T-2.6.1.1 | 🟡 | Layout base con sidebar; header e component library da completare |
 | T-2.6.1.2 | ✅ | Router + protezione rotte |
-| T-2.6.1.3 | 🔴 | i18next non configurato |
+| T-2.6.1.3 | ✅ | i18next configurato: `src/i18n.ts`, `src/locales/en.json` e `it.json`, componente `LanguageSwitcher`, tutte le pagine e componenti con `useTranslation`; CI con pnpm per build portal-ui |
 | T-2.6.1.4 | 🔴 | Toast/banner non implementati |
 | T-2.6.1.5 | 🔴 | Error boundary globale non implementato |
 | T-2.6.1.6–T-2.6.1.7 | 🔴 | Audit responsive/a11y da fare |
@@ -139,3 +142,6 @@ sidebar_label: Stato EPIC 2
 | Routing, auth OIDC, tenant context | `portal-ui/src/App.tsx`, `portal-ui/src/auth/`, `portal-ui/src/tenancy/` |
 | Catalogo/dettaglio/bozza/editor v0/publish v0 | `portal-ui/src/pages/` |
 | Client API Registry/Publisher | `portal-ui/src/api/` |
+| i18n (i18next) | `portal-ui/src/i18n.ts`, `portal-ui/src/locales/`, `portal-ui/src/components/LanguageSwitcher.tsx` |
+| Gestione ambienti e publish | `portal-ui/src/hooks/useEnvironments.ts`, `portal-ui/src/api/registry.ts` (listEnvironments), `portal-ui/src/pages/PublishPage.tsx` |
+| CI/build frontend | `.github/workflows/ci.yml` (pnpm), `portal-ui/Dockerfile` (pnpm), `portal-ui/pnpm-lock.yaml` |

@@ -22,7 +22,7 @@ Riferimento sintetico rispetto all’implementazione presente nel repository.
 |------|------|---:|------|----------|
 | EPIC 0 | ✅ Completato | 90% | Deliverable documentali + Docker Compose/CI presenti; chart Helm è uno scaffold | [Stato EPIC 0](/docs/EPIC0/epic0-stato) |
 | EPIC 1 | 🟡 Quasi completo (MVP) | 90% | Core completo; restano validazioni semantiche e hardening auth tenant | [Stato EPIC 1](/docs/EPIC1/epic1-stato) |
-| EPIC 2 | 🟡 Parziale (v0) | 60% | UI v0 operativa (login/tenant/catalogo/dettaglio/editor Monaco/publish form con ambienti); mancano editor integrati e wizard publish | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
+| EPIC 2 | 🟡 Parziale (v0) | 65% | UI v0 operativa con login/tenant/catalogo/dettaglio/editor Monaco, publish con ambienti (useEnvironments) e validazione PROD, i18n (i18next) completato, CI con pnpm; mancano editor BPMN/DMN integrati e wizard publish multi-step | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
 | EPIC 3 | 🔴 Non iniziato | 0% | Workflow approvazione e ciclo di vita avanzato | |
 | EPIC 4 | 🟡 In avvio | 10% | Servizio `runtime-gateway` minimale; Temporal disponibile in docker-compose, integrazione applicativa da implementare | |
 | EPIC 5 | 🟡 In parte | 15% | Hardening multi-tenant già avviato (RLS); RBAC/ACL e onboarding tenant non implementati | |
@@ -311,7 +311,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 **Obiettivo:** Realizzare la prima interfaccia web operativa con autenticazione, catalogo, editor e pubblicazione.
 
-**Stato (worktree):** 🟡 Parziale (60%) — login/tenant/catalogo/dettaglio/editor Monaco/publish form con ambienti; mancano editor integrati e wizard publish.
+**Stato (worktree):** 🟡 Parziale (65%) — login/tenant/catalogo/dettaglio/editor Monaco, publish con selezione ambienti (useEnvironments) e validazione PROD, i18n (i18next + LanguageSwitcher, it/en) completato, CI/build con pnpm; mancano editor BPMN/DMN integrati e wizard publish multi-step.
 
 ### FEATURE 2.1 – Autenticazione e Selezione Tenant
 
@@ -458,37 +458,37 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ### FEATURE 2.5 – Pubblicazione Guidata
 
-**Stato (worktree):** 🟡 Parziale (35%) — pagina publish v0 presente con selezione ambiente; non è wizard multi-step.
+**Stato (worktree):** 🟡 Parziale (50%) — pagina publish v0 con dropdown ambienti (useEnvironments), auto-selezione DEV, validazione PROD per versioni non approvate; non è wizard multi-step.
 
 #### US-2.5.1 – Wizard di pubblicazione dalla UI
 *Come process owner, voglio pubblicare un artefatto tramite un wizard guidato, in modo da visualizzare errori di validazione e selezionare l'ambiente di destinazione.*
 
-**Stato (worktree):** 🟡 Parziale (35%).
+**Stato (worktree):** 🟡 Parziale (50%).
 
 | # | Task | Output |
 |---|------|--------|
-| 🟡 T-2.5.1.1 | Implementare la pagina `/publish/:id/:version` con wizard multi-step | Pagina wizard |
+| 🟡 T-2.5.1.1 | Implementare la pagina `/publish/:id/:version` con wizard multi-step | Pagina wizard (attuale: form singola) |
 | 🔴 T-2.5.1.2 | Step 1 – Anteprima: mostrare metadati artefatto, versione e dipendenze | Step preview |
 | 🔴 T-2.5.1.3 | Step 2 – Validazione: invocare il publisher e mostrare errori di validazione | Step validazione |
-| ✅ T-2.5.1.4 | Step 3 – Selezione ambiente: dropdown con ambienti disponibili (da Registry) | Step ambiente |
+| ✅ T-2.5.1.4 | Step 3 – Selezione ambiente: dropdown con ambienti disponibili (da Registry) | Step ambiente (useEnvironments + auto-selezione DEV) |
 | 🔴 T-2.5.1.5 | Step 4 – Conferma: riepilogo e pulsante "Pubblica" | Step conferma |
 | ✅ T-2.5.1.6 | Mostrare esito (successo con dettagli pubblicazione / fallimento con errori) | Feedback UI |
-| 🔴 T-2.5.1.7 | Implementare hook `usePublish` per invocare `POST /api/tenants/{tenantId}/publish` | Custom hook |
+| 🟡 T-2.5.1.7 | Implementare hook `usePublish` per invocare `POST /api/tenants/{tenantId}/publish` | Chiamata publish via useMutation presente; hook dedicato opzionale |
 
 ### FEATURE 2.6 – Infrastruttura UI
 
-**Stato (worktree):** 🟡 Parziale (40%) — router/guard presenti; i18n/toast/error boundary/a11y da fare.
+**Stato (worktree):** 🟡 Parziale (55%) — layout/router/guard e i18n completati; restano toast, error boundary e audit a11y.
 
 #### US-2.6.1 – Layout, navigazione e localizzazione
 *Come utente, voglio un'interfaccia coerente, accessibile e localizzata, in modo da usare il portale in modo efficiente.*
 
-**Stato (worktree):** 🟡 Parziale (40%).
+**Stato (worktree):** 🟡 Parziale (55%).
 
 | # | Task | Output |
 |---|------|--------|
 | 🟡 T-2.6.1.1 | Implementare layout principale con sidebar/header di navigazione | Layout component |
 | ✅ T-2.6.1.2 | Configurare routing con protezione rotte autenticate | Router config |
-| 🔴 T-2.6.1.3 | Configurare i18next con file di traduzione italiano/inglese | Setup i18n |
+| ✅ T-2.6.1.3 | Configurare i18next con file di traduzione italiano/inglese | Setup i18n (LanguageSwitcher, locales it/en) |
 | 🔴 T-2.6.1.4 | Implementare sistema di notifiche (toast/banner) con shadcn/ui | Componente notifiche |
 | 🔴 T-2.6.1.5 | Implementare gestione errori globale con error boundary | Error handling |
 | 🟡 T-2.6.1.6 | Verificare responsive design su desktop, tablet e mobile | Test responsiveness |

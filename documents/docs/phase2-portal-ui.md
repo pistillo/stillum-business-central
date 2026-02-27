@@ -30,9 +30,11 @@ Nel repository è presente una prima implementazione operativa (v0) che copre:
 | Percorso | Descrizione |
 |---------|-------------|
 | **`/login`** | Pagina di login che reindirizza al provider IAM (Keycloak). Preserva i deep link tramite `redirectTo` e, a login completato, riporta l’utente alla pagina richiesta. |
+| **`/oidc/callback`** | Endpoint di callback tecnico per completare il flusso OIDC (gestito automaticamente dalla UI dopo il login). |
 | **`/select-tenant`** | Pagina in cui l’utente sceglie tra i tenant a cui è assegnato. Se è presente un `defaultTenantId` nel token, o se esiste un solo tenant disponibile, la selezione è automatica. |
 | **`/home`** | Dashboard con le bozze dell’utente, i processi recenti, i task assegnati (futuro) e i link rapidi (crea nuovo artefatto, vai al catalogo, vedi errori). |
 | **`/catalogue`** | Lista paginata degli artefatti del tenant.  Possibilità di filtrare per tipo (processo, regola, modulo, request), stato (bozza, pubblicato), area e tag. |
+| **`/catalogue/new`** | Pagina per la creazione di una nuova bozza di artefatto, con form iniziale (tipo, titolo, area, tag) che reindirizza poi all’editor. |
 | **`/artifact/:id`** | Pagina dettaglio dell’artefatto con metadati, elenco versioni (bozze e pubblicate), pulsanti per modificare la bozza o avviare la pubblicazione. |
 | **`/editor/:id/:version`** | Vista editor per una specifica versione. Carica il file dal `payloadRef` e permette il salvataggio solo se la versione non è `PUBLISHED` (sola lettura sulle versioni pubblicate). |
 | **`/publish/:id/:version`** | Form di pubblicazione che consente di selezionare l’ambiente (lista dal Registry) e invoca il Publisher. A successo, torna automaticamente al dettaglio dell’artefatto. |
@@ -77,6 +79,7 @@ La Portal UI v0 usa variabili `VITE_*`:
 * `VITE_OIDC_CLIENT_ID`
 * `VITE_OIDC_SCOPE` (default `openid profile email`)
 * `VITE_OIDC_REDIRECT_URI` (default `${window.location.origin}/oidc/callback`)
+* `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (default `${window.location.origin}/login`)
 
 Nota: l’estrazione dei tenant dal token è implementata in modo “tollerante” (supporta claim array come `tenants/tenantIds` o pattern in `groups`), con fallback a inserimento manuale del tenantId se assente. Il `defaultTenantId` (se presente) viene usato come selezione automatica quando l’utente ha più tenant.
 

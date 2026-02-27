@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Building2, ChevronRight, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ThemeToggle } from '../components/ThemeToggle';
 import {
   consumePostLoginRedirect,
@@ -12,6 +14,7 @@ import {
 } from '../utils/postLoginRedirect';
 
 export function SelectTenantPage() {
+  const { t } = useTranslation();
   const { state } = useAuth();
   const { tenantId, availableTenantIds, setTenantId } = useTenant();
   const navigate = useNavigate();
@@ -44,7 +47,8 @@ export function SelectTenantPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-900 px-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageSwitcher />
         <ThemeToggle />
       </div>
 
@@ -53,22 +57,24 @@ export function SelectTenantPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 dark:bg-brand-900/30">
             <Building2 size={28} className="text-brand-600 dark:text-brand-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Seleziona Tenant</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('selectTenant.title')}
+          </h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-            Scegli l&apos;organizzazione con cui vuoi operare.
+            {t('selectTenant.description')}
           </p>
         </div>
 
         {availableTenantIds.length === 0 ? (
           <div className="card p-6">
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
-              Nessun tenant trovato nel token. Inserisci manualmente un tenant ID:
+              {t('selectTenant.noTenantFound')}
             </p>
             <input
               className="input font-mono text-sm"
               value={tenantId ?? ''}
               onChange={(e) => setTenantId(e.target.value)}
-              placeholder="00000000-0000-0000-0000-000000000001"
+              placeholder={t('selectTenant.manualPlaceholder')}
             />
             <button
               className="btn-primary w-full mt-4"
@@ -79,7 +85,7 @@ export function SelectTenantPage() {
                 navigate(target, { replace: true });
               }}
             >
-              Continua
+              {t('common.continue')}
             </button>
           </div>
         ) : (

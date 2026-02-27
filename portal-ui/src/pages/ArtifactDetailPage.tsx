@@ -1,9 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Code2, Loader2, Pencil, Send, Tag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useArtifactDetail } from '../hooks/useArtifactDetail';
 import { StatusBadge, TypeBadge } from '../components/StatusBadge';
 
 export function ArtifactDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const artifactId = params.id ?? '';
   const { artifact, versions } = useArtifactDetail(artifactId);
@@ -16,7 +18,7 @@ export function ArtifactDetailPage() {
         className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400"
       >
         <ArrowLeft size={14} />
-        Torna al catalogo
+        {t('artifactDetail.backToCatalogue')}
       </Link>
 
       {/* Artifact header */}
@@ -60,12 +62,12 @@ export function ArtifactDetailPage() {
             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-slate-700/50">
               <Tag size={14} className="text-gray-400 dark:text-slate-500" />
               <div className="flex flex-wrap gap-1.5">
-                {artifact.data.tags.map((t) => (
+                {artifact.data.tags.map((tg) => (
                   <span
-                    key={t}
+                    key={tg}
                     className="badge bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400"
                   >
-                    {t}
+                    {tg}
                   </span>
                 ))}
               </div>
@@ -78,7 +80,9 @@ export function ArtifactDetailPage() {
       <div className="card overflow-hidden">
         <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-200 dark:border-slate-700">
           <Code2 size={18} className="text-gray-400 dark:text-slate-500" />
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Versioni</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {t('artifactDetail.versions')}
+          </h2>
         </div>
 
         {versions.isLoading && (
@@ -93,13 +97,13 @@ export function ArtifactDetailPage() {
               <thead>
                 <tr className="border-b border-gray-200 dark:border-slate-700">
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Versione
+                    {t('artifactDetail.versionCol')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Stato
+                    {t('artifactDetail.statusCol')}
                   </th>
                   <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    Azioni
+                    {t('artifactDetail.actionsCol')}
                   </th>
                 </tr>
               </thead>
@@ -125,7 +129,7 @@ export function ArtifactDetailPage() {
                             className="btn-secondary btn-sm"
                           >
                             <Pencil size={12} />
-                            Apri
+                            {t('artifactDetail.open')}
                           </Link>
                         ) : (
                           <>
@@ -134,14 +138,14 @@ export function ArtifactDetailPage() {
                               className="btn-secondary btn-sm"
                             >
                               <Pencil size={12} />
-                              Modifica
+                              {t('artifactDetail.edit')}
                             </Link>
                             <Link
                               to={`/publish/${artifactId}/${v.id}`}
                               className="btn-primary btn-sm"
                             >
                               <Send size={12} />
-                              Pubblica
+                              {t('artifactDetail.publish')}
                             </Link>
                           </>
                         )}
@@ -155,7 +159,7 @@ export function ArtifactDetailPage() {
                       colSpan={3}
                       className="px-5 py-12 text-center text-sm text-gray-400 dark:text-slate-500"
                     >
-                      Nessuna versione disponibile.
+                      {t('artifactDetail.noVersions')}
                     </td>
                   </tr>
                 )}
