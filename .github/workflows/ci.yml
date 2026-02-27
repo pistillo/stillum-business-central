@@ -18,6 +18,8 @@ jobs:
           cache-dependency-path: portal-ui/pnpm-lock.yaml
       - name: Enable corepack (pnpm)
         run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - name: Install and lint portal-ui
         working-directory: portal-ui
         run: |
@@ -78,6 +80,8 @@ jobs:
           cache-dependency-path: portal-ui/pnpm-lock.yaml
       - name: Enable corepack (pnpm)
         run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - name: Install and build portal-ui
         working-directory: portal-ui
         run: |
@@ -157,6 +161,8 @@ jobs:
           cache-dependency-path: portal-ui/pnpm-lock.yaml
       - name: Enable corepack (pnpm)
         run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - name: Install and test portal-ui
         working-directory: portal-ui
         run: |
