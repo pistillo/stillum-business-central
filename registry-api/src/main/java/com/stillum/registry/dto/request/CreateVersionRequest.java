@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 public record CreateVersionRequest(
         @NotBlank String version,
         String payloadRef,
-        String metadata
+        String metadata,
+        String sourceCode,
+        String npmDependencies,
+        String npmPackageRef
 ) {
 }

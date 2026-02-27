@@ -42,6 +42,9 @@ public class ArtifactVersionService {
         v.version = req.version();
         v.payloadRef = req.payloadRef();
         v.metadata = req.metadata();
+        v.sourceCode = req.sourceCode();
+        v.npmDependencies = req.npmDependencies();
+        v.npmPackageRef = req.npmPackageRef();
         v.state = VersionState.DRAFT;
         versionRepo.persist(v);
         return ArtifactVersionResponse.from(v);
@@ -77,6 +80,9 @@ public class ArtifactVersionService {
         assertMutable(v);
         v.payloadRef = req.payloadRef();
         v.metadata = req.metadata();
+        v.sourceCode = req.sourceCode();
+        v.npmDependencies = req.npmDependencies();
+        v.npmPackageRef = req.npmPackageRef();
         return ArtifactVersionResponse.from(v);
     }
 
