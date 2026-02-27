@@ -23,9 +23,9 @@ export function CataloguePage() {
   const totalPages = q.data ? Math.max(1, Math.ceil(q.data.total / q.data.size)) : 1;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 min-h-0">
       {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('catalogue.title')}
@@ -41,7 +41,7 @@ export function CataloguePage() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4">
+      <div className="card p-4 flex-shrink-0">
         <div className="flex items-center gap-2 mb-3">
           <Filter size={16} className="text-gray-400 dark:text-slate-500" />
           <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
@@ -149,7 +149,7 @@ export function CataloguePage() {
 
       {/* Results */}
       {q.isLoading && (
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-16 flex-1">
           <Loader2 size={28} className="animate-spin text-brand-600 dark:text-brand-400" />
         </div>
       )}
@@ -161,10 +161,10 @@ export function CataloguePage() {
       )}
 
       {q.data && (
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="card overflow-hidden flex flex-col flex-1 min-h-0">
+          <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
             <table className="w-full">
-              <thead>
+              <thead className="sticky top-0 bg-white dark:bg-slate-800 z-10">
                 <tr className="border-b border-gray-200 dark:border-slate-700">
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
                     {t('catalogue.tableTitle')}
@@ -220,7 +220,7 @@ export function CataloguePage() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700 px-5 py-3">
+          <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700 px-5 py-3 flex-shrink-0">
             <div className="text-xs text-gray-500 dark:text-slate-400">
               {t('common.results', { count: q.data.total })} —{' '}
               {t('common.pageOf', { current: page + 1, total: totalPages })}
