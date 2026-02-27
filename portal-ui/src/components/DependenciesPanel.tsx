@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { AlertCircle, Plus, Search, Trash2, X } from 'lucide-react';
+import { AlertCircle, Loader2, Plus, Search, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { updateVersion } from '../api/registry';
 import type { ArtifactVersion } from '../api/types';
@@ -13,6 +13,9 @@ interface DependenciesPanelProps {
   tenantId: string;
   artifactId: string;
   versionId: string;
+  readOnly?: boolean;
+  onVersionUpdated?: (version: ArtifactVersion) => void;
+  loading?: boolean;
 }
 
 export function DependenciesPanel({
@@ -20,10 +23,15 @@ export function DependenciesPanel({
   tenantId,
   artifactId,
   versionId,
+  readOnly = false,
+  onVersionUpdated,
+  loading = false,
 }: DependenciesPanelProps) {
   const { t } = useTranslation();
   const { getAccessToken } = useAuth();
   const queryClient = useQueryClient();
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const dependencies: NpmDependencies = (() => {
     if (!version?.npmDependencies) return {};
@@ -57,11 +65,15 @@ export function DependenciesPanel({
         version: obj.package.version,
       }));
     },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
     onSuccess: (results) => {
+      setErrorMessage(null);
       setSearchResults(results);
     },
     onError: (error) => {
       console.error('Error searching npm packages:', error);
+      setErrorMessage(t('editor.npmSearchError', 'Errore durante la ricerca su npm.'));
       setSearchResults([]);
     },
   });
@@ -76,10 +88,14 @@ export function DependenciesPanel({
         npmDependencies: JSON.stringify(newDeps),
       });
     },
-    onSuccess: () => {
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
+    onSuccess: (updatedVersion) => {
       queryClient.invalidateQueries({
         queryKey: ['version', tenantId, artifactId, versionId],
       });
+      setErrorMessage(null);
+      onVersionUpdated?.(updatedVersion);
       setShowAdd(false);
       setNewPackageName('');
       setNewPackageVersion('');
@@ -87,16 +103,21 @@ export function DependenciesPanel({
     },
     onError: (error) => {
       console.error('Error updating dependencies:', error);
+      setErrorMessage(
+        t('editor.dependenciesUpdateError', 'Errore durante il salvataggio delle dipendenze.')
+      );
     },
   });
 
   const handleAddDependency = (packageName: string, version: string) => {
+    if (readOnly) return;
     if (dependencies[packageName]) return;
     const newDeps = { ...dependencies, [packageName]: version };
     updateDependenciesMutation.mutate(newDeps);
   };
 
   const handleRemoveDependency = (packageName: string) => {
+    if (readOnly) return;
     const newDeps = { ...dependencies };
     delete newDeps[packageName];
     updateDependenciesMutation.mutate(newDeps);
@@ -105,7 +126,7 @@ export function DependenciesPanel({
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setNewPackageName(value);
-    if (value.length >= 2) {
+    if (!readOnly && value.length >= 2) {
       searchMutation.mutate(value);
     } else {
       setSearchResults([]);
@@ -127,6 +148,26 @@ export function DependenciesPanel({
         </span>
       </div>
 
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 mb-4">
+          <Loader2 size={16} className="animate-spin" />
+          <span>{t('editor.loadingDependencies', 'Caricamento dipendenze...')}</span>
+        </div>
+      )}
+
+      {!loading && !version && (
+        <div className="mb-4 text-sm text-gray-500 dark:text-slate-400">
+          {t('editor.inheritedDependenciesUnavailable', 'Dipendenze non disponibili.')}
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
+          <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       <div className="mb-4">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -140,7 +181,7 @@ export function DependenciesPanel({
         </div>
       </div>
 
-      {showAdd && (
+      {!readOnly && showAdd && (
         <div className="mb-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
@@ -197,7 +238,7 @@ export function DependenciesPanel({
         </div>
       )}
 
-      {!showAdd && (
+      {!readOnly && !showAdd && (
         <button
           onClick={() => setShowAdd(true)}
           className="w-full mb-4 px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -228,6 +269,7 @@ export function DependenciesPanel({
                 </div>
                 <button
                   onClick={() => handleRemoveDependency(name)}
+                  disabled={readOnly}
                   className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                 >
                   <Trash2 size={14} />

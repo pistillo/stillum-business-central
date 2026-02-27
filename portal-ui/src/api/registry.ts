@@ -4,6 +4,7 @@ import type {
   ArtifactStatus,
   ArtifactType,
   ArtifactVersion,
+  Dependency,
   Environment,
   PagedResponse,
   PresignedUrlResponse,
@@ -190,6 +191,20 @@ export async function addDependency(params: {
         dependsOnVersionId: params.dependsOnVersionId,
       }),
     }
+  );
+}
+
+export async function listDependencies(params: {
+  token: string | null;
+  tenantId: string;
+  artifactId: string;
+  versionId: string;
+}): Promise<Dependency[]> {
+  return apiFetch(
+    registryUrl(
+      `/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions/${params.versionId}/dependencies`
+    ),
+    { token: params.token }
   );
 }
 

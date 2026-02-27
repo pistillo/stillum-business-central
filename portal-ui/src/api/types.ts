@@ -30,6 +30,13 @@ export type ArtifactVersion = {
   npmPackageRef?: string | null;
 };
 
+export type Dependency = {
+  id: string;
+  artifactVersionId: string;
+  dependsOnArtifactId: string;
+  dependsOnVersionId: string;
+};
+
 export type PagedResponse<T> = {
   items: T[];
   page: number;

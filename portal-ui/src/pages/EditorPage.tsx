@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Editor, { type Monaco } from '@monaco-editor/react';
@@ -6,13 +6,14 @@ import * as yaml from 'js-yaml';
 import { AlertCircle, ArrowLeft, Check, Loader2, Save } from 'lucide-react';
 import { StillumFormsEditorTab } from '../form-editor';
 import { useTranslation } from 'react-i18next';
-import type { ArtifactType, VersionState, ArtifactVersion } from '../api/types';
+import type { ArtifactType, ArtifactVersion } from '../api/types';
 import {
   getArtifact,
   getVersion,
   updateVersion,
   getPayloadUploadUrl,
   updatePayloadRef,
+  listDependencies,
 } from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
@@ -107,78 +108,122 @@ export function EditorPage() {
   const [xmlContent, setXmlContent] = useState('');
   const [sourceCode, setSourceCode] = useState('');
   const [artifactType, setArtifactType] = useState<ArtifactType>('PROCESS');
-  const [versionState, setVersionState] = useState<VersionState>('DRAFT');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState<EditorFormat>('json');
-  const [artifactTitle, setArtifactTitle] = useState('');
-  const [versionLabel, setVersionLabel] = useState('');
-  const [version, setVersion] = useState<ArtifactVersion | null>(null);
+  const [dependenciesVersion, setDependenciesVersion] = useState<ArtifactVersion | null>(null);
+  const [dependenciesArtifactId, setDependenciesArtifactId] = useState<string | null>(null);
+  const [dependenciesVersionId, setDependenciesVersionId] = useState<string | null>(null);
+  const [dependenciesReadOnly, setDependenciesReadOnly] = useState(false);
+  const [dependenciesLoading, setDependenciesLoading] = useState(false);
 
-  const formats = useMemo(() => getFormats(artifactType), [artifactType]);
-  const isJsonBased = artifactType === 'FORM' || artifactType === 'REQUEST';
-  const isTypeScriptBased = artifactType === 'MODULE' || artifactType === 'COMPONENT';
+  const artifactQuery = useQuery({
+    queryKey: ['artifact', tenantId, artifactId],
+    queryFn: () => getArtifact({ token: getAccessToken(), tenantId: tenantId!, artifactId }),
+    enabled: !!tenantId && !!artifactId,
+  });
+
+  const versionQuery = useQuery({
+    queryKey: ['version', tenantId, artifactId, versionId],
+    queryFn: () =>
+      getVersion({ token: getAccessToken(), tenantId: tenantId!, artifactId, versionId }),
+    enabled: !!tenantId && !!artifactId && !!versionId,
+  });
+
+  const artifact = artifactQuery.data;
+  const version = versionQuery.data;
+  const isLoading = artifactQuery.isLoading || versionQuery.isLoading;
+  const isError = artifactQuery.isError || versionQuery.isError;
+  const status = isLoading ? 'loading' : isError ? 'error' : 'ready';
+
+  const artifactTitle = artifact?.title ?? '';
+  const versionLabel = version?.version ?? '';
+  const versionState = version?.state ?? 'DRAFT';
+
+  const isJsonBased = artifact?.type === 'FORM' || artifact?.type === 'REQUEST';
+  const isTypeScriptBased = artifact?.type === 'MODULE' || artifact?.type === 'COMPONENT';
+
+  // Initialize state from fetched data
+  useEffect(() => {
+    if (artifact) setArtifactType(artifact.type);
+  }, [artifact]);
+
+  useEffect(() => {
+    if (version && isTypeScriptBased) {
+      // Only update local state if it's empty to avoid overwriting user changes
+      setSourceCode((prev) => prev || version.sourceCode || getDefaultContent(artifact!.type));
+    }
+  }, [version, isTypeScriptBased, artifact]);
+
+  // Load payload for non-TS artifacts
+  useEffect(() => {
+    if (!version || isTypeScriptBased || !tenantId) return;
+
+    if (!version.payloadRef) {
+      const def = getDefaultContent(artifact!.type);
+      if (isJsonBased) setJsonContent(def);
+      else setXmlContent(def);
+      return;
+    }
+
+    fetch(`/api/tenants/${tenantId}/artifacts/${artifactId}/versions/${versionId}/payload`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch payload');
+        return res.text();
+      })
+      .then((text) => {
+        if (isJsonBased) setJsonContent(text);
+        else setXmlContent(text);
+      })
+      .catch((err) => console.error(err));
+  }, [version, isTypeScriptBased, isJsonBased, tenantId, artifactId, versionId, artifact]);
+
+  // Load dependencies for COMPONENT
+  useEffect(() => {
+    if (artifact?.type !== 'COMPONENT' || !tenantId || !versionId) {
+      if (artifact?.type === 'MODULE' && version) {
+        setDependenciesReadOnly(false);
+        setDependenciesLoading(false);
+        setDependenciesArtifactId(artifactId);
+        setDependenciesVersionId(versionId);
+        setDependenciesVersion(version);
+      } else {
+        setDependenciesReadOnly(false);
+        setDependenciesLoading(false);
+        setDependenciesArtifactId(null);
+        setDependenciesVersionId(null);
+        setDependenciesVersion(null);
+      }
+      return;
+    }
+
+    setDependenciesLoading(true);
+    setDependenciesReadOnly(true);
+
+    listDependencies({ token: getAccessToken(), tenantId, artifactId, versionId })
+      .then((deps) => {
+        const parent = deps[0];
+        if (!parent) return;
+
+        setDependenciesArtifactId(parent.dependsOnArtifactId);
+        setDependenciesVersionId(parent.dependsOnVersionId);
+
+        return getVersion({
+          token: getAccessToken(),
+          tenantId,
+          artifactId: parent.dependsOnArtifactId,
+          versionId: parent.dependsOnVersionId,
+        }).then(setDependenciesVersion);
+      })
+      .catch((err) => console.error('Error loading parent module:', err))
+      .finally(() => setDependenciesLoading(false));
+  }, [artifact?.type, tenantId, artifactId, versionId, getAccessToken, version]);
+
+  const formats = useMemo(() => (artifact ? getFormats(artifact.type) : []), [artifact]);
 
   useEffect(() => {
     if (formats.length > 0 && !formats.includes(activeTab)) {
       setActiveTab(formats[0]);
     }
   }, [formats, activeTab]);
-
-  useEffect(() => {
-    if (!tenantId || !artifactId || !versionId) return;
-    setStatus('loading');
-    Promise.all([
-      getArtifact({ token: getAccessToken(), tenantId, artifactId }),
-      getVersion({ token: getAccessToken(), tenantId, artifactId, versionId }),
-    ])
-      .then(([a, v]) => {
-        setArtifactType(a.type);
-        setArtifactTitle(a.title);
-        setVersionLabel(v.version);
-        setVersionState(v.state);
-        setVersion(v);
-
-        const isTsBased = a.type === 'MODULE' || a.type === 'COMPONENT';
-        const jsonBased = a.type === 'FORM' || a.type === 'REQUEST';
-
-        if (isTsBased) {
-          setSourceCode(v.sourceCode ?? getDefaultContent(a.type));
-          setStatus('ready');
-          return;
-        }
-
-        if (!v.payloadRef) {
-          const def = getDefaultContent(a.type);
-          if (jsonBased) {
-            setJsonContent(def);
-          } else {
-            setXmlContent(def);
-          }
-          setStatus('ready');
-          return;
-        }
-        fetch(`/api/tenants/${tenantId}/artifacts/${artifactId}/versions/${versionId}/payload`)
-          .then((res) => {
-            if (!res.ok) {
-              throw new Error(`Failed to fetch payload: ${res.status} ${res.statusText}`);
-            }
-            return res.text();
-          })
-          .then((text) => {
-            if (jsonBased) {
-              setJsonContent(text);
-            } else {
-              setXmlContent(text);
-            }
-            setStatus('ready');
-          })
-          .catch((error) => {
-            console.error('Error fetching payload:', error);
-            setStatus('error');
-          });
-      })
-      .catch(() => setStatus('error'));
-  }, [tenantId, artifactId, versionId, getAccessToken]);
 
   const editorValue = useMemo(() => {
     if (isTypeScriptBased) return sourceCode;
@@ -395,13 +440,18 @@ export function EditorPage() {
           )}
         </div>
 
-        {isTypeScriptBased && version && tenantId && (
+        {isTypeScriptBased && tenantId && (
           <div className="w-80 card overflow-hidden flex flex-col">
             <DependenciesPanel
-              version={version}
+              version={dependenciesVersion}
               tenantId={tenantId}
-              artifactId={artifactId}
-              versionId={versionId}
+              artifactId={dependenciesArtifactId ?? artifactId}
+              versionId={dependenciesVersionId ?? versionId}
+              readOnly={artifactType === 'COMPONENT' || dependenciesReadOnly}
+              loading={artifactType === 'COMPONENT' && dependenciesLoading}
+              onVersionUpdated={(v) => {
+                if (artifactType === 'MODULE') setDependenciesVersion(v);
+              }}
             />
           </div>
         )}
