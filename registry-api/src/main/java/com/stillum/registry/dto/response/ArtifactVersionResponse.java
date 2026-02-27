@@ -13,7 +13,10 @@ public record ArtifactVersionResponse(
         String payloadRef,
         UUID createdBy,
         OffsetDateTime createdAt,
-        String metadata
+        String metadata,
+        String sourceCode,
+        String npmDependencies,
+        String npmPackageRef
 ) {
 
     public static ArtifactVersionResponse from(ArtifactVersion v) {
@@ -25,7 +28,10 @@ public record ArtifactVersionResponse(
                 v.payloadRef,
                 v.createdBy,
                 v.createdAt,
-                v.metadata
+                v.metadata,
+                v.sourceCode,
+                v.npmDependencies,
+                v.npmPackageRef
         );
     }
 }

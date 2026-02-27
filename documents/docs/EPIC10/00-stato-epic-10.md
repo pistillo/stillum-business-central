@@ -8,11 +8,11 @@ sidebar_label: Stato EPIC 10
 
 **Obiettivo dell'EPIC:** Introdurre i tipi di artefatti `MODULE` e `COMPONENT` per consentire la definizione di pools, droplets e triggers tramite codice React effettivo, con editor dedicato, risoluzione dipendenze npm e generazione di pacchetti npm riutilizzabili dal runtime come plugin caricabili.
 
-**Contesto:** Gli artefatti `FORM` restano dedicati alla definizione di interfacce StillumForms basate su JSON Schema. I nuovi artefatti `MODULE` e `COMPONENT` estendono la piattaforma con la possibilità di scrivere codice React, importare librerie npm e produrre pacchetti npm pubblicabili su un registry interno.
+**Contesto:** Gli artefatti `FORM` restano dedicati alla definizione di interfacce StillumForms basate su JSON Schema. I nuovi artefatti `MODULE` e `COMPONENT` estendono la piattaforma con la possibilita di scrivere codice React, importare librerie npm e produrre pacchetti npm pubblicabili su un registry interno (Nexus).
 
 **Dipendenze:** EPIC 2 (Portal UI) e EPIC 6 (Packaging & Distribuzione).
 
-**Stato complessivo:** **Non iniziato** (0%).
+**Stato complessivo:** **In corso** (55%).
 
 ---
 
@@ -20,11 +20,11 @@ sidebar_label: Stato EPIC 10
 
 | FEATURE | Stato | Note |
 |---------|-------|------|
-| **10.1** Backend: Enum, DB e API per MODULE/COMPONENT | 🔴 Non iniziato | Enum già aggiunto nel codice; migrazioni DB e API CRUD da completare |
-| **10.2** Editor React (Monaco + TypeScript) | 🔴 Non iniziato | Editor Monaco presente per XML/JSON; estensione per React/TS da sviluppare |
-| **10.3** Build e Packaging NPM | 🔴 Non iniziato | NPM Build Service e registry interno da progettare |
+| **10.1** Backend: Enum, DB e API per MODULE/COMPONENT | 🟢 Completato | Enum, migrazioni DB, entity, DTOs e API CRUD implementati |
+| **10.2** Editor React (Monaco + TypeScript) | 🟡 In corso (85%) | Monaco TS configurato, DependenciesPanel, NewArtifactPage con API dedicate |
+| **10.3** Build e Packaging NPM | 🟡 In corso (80%) | NPM Build Service implementato, Nexus in docker-compose, integrazione Publisher |
 | **10.4** Runtime: Caricamento Plugin UI | 🔴 Non iniziato | Definire architettura plugin loader |
-| **10.5** Documentazione e Test | 🔴 Non iniziato | Manuali, esempi e test da scrivere |
+| **10.5** Documentazione e Test | 🟡 In corso (40%) | Documentazione architetturale aggiornata, test da completare |
 
 ---
 
@@ -32,54 +32,54 @@ sidebar_label: Stato EPIC 10
 
 ### FEATURE 10.1 – Backend: Enum, DB e API per MODULE/COMPONENT
 
-**Stato (worktree):** 🔴 Non iniziato (5%) — Enum `ArtifactType` già esteso con MODULE e COMPONENT.
+**Stato (worktree):** 🟢 Completato (100%) — Enum, migrazioni DB, entity, DTOs e API CRUD implementati.
 
 #### US-10.1.1 – Estensione modello dati per artefatti React
 
 | Task | Stato | Evidenza |
 |------|-------|----------|
-| T-10.1.1.1 Aggiungere valori MODULE e COMPONENT all'enum ArtifactType | 🟡 | Enum già presente in `ArtifactType.java` |
-| T-10.1.1.2 Creare migrazione DB: campi `source_code`, `npm_dependencies`, `npm_package_ref` su `artifact_version` | 🔴 | |
-| T-10.1.1.3 Aggiornare entity JPA `ArtifactVersion` con i nuovi campi | 🔴 | |
-| T-10.1.1.4 Implementare API CRUD specifiche per MODULE e COMPONENT | 🔴 | |
-| T-10.1.1.5 Gestire relazione Modulo→Componenti via tabella `dependency` | 🔴 | |
-| T-10.1.1.6 Scrivere test unitari e di integrazione per i nuovi endpoint | 🔴 | |
+| T-10.1.1.1 Aggiungere valori MODULE e COMPONENT all'enum ArtifactType | 🟢 | Enum presente in `ArtifactType.java` |
+| T-10.1.1.2 Creare migrazione DB: campi `source_code`, `npm_dependencies`, `npm_package_ref` su `artifact_version` | 🟢 | Migrazione V10 creata e applicata |
+| T-10.1.1.3 Aggiornare entity JPA `ArtifactVersion` con i nuovi campi | 🟢 | Entity aggiornata con sourceCode, npmDependencies, npmPackageRef |
+| T-10.1.1.4 Implementare API CRUD specifiche per MODULE e COMPONENT | 🟢 | Endpoint POST /modules e /components implementati |
+| T-10.1.1.5 Gestire relazione Modulo→Componenti via tabella `dependency` | 🟢 | Validazione COMPONENT→MODULE implementata in ArtifactService |
+| T-10.1.1.6 Scrivere test unitari e di integrazione per i nuovi endpoint | 🟢 | Test ArtifactResourceTest estesi (13 test, tutti passanti) |
 
 ---
 
 ### FEATURE 10.2 – Editor React (Monaco + TypeScript)
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (85%).
 
 #### US-10.2.1 – Editor di codice React con supporto TypeScript
 
 | Task | Stato | Evidenza |
 |------|-------|----------|
-| T-10.2.1.1 Configurare Monaco Editor per linguaggio TypeScript/TSX con IntelliSense | 🔴 | |
-| T-10.2.1.2 Implementare load/save del codice sorgente React da/verso Registry API | 🔴 | |
-| T-10.2.1.3 Integrare campo per selezionare/installare dipendenze npm (autocomplete da registry) | 🔴 | |
-| T-10.2.1.4 Sviluppare wizard di creazione "Nuovo Pool / Droplet / Trigger" | 🔴 | |
-| T-10.2.1.5 Aggiornare NewArtifactPage con opzioni MODULE e COMPONENT | 🔴 | |
-| T-10.2.1.6 Aggiornare CataloguePage con filtri e vista aggregata per MODULE | 🔴 | |
+| T-10.2.1.1 Configurare Monaco Editor per linguaggio TypeScript/TSX con IntelliSense | 🟢 | `EditorPage.tsx`: `configureMonacoForTypeScript()` con React type definitions |
+| T-10.2.1.2 Implementare load/save del codice sorgente React da/verso Registry API | 🟢 | `EditorPage.tsx`: load da `version.sourceCode`, save via `updateVersion()` |
+| T-10.2.1.3 Integrare campo per selezionare/installare dipendenze npm (autocomplete da registry) | 🟢 | `DependenciesPanel.tsx`: ricerca npm, add/remove dipendenze con persistenza |
+| T-10.2.1.4 Sviluppare wizard di creazione "Nuovo Pool / Droplet / Trigger" | 🔴 | Da sviluppare |
+| T-10.2.1.5 Aggiornare NewArtifactPage con opzioni MODULE e COMPONENT | 🟢 | `NewArtifactPage.tsx`: usa `createModule()`/`createComponent()` API dedicate |
+| T-10.2.1.6 Aggiornare CataloguePage con filtri e vista aggregata per MODULE | 🟢 | `CataloguePage.tsx`: filtri per tutti i tipi incluso MODULE/COMPONENT |
 
 ---
 
 ### FEATURE 10.3 – Build e Packaging NPM
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (80%).
 
 #### US-10.3.1 – NPM Build Service
 
 | Task | Stato | Evidenza |
 |------|-------|----------|
-| T-10.3.1.1 Progettare architettura del NPM Build Service (containerizzato, API REST) | 🔴 | |
-| T-10.3.1.2 Implementare risoluzione dipendenze npm e installazione in sandbox | 🔴 | |
-| T-10.3.1.3 Implementare bundling codice React con Vite o Rollup | 🔴 | |
-| T-10.3.1.4 Generare pacchetto npm con manifest, types e bundle | 🔴 | |
-| T-10.3.1.5 Configurare registry npm interno (Verdaccio) e pubblicazione automatica | 🔴 | |
-| T-10.3.1.6 Integrare il Build Service nel flusso del Publisher | 🔴 | |
-| T-10.3.1.7 Aggiornare il Publisher per includere npm_package_ref nel bundle di pubblicazione | 🔴 | |
-| T-10.3.1.8 Scrivere test per il flusso completo di build e pubblicazione | 🔴 | |
+| T-10.3.1.1 Progettare architettura del NPM Build Service (containerizzato, API REST) | 🟢 | `npm-build-service/`: Fastify server con endpoint POST /api/build |
+| T-10.3.1.2 Implementare risoluzione dipendenze npm e installazione in sandbox | 🟢 | `dependency-installer.ts`: npm install --ignore-scripts in temp dir |
+| T-10.3.1.3 Implementare bundling codice React con esbuild | 🟢 | `bundler.ts`: esbuild ESM bundle con externalize react/react-dom |
+| T-10.3.1.4 Generare pacchetto npm con manifest, types e bundle | 🟢 | `project-generator.ts` + `packager.ts`: genera package.json, tsconfig, pubblica |
+| T-10.3.1.5 Configurare registry npm (Nexus) e pubblicazione automatica | 🟢 | Nexus in docker-compose.yml, `.npmrc` generato per ogni build |
+| T-10.3.1.6 Integrare il Build Service nel flusso del Publisher | 🟢 | `PublishService.java`: chiama npm-build-service via REST client |
+| T-10.3.1.7 Aggiornare il Publisher per includere npm_package_ref nel bundle di pubblicazione | 🟢 | `PublishService.java`: manifest include npmPackageRef e npmDependencies |
+| T-10.3.1.8 Scrivere test per il flusso completo di build e pubblicazione | 🔴 | Da scrivere |
 
 ---
 
@@ -102,29 +102,29 @@ sidebar_label: Stato EPIC 10
 
 ### FEATURE 10.5 – Documentazione e Test
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (40%).
 
 #### US-10.5.1 – Documentazione e test end-to-end
 
 | Task | Stato | Evidenza |
 |------|-------|----------|
-| T-10.5.1.1 Aggiornare documentazione architetturale con NPM Build Service e plugin loader | 🔴 | |
+| T-10.5.1.1 Aggiornare documentazione architetturale con NPM Build Service e plugin loader | 🟢 | `04-implementazione.md` aggiornato |
 | T-10.5.1.2 Scrivere guida sviluppatore: come creare un modulo/componente React | 🔴 | |
 | T-10.5.1.3 Aggiornare diagrammi ER, architetturali e roadmap | 🔴 | |
-| T-10.5.1.4 Scrivere test end-to-end per il flusso completo (creazione → edit → build → publish → runtime load) | 🔴 | |
+| T-10.5.1.4 Scrivere test end-to-end per il flusso completo (creazione -> edit -> build -> publish -> runtime load) | 🔴 | |
 | T-10.5.1.5 Documentare come importare e usare le librerie npm generate | 🔴 | |
 
 ---
 
 ## Deliverable attesi (EPIC 10)
 
-| Deliverable | Dove si troverà |
-|-------------|-----------------|
-| Migrazione DB per campi MODULE/COMPONENT | `registry-api/src/main/resources/db/migration/` |
-| API CRUD per MODULE/COMPONENT | `registry-api/src/main/java/.../` |
-| Editor React Monaco con TypeScript | `portal-ui/src/pages/` e `portal-ui/src/components/` |
-| Wizard creazione pool/droplet/trigger | `portal-ui/src/components/` |
-| NPM Build Service | `npm-build-service/` (nuovo progetto) |
-| Configurazione Verdaccio | `charts/verdaccio/` o `docker-compose.yml` |
-| Plugin loader runtime | `portal-ui/src/runtime/` |
-| Documentazione | `documents/docs/` |
+| Deliverable | Dove si trova |
+|-------------|---------------|
+| Migrazione DB per campi MODULE/COMPONENT | `registry-api/src/main/resources/db/migration/V10__*.sql` |
+| API CRUD per MODULE/COMPONENT | `registry-api/src/main/java/.../service/ArtifactService.java` |
+| Editor React Monaco con TypeScript | `portal-ui/src/pages/EditorPage.tsx` e `portal-ui/src/components/DependenciesPanel.tsx` |
+| NPM Build Service | `npm-build-service/` (Fastify + esbuild) |
+| Configurazione Nexus | `docker-compose.yml` (servizio `nexus`) |
+| Integrazione Publisher | `publisher/src/.../service/PublishService.java` + `publisher/src/.../client/NpmBuildClient.java` |
+| Plugin loader runtime | `portal-ui/src/runtime/` (da implementare) |
+| Documentazione | `documents/docs/EPIC10/` |

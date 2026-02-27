@@ -70,16 +70,39 @@ erDiagram
     ARTIFACT_VERSION ||--o{ DEPENDENCY : "1:n dipendenza target"
 ```
 
-## Migrazione DB prevista
+## Migrazione DB implementata
 
 ```sql
--- V10.1__add_module_component_fields.sql
+-- V10__add_module_component_fields.sql
 ALTER TABLE artifact_version
-    ADD COLUMN source_code TEXT,
-    ADD COLUMN npm_dependencies JSONB,
-    ADD COLUMN npm_package_ref VARCHAR(500);
+    ADD COLUMN source_code TEXT;
 
-COMMENT ON COLUMN artifact_version.source_code IS 'Codice sorgente React/TypeScript per artefatti MODULE e COMPONENT';
-COMMENT ON COLUMN artifact_version.npm_dependencies IS 'Mappa JSON delle dipendenze npm (nome→versione) per artefatti MODULE e COMPONENT';
-COMMENT ON COLUMN artifact_version.npm_package_ref IS 'Riferimento al pacchetto npm generato dalla build per artefatti MODULE e COMPONENT';
+ALTER TABLE artifact_version
+    ADD COLUMN npm_dependencies JSONB;
+
+ALTER TABLE artifact_version
+    ADD COLUMN npm_package_ref VARCHAR(500);
 ```
+
+La migrazione è stata creata in `registry-api/src/main/resources/db/migration/V10__add_module_component_fields.sql` e applicata al database.
+
+## API implementate
+
+### Endpoint MODULE
+- `POST /api/tenants/{tenantId}/artifacts/modules` - Crea un nuovo artefatto MODULE
+  - Request body: `CreateModuleRequest(title, description, area, tags)`
+  - Response: `ArtifactResponse` con type = MODULE
+  - Crea automaticamente una versione iniziale "0.1.0"
+
+### Endpoint COMPONENT
+- `POST /api/tenants/{tenantId}/artifacts/components` - Crea un nuovo artefatto COMPONENT
+  - Request body: `CreateComponentRequest(title, description, area, tags, parentModuleId)`
+  - Response: `ArtifactResponse` con type = COMPONENT
+  - Validazione: `parentModuleId` deve puntare a un MODULE esistente nello stesso tenant
+  - Crea automaticamente una versione iniziale "0.1.0"
+
+### Validazione COMPONENT→MODULE
+La validazione è implementata in `ArtifactService.createComponent()`:
+- Verifica che il `parentModuleId` esista nel tenant
+- Verifica che l'artefatto padre sia di tipo MODULE
+- Lancia `IllegalArgumentException` se le condizioni non sono soddisfatte

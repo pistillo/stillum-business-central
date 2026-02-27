@@ -25,6 +25,16 @@ export type ArtifactVersion = {
   createdBy?: string | null;
   createdAt?: string;
   metadata?: unknown;
+  sourceCode?: string | null;
+  npmDependencies?: string | null;
+  npmPackageRef?: string | null;
+};
+
+export type Dependency = {
+  id: string;
+  artifactVersionId: string;
+  dependsOnArtifactId: string;
+  dependsOnVersionId: string;
 };
 
 export type PagedResponse<T> = {

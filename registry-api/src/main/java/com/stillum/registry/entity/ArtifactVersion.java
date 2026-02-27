@@ -12,12 +12,14 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "artifact_version")
+@DynamicUpdate
 public class ArtifactVersion extends PanacheEntityBase {
 
     @Id
@@ -48,6 +50,16 @@ public class ArtifactVersion extends PanacheEntityBase {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     public String metadata;
+
+    @Column(name = "source_code")
+    public String sourceCode;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "npm_dependencies", columnDefinition = "jsonb")
+    public String npmDependencies;
+
+    @Column(name = "npm_package_ref")
+    public String npmPackageRef;
 
     @PrePersist
     void prePersist() {

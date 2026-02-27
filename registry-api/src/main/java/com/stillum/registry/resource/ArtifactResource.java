@@ -1,6 +1,8 @@
 package com.stillum.registry.resource;
 
 import com.stillum.registry.dto.request.CreateArtifactRequest;
+import com.stillum.registry.dto.request.CreateComponentRequest;
+import com.stillum.registry.dto.request.CreateModuleRequest;
 import com.stillum.registry.dto.request.UpdateArtifactRequest;
 import com.stillum.registry.dto.response.ArtifactResponse;
 import com.stillum.registry.dto.response.PagedResponse;
@@ -77,5 +79,23 @@ public class ArtifactResource {
             @PathParam("artifactId") UUID artifactId) {
         service.retire(tenantId, artifactId);
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/modules")
+    public Response createModule(
+            @PathParam("tenantId") UUID tenantId,
+            @Valid CreateModuleRequest req) {
+        ArtifactResponse resp = service.createModule(tenantId, req);
+        return Response.status(Response.Status.CREATED).entity(resp).build();
+    }
+
+    @POST
+    @Path("/components")
+    public Response createComponent(
+            @PathParam("tenantId") UUID tenantId,
+            @Valid CreateComponentRequest req) {
+        ArtifactResponse resp = service.createComponent(tenantId, req);
+        return Response.status(Response.Status.CREATED).entity(resp).build();
     }
 }

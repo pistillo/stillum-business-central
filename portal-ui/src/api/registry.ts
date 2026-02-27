@@ -4,6 +4,7 @@ import type {
   ArtifactStatus,
   ArtifactType,
   ArtifactVersion,
+  Dependency,
   Environment,
   PagedResponse,
   PresignedUrlResponse,
@@ -94,13 +95,24 @@ export async function createVersion(params: {
   artifactId: string;
   version: string;
   payloadRef?: string;
+  metadata?: unknown;
+  sourceCode?: string;
+  npmDependencies?: string;
+  npmPackageRef?: string;
 }): Promise<ArtifactVersion> {
   return apiFetch(
     registryUrl(`/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions`),
     {
       method: 'POST',
       token: params.token,
-      body: JSON.stringify({ version: params.version, payloadRef: params.payloadRef }),
+      body: JSON.stringify({
+        version: params.version,
+        payloadRef: params.payloadRef,
+        metadata: params.metadata,
+        sourceCode: params.sourceCode,
+        npmDependencies: params.npmDependencies,
+        npmPackageRef: params.npmPackageRef,
+      }),
     }
   );
 }
@@ -180,4 +192,89 @@ export async function addDependency(params: {
       }),
     }
   );
+}
+
+export async function listDependencies(params: {
+  token: string | null;
+  tenantId: string;
+  artifactId: string;
+  versionId: string;
+}): Promise<Dependency[]> {
+  return apiFetch(
+    registryUrl(
+      `/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions/${params.versionId}/dependencies`
+    ),
+    { token: params.token }
+  );
+}
+
+export async function updateVersion(params: {
+  token: string | null;
+  tenantId: string;
+  artifactId: string;
+  versionId: string;
+  payloadRef?: string;
+  metadata?: unknown;
+  sourceCode?: string;
+  npmDependencies?: string;
+  npmPackageRef?: string;
+}): Promise<ArtifactVersion> {
+  return apiFetch(
+    registryUrl(
+      `/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions/${params.versionId}`
+    ),
+    {
+      method: 'PUT',
+      token: params.token,
+      body: JSON.stringify({
+        payloadRef: params.payloadRef,
+        metadata: params.metadata,
+        sourceCode: params.sourceCode,
+        npmDependencies: params.npmDependencies,
+        npmPackageRef: params.npmPackageRef,
+      }),
+    }
+  );
+}
+
+export async function createModule(params: {
+  token: string | null;
+  tenantId: string;
+  title: string;
+  description?: string;
+  area?: string;
+  tags?: string[];
+}): Promise<Artifact> {
+  return apiFetch(registryUrl(`/tenants/${params.tenantId}/artifacts/modules`), {
+    method: 'POST',
+    token: params.token,
+    body: JSON.stringify({
+      title: params.title,
+      description: params.description,
+      area: params.area,
+      tags: params.tags,
+    }),
+  });
+}
+
+export async function createComponent(params: {
+  token: string | null;
+  tenantId: string;
+  title: string;
+  description?: string;
+  area?: string;
+  tags?: string[];
+  parentModuleId: string;
+}): Promise<Artifact> {
+  return apiFetch(registryUrl(`/tenants/${params.tenantId}/artifacts/components`), {
+    method: 'POST',
+    token: params.token,
+    body: JSON.stringify({
+      title: params.title,
+      description: params.description,
+      area: params.area,
+      tags: params.tags,
+      parentModuleId: params.parentModuleId,
+    }),
+  });
 }
