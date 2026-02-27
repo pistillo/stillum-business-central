@@ -14,13 +14,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: portal-ui/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: portal-ui/pnpm-lock.yaml
+      - name: Enable corepack (pnpm)
+        run: corepack enable
       - name: Install and lint portal-ui
         working-directory: portal-ui
         run: |
-          npm ci
-          npm run lint
+          pnpm install --frozen-lockfile
+          pnpm run lint
 
   lint-backend:
     runs-on: ubuntu-latest
@@ -72,13 +74,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: portal-ui/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: portal-ui/pnpm-lock.yaml
+      - name: Enable corepack (pnpm)
+        run: corepack enable
       - name: Install and build portal-ui
         working-directory: portal-ui
         run: |
-          npm ci
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm run build
       - name: Upload portal-ui build
         uses: actions/upload-artifact@v4
         with:
@@ -149,10 +153,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: portal-ui/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: portal-ui/pnpm-lock.yaml
+      - name: Enable corepack (pnpm)
+        run: corepack enable
       - name: Install and test portal-ui
         working-directory: portal-ui
         run: |
-          npm ci
-          npm run test
+          pnpm install --frozen-lockfile
+          pnpm run test
