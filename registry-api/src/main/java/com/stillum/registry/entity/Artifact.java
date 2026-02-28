@@ -53,6 +53,9 @@ public class Artifact extends PanacheEntityBase {
     @Column(columnDefinition = "text[]")
     public String[] tags;
 
+    @Column(name = "parent_module_id")
+    public UUID parentModuleId;
+
     @Column(name = "created_at", updatable = false)
     public OffsetDateTime createdAt;
 

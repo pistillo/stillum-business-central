@@ -10,10 +10,11 @@ import type { ArtifactType, ArtifactVersion } from '../api/types';
 import {
   getArtifact,
   getVersion,
+  listVersions,
   updateVersion,
   getPayloadUploadUrl,
+  getPayloadDownloadUrl,
   updatePayloadRef,
-  listDependencies,
 } from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
@@ -154,7 +155,7 @@ export function EditorPage() {
     }
   }, [version, isTypeScriptBased, artifact]);
 
-  // Load payload for non-TS artifacts
+  // Load payload for non-TS artifacts via presigned download URL
   useEffect(() => {
     if (!version || !artifact || isTypeScriptBased || !tenantId) return;
 
@@ -165,7 +166,13 @@ export function EditorPage() {
       return;
     }
 
-    fetch(`/api/tenants/${tenantId}/artifacts/${artifactId}/versions/${versionId}/payload`)
+    getPayloadDownloadUrl({
+      token: getAccessToken(),
+      tenantId,
+      artifactId,
+      versionId,
+    })
+      .then(({ url }) => fetch(url))
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch payload');
         return res.text();
@@ -174,49 +181,52 @@ export function EditorPage() {
         if (isJsonBased) setJsonContent(text);
         else setXmlContent(text);
       })
-      .catch((err) => console.error(err));
-  }, [version, isTypeScriptBased, isJsonBased, tenantId, artifactId, versionId, artifact]);
+      .catch((err) => console.error('Error loading payload:', err));
+  }, [
+    version,
+    isTypeScriptBased,
+    isJsonBased,
+    tenantId,
+    artifactId,
+    versionId,
+    artifact,
+    getAccessToken,
+  ]);
 
-  // Load dependencies for COMPONENT
+  // Load dependencies panel for MODULE/COMPONENT
   useEffect(() => {
-    if (artifact?.type !== 'COMPONENT' || !tenantId || !versionId) {
-      if (artifact?.type === 'MODULE' && version) {
-        setDependenciesReadOnly(false);
-        setDependenciesLoading(false);
-        setDependenciesArtifactId(artifactId);
-        setDependenciesVersionId(versionId);
-        setDependenciesVersion(version);
-      } else {
-        setDependenciesReadOnly(false);
-        setDependenciesLoading(false);
-        setDependenciesArtifactId(null);
-        setDependenciesVersionId(null);
-        setDependenciesVersion(null);
-      }
+    if (artifact?.type === 'MODULE' && version) {
+      setDependenciesReadOnly(false);
+      setDependenciesLoading(false);
+      setDependenciesArtifactId(artifactId);
+      setDependenciesVersionId(versionId);
+      setDependenciesVersion(version);
       return;
     }
 
-    setDependenciesLoading(true);
-    setDependenciesReadOnly(true);
+    if (artifact?.type === 'COMPONENT' && artifact.parentModuleId && tenantId) {
+      setDependenciesLoading(true);
+      setDependenciesReadOnly(true);
 
-    listDependencies({ token: getAccessToken(), tenantId, artifactId, versionId })
-      .then((deps) => {
-        const parent = deps[0];
-        if (!parent) return;
+      listVersions({ token: getAccessToken(), tenantId, artifactId: artifact.parentModuleId })
+        .then((versions) => {
+          const parentVersion = versions[0];
+          if (!parentVersion) return;
+          setDependenciesArtifactId(artifact.parentModuleId!);
+          setDependenciesVersionId(parentVersion.id);
+          setDependenciesVersion(parentVersion);
+        })
+        .catch((err) => console.error('Error loading parent module:', err))
+        .finally(() => setDependenciesLoading(false));
+      return;
+    }
 
-        setDependenciesArtifactId(parent.dependsOnArtifactId);
-        setDependenciesVersionId(parent.dependsOnVersionId);
-
-        return getVersion({
-          token: getAccessToken(),
-          tenantId,
-          artifactId: parent.dependsOnArtifactId,
-          versionId: parent.dependsOnVersionId,
-        }).then(setDependenciesVersion);
-      })
-      .catch((err) => console.error('Error loading parent module:', err))
-      .finally(() => setDependenciesLoading(false));
-  }, [artifact?.type, tenantId, artifactId, versionId, getAccessToken, version]);
+    setDependenciesReadOnly(false);
+    setDependenciesLoading(false);
+    setDependenciesArtifactId(null);
+    setDependenciesVersionId(null);
+    setDependenciesVersion(null);
+  }, [artifact, tenantId, artifactId, versionId, getAccessToken, version]);
 
   const formats = useMemo(() => (artifact ? getFormats(artifact.type) : []), [artifact]);
 

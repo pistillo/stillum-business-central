@@ -12,6 +12,7 @@ export type Artifact = {
   status: ArtifactStatus;
   area?: string | null;
   tags?: string[] | null;
+  parentModuleId?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };

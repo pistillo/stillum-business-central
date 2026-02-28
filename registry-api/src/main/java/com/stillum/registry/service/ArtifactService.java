@@ -133,11 +133,8 @@ public class ArtifactService {
             component.tags = req.tags().toArray(new String[0]);
         }
         component.status = ArtifactStatus.DRAFT;
+        component.parentModuleId = parentModule.id;
         repo.persist(component);
-
-        ArtifactVersion parentVersion = versionRepo.findByArtifact(parentModule.id).stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No version found for parent module"));
 
         ArtifactVersion version = new ArtifactVersion();
         version.artifactId = component.id;
