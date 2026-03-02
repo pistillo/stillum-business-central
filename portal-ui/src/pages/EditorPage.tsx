@@ -24,7 +24,8 @@ import { DependenciesPanel } from '../components/DependenciesPanel';
 type EditorFormat = 'json' | 'yaml' | 'xml' | 'stillum-editor' | 'typescript';
 
 function getDefaultContent(type: ArtifactType): string {
-  if (type === 'FORM' || type === 'REQUEST') return '{}';
+  if (type === 'FORM') return '{"name": "newForm", "type": "form-pool"}';
+  if (type === 'REQUEST') return '{}';
   if (type === 'MODULE')
     return 'export default function Module() {\n  return <div>Module</div>;\n}';
   if (type === 'COMPONENT')
