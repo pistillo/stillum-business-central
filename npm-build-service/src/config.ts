@@ -1,3 +1,7 @@
+if (!process.env.NEXUS_PASSWORD) {
+  throw new Error('NEXUS_PASSWORD is required');
+}
+
 export const config = {
   port: parseInt(process.env.PORT ?? '8090', 10),
   nexus: {
@@ -9,7 +13,7 @@ export const config = {
       process.env.NEXUS_NPM_GROUP_URL ??
       'http://localhost:8070/repository/npm-group/',
     username: process.env.NEXUS_USERNAME ?? 'admin',
-    password: process.env.NEXUS_PASSWORD,
+    password: process.env.NEXUS_PASSWORD!,
   },
   build: {
     tempDir: process.env.BUILD_TEMP_DIR ?? '/tmp/stillum-builds',
@@ -19,7 +23,3 @@ export const config = {
   /** Dependencies externalized from the bundle (provided by the host runtime) */
   externalDependencies: ['react', 'react-dom', 'react/jsx-runtime'],
 } as const;
-
-if (!config.nexus.password) {
-  throw new Error('Missing NEXUS_PASSWORD');
-}
