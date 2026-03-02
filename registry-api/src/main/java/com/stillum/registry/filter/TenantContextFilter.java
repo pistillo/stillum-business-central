@@ -28,7 +28,7 @@ public class TenantContextFilter implements ContainerRequestFilter {
                 tenantContext.set(UUID.fromString(values.get(0)));
             } catch (IllegalArgumentException e) {
                 ctx.abortWith(Response.status(Response.Status.BAD_REQUEST)
-                        .type(MediaType.APPLICATION_JSON)
+                        .type(MediaType.APPLICATION_JSON + "; charset=utf-8")
                         .entity(Map.of(
                                 "error", "Invalid tenantId format: " + values.get(0),
                                 "status", Response.Status.BAD_REQUEST.getStatusCode()))
