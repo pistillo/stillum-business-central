@@ -12,13 +12,13 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il 
 
 ### Linguaggi e framework
 
-- **Golang** o **Java/Kotlin** per i microservizi di backend. Entrambi sono linguaggi compilati, con ampio supporto per concurrency e performance. La scelta finale potrà dipendere dalle competenze del team.  
-- **gRPC/REST** per l’esposizione delle API. gRPC è particolarmente indicato per comunicazioni interne tra servizi; REST sarà usato per l’esposizione pubblica verso la UI.
+- **Quarkus (Java 21)**: Framework cloud-native scelto per i microservizi di backend. Quarkus offre avvio rapido, basso consumo di memoria, supporto nativo per Kubernetes e integrazione completa con Java EE/Jakarta. Tutti i microservizi (registry-api, publisher, runtime-gateway) sono implementati con Quarkus.
+- **REST**: Le API sono esposte tramite REST (Quarkus RESTEasy Reactive) per l'integrazione con il frontend e sistemi esterni.
 
 ### Database
 
-- **PostgreSQL**: RDBMS robusto e ricco di funzionalità. Sarà utilizzato per memorizzare tutti i metadati (tenant, utenti, artefatti, versioni, pubblicazioni, istanze, task, audit). La funzionalità di **Row‑Level Security** permetterà l’isolamento dei dati per tenant.  
-- **ORM**: Si prevede l’utilizzo di un ORM come GORM (Golang) o JPA/Hibernate (Java) per facilitare la gestione delle entità e migrazioni del database.
+- **PostgreSQL**: RDBMS robusto e ricco di funzionalità. Sarà utilizzato per memorizzare tutti i metadati (tenant, utenti, artefatti, versioni, pubblicazioni, istanze, task, audit). La funzionalità di **Row‑Level Security** permette l’isolamento dei dati per tenant.  
+- **ORM**: **Hibernate ORM Panache** (Quarkus) per facilitare la gestione delle entità e migrazioni del database. Le migrazioni sono gestite con **Flyway**.
 
 ### Orchestrazione dei workflow
 
@@ -27,8 +27,17 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il 
 
 ### Storage dei payload
 
-- **MinIO**: Implementazione compatibile S3 da eseguire in cluster per ambienti self‑host. Verrà usata per memorizzare i payload XML/JSON degli artefatti.  
+- **MinIO**: Implementazione compatibile S3 da eseguire in cluster per ambienti self‑host. Verrà usata per memorizzare i payload XML/JSON degli artefatti.
 - **Amazon S3**: In ambienti cloud, sarà possibile configurare l’endpoint verso un bucket S3 mantenendo inalterato il codice che accede allo storage.
+
+### NPM Build Service
+
+- **npm-build-service**: Servizio Node.js (Fastify) dedicato alla build di artefatti di tipo MODULE e COMPONENT. Questo servizio:
+  - Risolve le dipendenze npm dichiarate nell'artefatto
+  - Esegue la build tramite esbuild
+  - Genera pacchetti npm riutilizzabili dal runtime
+  - Espone REST API per Publisher e Registry API
+  - Non utilizza npm workspaces nel repository (scelta architetturale per isolamento)
 
 ### Messaging e eventi
 
@@ -38,21 +47,29 @@ Questo documento riassume le scelte tecnologiche adottate nella Fase 0 per il 
 
 ### Linguaggio e framework
 
-- **React**: Libreria per la costruzione dell’interfaccia utente, per la sua diffusione e flessibilità.  
-- **Next.js** (opzionale): Per semplificare routing, rendering lato server e ottimizzazioni.  
-- **shadcn/ui**: Libreria di componenti React basata su Tailwind CSS che offre design coerente e modernità.  
-- **Tailwind CSS**: Sistema di utility‑first CSS che permette di definire stili in maniera efficiente.
+- **React (19.1.0)**: Libreria per la costruzione dell’interfaccia utente, per la sua diffusione e flessibilità.
+- **Vite (5.4.10)**: Build tool per sviluppo rapido e ottimizzazione del bundle (HMR veloce, ottimizzazioni out-of-the-box).
+- **React Router DOM (6.28.0)**: Routing client-side per la navigazione nell'applicazione SPA.
+- **Tailwind CSS (3.4.19)**: Sistema di utility‑first CSS che permette di definire stili in maniera efficiente.
+
+### Librerie UI
+
+- **@tecnosys/erp-design-system (v1.4.0-alpha.4)**: Design system proprietario per componenti enterprise.
+- **@ark-ui/react (5.32.0)**: Libreria di componenti React headless, accessibili e customizzabili.
+- **@dnd-kit (core, sortable, utilities)**: Librerie per drag-and-drop (ordinamento, riordinamento).
 
 ### Editor integrati
 
-- **bpmn.io**: Editor BPMN 2.0 open‑source per la modellazione dei processi.  
-- **dmn.io**: Editor DMN 1.3 per la definizione delle tabelle decisionali.  
-- **StillumForms Editor**: Editor proprietario per la definizione di moduli (basato su JSON Schema e componenti React).  
+- **@tecnosys/stillum-forms-editor**: Editor proprietario per la definizione di moduli (basato su JSON Schema e componenti React).
+- **@tecnosys/stillum-forms-core**: Core library per StillumForms.
+- **@tecnosys/stillum-forms-react**: Componenti React per StillumForms.
+- **@monaco-editor/react (4.7.0)**: Editor Monaco per modifiche testuali (JSON, XML, YAML).
 - **Editor Request**: Editor per definire contratti di servizio (avrà interfaccia JSON/schema).
+- Nota: Gli editor BPMN/DMN verranno introdotti in fasi successive.
 
 ### Gestione dello stato
 
-- **Redux Toolkit** o **Zustand**: Per la gestione centralizzata dello stato nel client. La scelta potrà essere rivalutata in base alle preferenze del team.
+- **Zustand (5.0.11)**: Libreria leggera per la gestione centralizzata dello stato nel client (scelta definitiva).
 
 ## DevOps e CI/CD
 

@@ -85,7 +85,7 @@ Hooks (TanStack Query):
 
 ---
 
-## Editor v0 (Monaco)
+## Editor v0
 
 L’editor v0 implementa un flusso minimale:
 
@@ -94,7 +94,23 @@ L’editor v0 implementa un flusso minimale:
 3. al salvataggio, ottiene presigned upload URL e carica il payload,
 4. aggiorna `payloadRef` della versione.
 
+### Editor Monaco (per payload testuali)
+
+Per artefatti con payload testuali (JSON, XML, YAML), l'editor v0 utilizza **Monaco Editor**:
+
 Implementazione: [EditorPage.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/pages/EditorPage.tsx)
+
+### Editor StillumForms (per artefatti FORM)
+
+Per artefatti di tipo **FORM**, l'implementazione include l'integrazione con **StillumForms Editor**, una libreria proprietaria per la definizione di moduli:
+
+- Libreria: `@tecnosys/stillum-forms-editor` (v1.4.0-alpha.4)
+- Librerie correlate:
+  - `@tecnosys/stillum-forms-core`: Core library per StillumForms
+  - `@tecnosys/stillum-forms-react`: Componenti React per StillumForms
+- Implementazione: [StillumFormsEditorTab.tsx](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/form-editor/components/StillumFormsEditorTab.tsx)
+
+Nota: L'implementazione v0 fornisce editazione base per i form. Validazioni avanzate e funzionalità complete verranno introdotte in iterazioni successive.
 
 ---
 
