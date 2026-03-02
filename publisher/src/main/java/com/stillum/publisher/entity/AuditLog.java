@@ -39,7 +39,7 @@ public class AuditLog extends PanacheEntityBase {
     @Column(name = "actor_id")
     public UUID actorId;
 
-    @Column(name = "timestamp", updatable = false)
+    @Column(name = "timestamp", nullable = false, updatable = false)
     public OffsetDateTime timestamp;
 
     @JdbcTypeCode(SqlTypes.JSON)
