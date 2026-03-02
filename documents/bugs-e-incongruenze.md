@@ -285,30 +285,21 @@ artifactType: 'MODULE' | 'COMPONENT';
 MA in `publisher/src/main/java/com/stillum/publisher/client/NpmBuildRequest.java`:
 
 ```java
-String artifactType;
+NpmArtifactType artifactType;
 ```
 
-Il tipo Java è `String`, non un enum. Questo permette di passare tipi non validi.
+Il publisher ora usa un enum (`NpmArtifactType`) e una conversione/validazione centralizzata, prevenendo tipi non validi.
 
 **Impatto:**
 - Possibile passare tipi non validi al NPM Build Service
 - Errori a runtime invece di compile-time
 
 **Soluzione:**
-Aggiungere validazione nel Publisher prima di chiamare il NPM Build Service:
+Introdurre un enum nel Publisher e validare/convertire prima della call:
 
 ```java
-// In PublishService.publish()
-private void validateArtifactTypeForBuild(String artifactType) {
-    if (!"MODULE".equalsIgnoreCase(artifactType) && !"COMPONENT".equalsIgnoreCase(artifactType)) {
-        throw new IllegalArgumentException(
-            "Artifact type must be MODULE or COMPONENT for npm build: " + artifactType
-        );
-    }
-}
-
 if (isSourceCodeBased) {
-    validateArtifactTypeForBuild(artifact.type);
+    NpmArtifactType type = NpmArtifactType.from(artifact.type);
     // ... resto del codice
 }
 ```
@@ -343,8 +334,7 @@ Aggiornare il docker-compose con i valori corretti:
 
 ```yaml
 NEXUS_USERNAME: ${NEXUS_USERNAME:-admin}
-# Rimuovere il default per la password, o spiegare come ottenerla
-# NEXUS_PASSWORD: ${NEXUS_PASSWORD}
+NEXUS_PASSWORD: ${NEXUS_PASSWORD:?Set NEXUS_PASSWORD (docker exec stillum-nexus cat /nexus-data/admin.password)}
 ```
 
 Aggiungere istruzioni nel README:
@@ -355,7 +345,7 @@ Aggiungere istruzioni nel README:
 Al primo avvio, Nexus genera una password casuale per l'utente admin. Per ottenerla:
 
 ```bash
-docker compose logs nexus | grep "Your admin user password is:"
+docker exec stillum-nexus cat /nexus-data/admin.password
 ```
 
 Copia la password e usala per configurare le variabili d'ambiente:
@@ -394,13 +384,11 @@ Questo importa da un barrel export `form-editor/index.ts` che deve esportare `St
 - Errore di build
 
 **Soluzione:**
-Verificare che l'export sia presente nel barrel:
+Verificato che l'export è presente nel barrel:
 
 ```typescript
 // form-editor/index.ts
 export { StillumFormsEditorTab } from './components/StillumFormsEditorTab';
-export { default as StillumFormsEditor } from './components/StillumFormsEditor';
-// ... altri export
 ```
 
 **Benefici:**
@@ -527,9 +515,9 @@ I seguenti elementi sono stati verificati e non presentano problemi:
 | 4. Runtime Gateway healthcheck path | 🔴 Alta | Healthcheck fallisce | ✅ Risolto |
 | 5. Extension `.tsx` vs `.ts` | ⚠️ Media | Confusione, ma funzionale | ✅ Risolto |
 | 6. DependenciesPanel type inconsistency | ⚠️ Media | Type safety, parsing | ✅ Risolto |
-| 7. BuildRequest type | ℹ️ Bassa | Validazione aggiuntiva | 🔧 Opzionale |
-| 8. Nexus defaults | ℹ️ Bassa | Solo docker-compose.full | 🔧 Da risolvere |
-| 9. StillumFormsEditorTab import | ℹ️ Bassa | Verifica export | ✅ Verificare |
+| 7. BuildRequest type | ℹ️ Bassa | Validazione aggiuntiva | ✅ Risolto |
+| 8. Nexus defaults | ℹ️ Bassa | Solo docker-compose.full | ✅ Risolto |
+| 9. StillumFormsEditorTab import | ℹ️ Bassa | Verifica export | ✅ Risolto |
 | 10. TypeScript definitions incomplete | ℹ️ Bassa | UX developer | 🔧 Da risolvere |
 | 11. CI Nexus | ℹ️ Bassa | Solo per test futuri | 🔧 Opzionale |
 

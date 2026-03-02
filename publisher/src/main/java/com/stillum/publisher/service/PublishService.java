@@ -1,6 +1,7 @@
 package com.stillum.publisher.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stillum.publisher.client.NpmArtifactType;
 import com.stillum.publisher.client.NpmBuildClient;
 import com.stillum.publisher.client.NpmBuildRequest;
 import com.stillum.publisher.client.NpmBuildResponse;
@@ -228,7 +229,7 @@ public class PublishService {
                         artifact.id.toString(),
                         version.id.toString(),
                         artifact.title,
-                        artifact.type,
+                        NpmArtifactType.from(artifact.type),
                         version.version,
                         version.sourceCode,
                         npmDeps,

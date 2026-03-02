@@ -22,6 +22,29 @@ docker compose up -d
 
 Verificare i servizi con `docker compose ps`. Credenziali e porte in [.env.example](.env.example) (copiare in `.env` se necessario).
 
+## Full stack locale (con servizi applicativi)
+
+Per avviare anche i servizi applicativi (registry-api, publisher, runtime-gateway, portal-ui, npm-build-service):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.full.yml up --build
+```
+
+### Configurazione Nexus (per npm-build-service)
+
+Al primo avvio Nexus genera una password casuale per l'utente `admin`. Per ottenerla:
+
+```bash
+docker exec stillum-nexus cat /nexus-data/admin.password
+```
+
+Impostare poi la variabile d'ambiente e riavviare `npm-build-service`:
+
+```bash
+export NEXUS_PASSWORD=<password_copiata>
+docker compose -f docker-compose.yml -f docker-compose.full.yml up -d npm-build-service
+```
+
 ## Documentazione
 
 La documentazione (piano di sviluppo, EPIC 0, architettura, moduli) è in **documents/**:
