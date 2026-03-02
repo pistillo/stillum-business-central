@@ -43,7 +43,7 @@ services:
     networks:
       - stillum-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8081/q/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,7 +82,7 @@ services:
     networks:
       - stillum-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8082/q/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8082/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -139,7 +139,7 @@ services:
     networks:
       - stillum-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/q/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

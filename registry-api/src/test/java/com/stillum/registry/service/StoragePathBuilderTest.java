@@ -43,4 +43,10 @@ class StoragePathBuilderTest {
         assertEquals("json", StoragePathBuilder.extensionFor("FORM"));
         assertEquals("json", StoragePathBuilder.extensionFor("REQUEST"));
     }
+
+    @Test
+    void extensionFor_moduleAndComponent_returnsTsx() {
+        assertEquals("tsx", StoragePathBuilder.extensionFor("MODULE"));
+        assertEquals("tsx", StoragePathBuilder.extensionFor("COMPONENT"));
+    }
 }

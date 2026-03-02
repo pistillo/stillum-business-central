@@ -1,10 +1,12 @@
 package com.stillum.registry.dto.request;
 
+import java.util.Map;
+
 public record UpdateVersionRequest(
         String payloadRef,
         String metadata,
         String sourceCode,
-        String npmDependencies,
+        Map<String, String> npmDependencies,
         String npmPackageRef
 ) {
 }

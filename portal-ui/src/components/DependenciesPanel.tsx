@@ -33,15 +33,7 @@ export function DependenciesPanel({
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const dependencies: NpmDependencies = (() => {
-    if (!version?.npmDependencies) return {};
-    try {
-      return JSON.parse(version.npmDependencies);
-    } catch (error) {
-      console.error('Error parsing npmDependencies:', error);
-      return {};
-    }
-  })();
+  const dependencies: NpmDependencies = version?.npmDependencies ?? {};
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -85,7 +77,7 @@ export function DependenciesPanel({
         tenantId,
         artifactId,
         versionId,
-        npmDependencies: JSON.stringify(newDeps),
+        npmDependencies: newDeps,
       });
     },
     retry: 2,

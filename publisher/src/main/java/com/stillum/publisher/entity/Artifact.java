@@ -1,8 +1,11 @@
 package com.stillum.publisher.entity;
 
+import com.stillum.publisher.entity.enums.ArtifactStatus;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
@@ -38,8 +41,9 @@ public class Artifact extends PanacheEntityBase {
     @Column(name = "owner_id")
     public UUID ownerId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public String status;
+    public ArtifactStatus status;
 
     public String area;
 
@@ -57,6 +61,9 @@ public class Artifact extends PanacheEntityBase {
     void prePersist() {
         createdAt = OffsetDateTime.now();
         updatedAt = OffsetDateTime.now();
+        if (status == null) {
+            status = ArtifactStatus.DRAFT;
+        }
     }
 
     @PreUpdate
@@ -64,4 +71,3 @@ public class Artifact extends PanacheEntityBase {
         updatedAt = OffsetDateTime.now();
     }
 }
-

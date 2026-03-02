@@ -97,7 +97,7 @@ export async function createVersion(params: {
   payloadRef?: string;
   metadata?: unknown;
   sourceCode?: string;
-  npmDependencies?: string;
+  npmDependencies?: Record<string, string>;
   npmPackageRef?: string;
 }): Promise<ArtifactVersion> {
   return apiFetch(
@@ -216,7 +216,7 @@ export async function updateVersion(params: {
   payloadRef?: string;
   metadata?: unknown;
   sourceCode?: string;
-  npmDependencies?: string;
+  npmDependencies?: Record<string, string>;
   npmPackageRef?: string;
 }): Promise<ArtifactVersion> {
   return apiFetch(

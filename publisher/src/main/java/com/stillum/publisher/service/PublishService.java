@@ -287,8 +287,10 @@ public class PublishService {
                         "SELECT a.id FROM publication p " +
                                 "JOIN artifact_version av ON av.id = p.artifact_version_id " +
                                 "JOIN artifact a ON a.id = av.artifact_id " +
-                                "WHERE p.id = :pid")
+                                "JOIN environment e ON e.id = p.environment_id " +
+                                "WHERE p.id = :pid AND e.tenant_id = :tenantId")
                 .setParameter("pid", publicationId)
+                .setParameter("tenantId", tenantId)
                 .getSingleResult();
 
         return new PublicationResponse(

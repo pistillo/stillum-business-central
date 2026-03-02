@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -56,7 +57,7 @@ public class ArtifactVersion extends PanacheEntityBase {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "npm_dependencies", columnDefinition = "jsonb")
-    public String npmDependencies;
+    public Map<String, String> npmDependencies;
 
     @Column(name = "npm_package_ref")
     public String npmPackageRef;

@@ -27,7 +27,7 @@ export type ArtifactVersion = {
   createdAt?: string;
   metadata?: unknown;
   sourceCode?: string | null;
-  npmDependencies?: string | null;
+  npmDependencies?: Record<string, string> | null;
   npmPackageRef?: string | null;
 };
 
