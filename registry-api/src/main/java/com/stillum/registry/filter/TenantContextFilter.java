@@ -23,8 +23,12 @@ public class TenantContextFilter implements ContainerRequestFilter {
         if (values != null && !values.isEmpty()) {
             try {
                 tenantContext.set(UUID.fromString(values.get(0)));
-            } catch (IllegalArgumentException ignored) {
-                // Tenant ID non valido – lasciamo che il resource method gestisca il 400
+            } catch (IllegalArgumentException e) {
+                // Se il tenantId è presente nel path ma non è un UUID valido,
+                // falliamo immediatamente invece di lasciare che la richiesta prosegua.
+                ctx.abortWith(jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.BAD_REQUEST)
+                        .entity("Invalid tenantId format: " + values.get(0))
+                        .build());
             }
         }
     }

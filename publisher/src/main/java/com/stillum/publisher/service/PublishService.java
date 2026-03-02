@@ -12,6 +12,7 @@ import com.stillum.publisher.entity.ArtifactVersion;
 import com.stillum.publisher.entity.Dependency;
 import com.stillum.publisher.entity.Environment;
 import com.stillum.publisher.entity.Publication;
+import com.stillum.publisher.entity.enums.VersionState;
 import com.stillum.publisher.exception.ConflictException;
 import com.stillum.publisher.exception.NotFoundException;
 import com.stillum.publisher.filter.EnforceTenantRls;
@@ -87,15 +88,15 @@ public class PublishService {
             ArtifactVersion version = versionRepo.findByIdAndArtifact(req.versionId(), req.artifactId())
                     .orElseThrow(() -> new NotFoundException("Version not found: " + req.versionId()));
 
-            if ("PROD".equalsIgnoreCase(env.name) && !"APPROVED".equalsIgnoreCase(version.state)) {
+            if ("PROD".equalsIgnoreCase(env.name) && version.state != VersionState.APPROVED) {
                 throw new ConflictException("Cannot publish to PROD unless version is APPROVED: " + version.id);
             }
 
-            if ("PUBLISHED".equalsIgnoreCase(version.state)) {
+            if (version.state == VersionState.PUBLISHED) {
                 throw new ConflictException("Version is already published: " + version.id);
             }
 
-            boolean isSourceCodeBased = StoragePathBuilder.isSourceCodeBased(artifact.type);
+            boolean isSourceCodeBased = StoragePathBuilder.isSourceCodeBased(artifact.type.name());
 
             // MODULE/COMPONENT use sourceCode; other types use payloadRef from S3
             if (!isSourceCodeBased && (version.payloadRef == null || version.payloadRef.isBlank())) {
@@ -105,13 +106,13 @@ public class PublishService {
                 throw new ConflictException("Version has no sourceCode: " + version.id);
             }
 
-            String bundleKey = StoragePathBuilder.bundleKey(tenantId, artifact.type, artifact.id, version.id);
+            String bundleKey = StoragePathBuilder.bundleKey(tenantId, artifact.type.name(), artifact.id, version.id);
             if (s3.exists(s3.getBundlesBucket(), bundleKey)) {
                 throw new ConflictException("Bundle already exists: " + bundleKey);
             }
 
             List<BundleFile> files = new ArrayList<>();
-            String rootExt = StoragePathBuilder.extensionFor(artifact.type);
+            String rootExt = StoragePathBuilder.extensionFor(artifact.type.name());
 
             if (isSourceCodeBased) {
                 // MODULE/COMPONENT: use sourceCode from DB as bundle content
@@ -121,19 +122,19 @@ public class PublishService {
                         "artifact/" + artifact.id + "/" + version.id + "." + rootExt,
                         artifact.id,
                         version.id,
-                        artifact.type,
+                        artifact.type.name(),
                         sourceRef,
                         rootBytes
                 ));
             } else {
                 // Standard flow: download payload from S3
                 byte[] rootBytes = s3.downloadBytes(s3.getArtifactsBucket(), version.payloadRef);
-                validatePayload(artifact.type, rootBytes);
+                validatePayload(artifact.type.name(), rootBytes);
                 files.add(new BundleFile(
                         "artifact/" + artifact.id + "/" + version.id + "." + rootExt,
                         artifact.id,
                         version.id,
-                        artifact.type,
+                        artifact.type.name(),
                         version.payloadRef,
                         rootBytes
                 ));
@@ -150,31 +151,31 @@ public class PublishService {
                         .orElseThrow(() -> new NotFoundException(
                                 "Dependency version not found: " + dep.dependsOnVersionId));
 
-                boolean depIsSourceCodeBased = StoragePathBuilder.isSourceCodeBased(depArtifact.type);
+                boolean depIsSourceCodeBased = StoragePathBuilder.isSourceCodeBased(depArtifact.type.name());
 
                 if (!depIsSourceCodeBased) {
                     // Standard dependency: must be published with payloadRef
-                    if (!"PUBLISHED".equalsIgnoreCase(depVersion.state)) {
+                    if (depVersion.state != VersionState.PUBLISHED) {
                         throw new ConflictException("Dependency version not published: " + depVersion.id);
                     }
                     if (depVersion.payloadRef == null || depVersion.payloadRef.isBlank()) {
                         throw new ConflictException("Dependency has no payloadRef: " + depVersion.id);
                     }
 
-                    String ext = StoragePathBuilder.extensionFor(depArtifact.type);
+                    String ext = StoragePathBuilder.extensionFor(depArtifact.type.name());
                     byte[] bytes = s3.downloadBytes(s3.getArtifactsBucket(), depVersion.payloadRef);
-                    validatePayload(depArtifact.type, bytes);
+                    validatePayload(depArtifact.type.name(), bytes);
                     files.add(new BundleFile(
                             "dependency/" + depArtifact.id + "/" + depVersion.id + "." + ext,
                             depArtifact.id,
                             depVersion.id,
-                            depArtifact.type,
+                            depArtifact.type.name(),
                             depVersion.payloadRef,
                             bytes
                     ));
                 } else {
                     // MODULE/COMPONENT dependency: include sourceCode
-                    String ext = StoragePathBuilder.extensionFor(depArtifact.type);
+                    String ext = StoragePathBuilder.extensionFor(depArtifact.type.name());
                     byte[] bytes = depVersion.sourceCode != null
                             ? depVersion.sourceCode.getBytes(java.nio.charset.StandardCharsets.UTF_8)
                             : new byte[0];
@@ -183,7 +184,7 @@ public class PublishService {
                             "dependency/" + depArtifact.id + "/" + depVersion.id + "." + ext,
                             depArtifact.id,
                             depVersion.id,
-                            depArtifact.type,
+                            depArtifact.type.name(),
                             sourceRef,
                             bytes
                     ));
@@ -202,7 +203,7 @@ public class PublishService {
                                     dep.dependsOnArtifactId).orElse(null)
                             : null;
                     if (depArtifact != null && depVersion != null
-                            && StoragePathBuilder.isSourceCodeBased(depArtifact.type)
+                            && StoragePathBuilder.isSourceCodeBased(depArtifact.type.name())
                             && depVersion.sourceCode != null) {
                         componentSources.add(new NpmBuildRequest.ComponentSource(
                                 depArtifact.id.toString(),
@@ -211,25 +212,16 @@ public class PublishService {
                     }
                 }
 
-                Map<String, String> npmDeps = Map.of();
-                if (version.npmDependencies != null) {
-                    try {
-                        @SuppressWarnings("unchecked")
-                        Map<String, String> parsed = mapper.readValue(
-                                version.npmDependencies, Map.class);
-                        npmDeps = parsed;
-                    } catch (Exception e) {
-                        throw new RuntimeException(
-                                "Invalid npmDependencies JSON", e);
-                    }
-                }
+                Map<String, String> npmDeps = version.npmDependencies != null
+                        ? version.npmDependencies
+                        : Map.of();
 
                 NpmBuildRequest buildReq = new NpmBuildRequest(
                         tenantId.toString(),
                         artifact.id.toString(),
                         version.id.toString(),
                         artifact.title,
-                        NpmArtifactType.from(artifact.type),
+                        NpmArtifactType.from(artifact.type.name()),
                         version.version,
                         version.sourceCode,
                         npmDeps,
@@ -257,7 +249,7 @@ public class PublishService {
             pub.bundleRef = bundleKey;
             publicationRepo.persist(pub);
 
-            version.state = "PUBLISHED";
+            version.state = VersionState.PUBLISHED;
 
             audit.publishSuccess(tenantId, pub.id, artifact.id, version.id, req.environmentId(), bundleKey);
             return new PublicationResponse(
@@ -335,7 +327,7 @@ public class PublishService {
             if (version.npmPackageRef != null && !version.npmPackageRef.isBlank()) {
                 manifest.put("npmPackageRef", version.npmPackageRef);
             }
-            if (version.npmDependencies != null && !version.npmDependencies.isBlank()) {
+            if (version.npmDependencies != null && !version.npmDependencies.isEmpty()) {
                 manifest.put("npmDependencies", version.npmDependencies);
             }
             byte[] manifestBytes = mapper.writeValueAsBytes(manifest);

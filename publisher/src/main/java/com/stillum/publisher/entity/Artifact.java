@@ -1,6 +1,7 @@
 package com.stillum.publisher.entity;
 
 import com.stillum.publisher.entity.enums.ArtifactStatus;
+import com.stillum.publisher.entity.enums.ArtifactType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,8 +31,9 @@ public class Artifact extends PanacheEntityBase {
     @Column(name = "tenant_id", nullable = false)
     public UUID tenantId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public String type;
+    public ArtifactType type;
 
     @Column(nullable = false)
     public String title;
