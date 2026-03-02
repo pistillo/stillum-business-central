@@ -8,6 +8,7 @@ La roadmap della piattaforma prevede diverse estensioni e miglioramenti oltre al
 
 ## Possibili estensioni
 
+- **Artefatti UI React e Packaging NPM**: introduzione dei tipi `MODULE` e `COMPONENT` per definire pools, droplets e triggers tramite codice React, con editor Monaco/TypeScript, risoluzione dipendenze npm e generazione di pacchetti npm riutilizzabili dal runtime come plugin caricabili (vedi EPIC 10).
 - **Marketplace di Template**: una libreria di processi, regole e moduli predefiniti che gli utenti possono importare e adattare.
 - **Diff e confronto versioni**: strumenti visuali per confrontare due versioni di un artefatto e visualizzare le differenze.
 - **Monitoraggio SLA**: definizione e controllo di accordi di servizio sui processi con alert su ritardi o violazioni.

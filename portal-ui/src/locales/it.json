@@ -44,12 +44,14 @@
     "PROCESS": "BPMN",
     "RULE": "DMN",
     "FORM": "Form",
-    "REQUEST": "Request"
+    "REQUEST": "Request",
+    "MODULE": "Modulo",
+    "COMPONENT": "Componente"
   },
 
   "login": {
     "appTitle": "Stillum Business Central",
-    "appDescription": "Gestisci processi, regole decisionali, form e request in un unico portale centralizzato.",
+    "appDescription": "Gestisci processi, regole decisionali, form, request, moduli e componenti in un unico portale centralizzato.",
     "welcome": "Benvenuto",
     "loginPrompt": "Accedi con le tue credenziali per continuare.",
     "ssoButton": "Accedi con SSO",
@@ -130,6 +132,11 @@
     "typeRuleDesc": "Regola decisionale in formato XML/DMN",
     "typeFormDesc": "Definizione di form in formato JSON",
     "typeRequestDesc": "Definizione di request in formato JSON",
+    "typeModuleDesc": "Definizione di modulo UI in formato JSON",
+    "typeComponentDesc": "Definizione di componente UI in formato JSON",
+    "parentModuleLabel": "Modulo padre",
+    "parentModuleNone": "— Nessun modulo padre —",
+    "parentModuleHint": "Collega opzionalmente questo componente a un modulo.",
     "titleLabel": "Titolo",
     "titlePlaceholder": "es. Processo approvazione ordini",
     "areaLabel": "Area",

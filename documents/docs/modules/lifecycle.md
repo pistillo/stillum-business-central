@@ -4,7 +4,7 @@ title: Ciclo di Vita degli Artefatti
 sidebar_label: Ciclo di Vita
 ---
 
-Ogni artefatto (processo, regola, modulo, request) attraversa un ciclo di vita con stati distinti.
+Ogni artefatto (processo, regola, form, request, modulo UI, componente UI) attraversa un ciclo di vita con stati distinti.
 
 ## Stati
 
@@ -32,3 +32,9 @@ Nota: la pubblicazione avviene su un ambiente (`Environment`) e viene tracciata 
 - Gli stati esistono a modello (`DRAFT/REVIEW/APPROVED/PUBLISHED/RETIRED`), ma l’enforcement applicativo completo delle transizioni è previsto nelle fasi successive.
 - L’immutabilità è applicata sulle versioni `PUBLISHED` (non modificabili via API/UI).
 - Guard-rail di sicurezza: publish verso ambiente `PROD` consentito solo se la versione è `APPROVED`.
+
+### Note specifiche per MODULE e COMPONENT
+
+- Per gli artefatti `MODULE` e `COMPONENT`, la transizione a `PUBLISHED` richiede inoltre la build del pacchetto npm (compilazione del codice React, risoluzione dipendenze npm, generazione del bundle).
+- Un `COMPONENT` può essere pubblicato autonomamente, ma il pacchetto npm del `MODULE` padre verrà rigenerato per includere il componente aggiornato.
+- La pipeline di build produce un `npm_package_ref` che viene memorizzato nella versione pubblicata e reso disponibile al runtime come plugin caricabile.

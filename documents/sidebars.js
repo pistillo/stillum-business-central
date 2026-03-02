@@ -39,6 +39,18 @@ module.exports = {
             'EPIC2/epic2-requisiti',
             'EPIC2/epic2-modello-dati',
             'EPIC2/epic2-implementazione',
+            'EPIC2/epic2-form-editor-blueprint',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'EPIC 10 – Artefatti UI React e Packaging NPM',
+          items: [
+            'EPIC10/epic10-stato',
+            'EPIC10/epic10-obiettivo',
+            'EPIC10/epic10-requisiti',
+            'EPIC10/epic10-modello-dati',
+            'EPIC10/epic10-implementazione',
           ],
         },
         {

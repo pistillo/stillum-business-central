@@ -17,6 +17,7 @@ public record ArtifactResponse(
         ArtifactStatus status,
         String area,
         List<String> tags,
+        UUID parentModuleId,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
@@ -32,6 +33,7 @@ public record ArtifactResponse(
                 a.status,
                 a.area,
                 a.tags != null ? List.of(a.tags) : List.of(),
+                a.parentModuleId,
                 a.createdAt,
                 a.updatedAt
         );

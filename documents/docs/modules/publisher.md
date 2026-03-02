@@ -8,10 +8,11 @@ Il **Publisher** svolge il ruolo di “gatekeeper” tra la fase di design e l�
 
 ## Funzioni
 
-- **Validazione**: controlla la sintassi e la coerenza degli artefatti (BPMN, DMN, moduli) e segnala errori prima della pubblicazione.
-- **Risoluzione dipendenze**: assicura che tutte le versioni referenziate siano nello stato corretto (tipicamente `PUBLISHED`) e segnala versioni mancanti/non pubblicate.
+- **Validazione**: controlla la sintassi e la coerenza degli artefatti (BPMN, DMN, form, request, moduli UI, componenti UI) e segnala errori prima della pubblicazione.
+- **Risoluzione dipendenze**: assicura che tutte le versioni referenziate siano nello stato corretto (tipicamente `PUBLISHED`) e segnala versioni mancanti/non pubblicate. Per i `MODULE`, risolve l’intero grafo Modulo→Componenti.
 - **Creazione bundle**: produce un pacchetto immutabile che comprende il processo e tutti i riferimenti alle versioni dipendenti.
-- **Registrazione pubblicazione**: persiste una `Publication` associata a `environmentId` e aggiorna lo stato della versione a `PUBLISHED` nel database.
+- **Build pacchetti npm** (per MODULE/COMPONENT): compila il codice sorgente React, risolve le dipendenze npm e genera un pacchetto npm pubblicabile su un registry interno (es. tramite Vite o Rollup). Il pacchetto viene incluso nel bundle di pubblicazione.
+- **Registrazione pubblicazione**: persiste una `Publication` associata a `environmentId` e aggiorna lo stato della versione a `PUBLISHED` nel database; per MODULE/COMPONENT, salva anche il riferimento al pacchetto npm generato (`npm_package_ref`).
 - **Notifiche**: notifica agli interessati l’avvenuta pubblicazione (via UI o email).
 
 ## Flusso di lavoro

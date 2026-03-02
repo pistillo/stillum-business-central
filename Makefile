@@ -1,4 +1,4 @@
-.PHONY: infra dev-registry dev-publisher dev-gateway dev-ui full-stack down logs help
+.PHONY: infra dev-registry dev-publisher dev-gateway dev-ui dev-build-service full-stack down logs help
 
 ## ─── Infrastruttura ────────────────────────────────────────────────────────
 
@@ -21,6 +21,9 @@ dev-gateway:  ## Avvia runtime-gateway in Quarkus dev mode (porta 8080)
 
 dev-ui:  ## Avvia portal-ui in modalità sviluppo Vite (porta 5173)
 	cd portal-ui && npm run dev
+
+dev-build-service:  ## Avvia npm-build-service in dev mode (porta 8090)
+	cd npm-build-service && npm run dev
 
 ## ─── Full-stack (tutti i container) ────────────────────────────────────────
 
@@ -46,6 +49,9 @@ test-publisher:  ## Esegue i test del publisher
 
 test-ui:  ## Esegue i test del portal-ui
 	cd portal-ui && npm test
+
+test-build-service:  ## Esegue i test del npm-build-service
+	cd npm-build-service && npm test
 
 help:  ## Mostra questo messaggio di aiuto
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \

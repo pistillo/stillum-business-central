@@ -162,4 +162,86 @@ class ArtifactResourceTest {
             .statusCode(200)
             .body("status", is("RETIRED"));
     }
+
+    @Test
+    void createModule_validRequest_returns201() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Test Module\","
+                + "\"description\":\"Module for testing\","
+                + "\"area\":\"UI\","
+                + "\"tags\":[\"react\",\"test\"]}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .body("id", notNullValue())
+            .body("title", is("Test Module"))
+            .body("type", is("MODULE"))
+            .body("status", is("DRAFT"))
+            .body("tenantId", is(TENANT_ID));
+    }
+
+    @Test
+    void createModule_missingTitle_returns400() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"description\":\"No title\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void createComponent_validRequest_returns201() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Parent Module\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Test Component\","
+                + "\"description\":\"Component for testing\","
+                + "\"area\":\"UI\","
+                + "\"tags\":[\"react\",\"test\"],"
+                + "\"parentModuleId\":\"" + moduleId + "\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(201)
+            .body("id", notNullValue())
+            .body("title", is("Test Component"))
+            .body("type", is("COMPONENT"))
+            .body("status", is("DRAFT"))
+            .body("tenantId", is(TENANT_ID));
+    }
+
+    @Test
+    void createComponent_missingParentModuleId_returns400() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Test Component\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void createComponent_nonExistentParentModule_returns400() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Test Component\","
+                + "\"parentModuleId\":\"00000000-9999-0000-0000-000000000000\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(400);
+    }
 }

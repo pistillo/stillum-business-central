@@ -18,6 +18,7 @@ public record ArtifactDetailResponse(
         ArtifactStatus status,
         String area,
         List<String> tags,
+        UUID parentModuleId,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt,
         List<ArtifactVersionResponse> versions
@@ -33,6 +34,7 @@ public record ArtifactDetailResponse(
                 a.status,
                 a.area,
                 a.tags != null ? List.of(a.tags) : List.of(),
+                a.parentModuleId,
                 a.createdAt,
                 a.updatedAt,
                 versions.stream().map(ArtifactVersionResponse::from).toList()

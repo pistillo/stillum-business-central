@@ -1,0 +1,21 @@
+export function generateTsConfig() {
+  return {
+    compilerOptions: {
+      target: 'ES2020',
+      module: 'ESNext',
+      moduleResolution: 'bundler',
+      lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+      jsx: 'react-jsx',
+      strict: true,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      declaration: true,
+      declarationDir: './dist',
+      outDir: './dist',
+      rootDir: './src',
+      isolatedModules: true,
+    },
+    include: ['src'],
+    exclude: ['node_modules', 'dist'],
+  };
+}

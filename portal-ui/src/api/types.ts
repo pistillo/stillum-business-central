@@ -1,4 +1,4 @@
-export type ArtifactType = 'PROCESS' | 'RULE' | 'FORM' | 'REQUEST';
+export type ArtifactType = 'PROCESS' | 'RULE' | 'FORM' | 'REQUEST' | 'MODULE' | 'COMPONENT';
 export type ArtifactStatus = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'RETIRED';
 export type VersionState = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'RETIRED';
 
@@ -12,6 +12,7 @@ export type Artifact = {
   status: ArtifactStatus;
   area?: string | null;
   tags?: string[] | null;
+  parentModuleId?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -25,6 +26,16 @@ export type ArtifactVersion = {
   createdBy?: string | null;
   createdAt?: string;
   metadata?: unknown;
+  sourceCode?: string | null;
+  npmDependencies?: string | null;
+  npmPackageRef?: string | null;
+};
+
+export type Dependency = {
+  id: string;
+  artifactVersionId: string;
+  dependsOnArtifactId: string;
+  dependsOnVersionId: string;
 };
 
 export type PagedResponse<T> = {

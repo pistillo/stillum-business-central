@@ -42,6 +42,9 @@ public class ArtifactVersionService {
         v.version = req.version();
         v.payloadRef = req.payloadRef();
         v.metadata = req.metadata();
+        v.sourceCode = req.sourceCode();
+        v.npmDependencies = req.npmDependencies();
+        v.npmPackageRef = req.npmPackageRef();
         v.state = VersionState.DRAFT;
         versionRepo.persist(v);
         return ArtifactVersionResponse.from(v);
@@ -75,8 +78,21 @@ public class ArtifactVersionService {
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
 
         assertMutable(v);
-        v.payloadRef = req.payloadRef();
-        v.metadata = req.metadata();
+        if (req.payloadRef() != null) {
+            v.payloadRef = req.payloadRef();
+        }
+        if (req.metadata() != null) {
+            v.metadata = req.metadata();
+        }
+        if (req.sourceCode() != null) {
+            v.sourceCode = req.sourceCode();
+        }
+        if (req.npmDependencies() != null) {
+            v.npmDependencies = req.npmDependencies();
+        }
+        if (req.npmPackageRef() != null) {
+            v.npmPackageRef = req.npmPackageRef();
+        }
         return ArtifactVersionResponse.from(v);
     }
 

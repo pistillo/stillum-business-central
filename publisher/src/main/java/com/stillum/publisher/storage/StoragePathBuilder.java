@@ -17,8 +17,13 @@ public final class StoragePathBuilder {
         return switch (artifactType.toUpperCase()) {
             case "PROCESS", "RULE" -> "xml";
             case "FORM", "REQUEST" -> "json";
+            case "MODULE", "COMPONENT" -> "tsx";
             default -> "bin";
         };
+    }
+
+    public static boolean isSourceCodeBased(String artifactType) {
+        return "MODULE".equalsIgnoreCase(artifactType) || "COMPONENT".equalsIgnoreCase(artifactType);
     }
 }
 

@@ -57,7 +57,9 @@ export function SelectTenantPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 dark:bg-brand-900/30">
             <Building2 size={28} className="text-brand-600 dark:text-brand-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('selectTenant.title')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('selectTenant.title')}
+          </h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
             {t('selectTenant.description')}
           </p>

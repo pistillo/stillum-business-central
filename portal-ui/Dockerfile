@@ -2,7 +2,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
+ARG NPM_TOKEN
+ENV NPM_TOKEN=${NPM_TOKEN}
+COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 COPY . .
 

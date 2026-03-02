@@ -2,6 +2,9 @@ package com.stillum.registry.dto.request;
 
 public record UpdateVersionRequest(
         String payloadRef,
-        String metadata
+        String metadata,
+        String sourceCode,
+        String npmDependencies,
+        String npmPackageRef
 ) {
 }

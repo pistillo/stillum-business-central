@@ -18,7 +18,7 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
 ## 🧱 Fase 1 – MVP backend
 
 1. **Registry API**
-   - CRUD per artefatti: processi BPMN, regole DMN, moduli di form e definizioni di request.
+   - CRUD per artefatti: processi BPMN, regole DMN, form StillumForms, definizioni di request, moduli UI React e componenti UI React.
    - Gestione versioning: stato bozza e pubblicato per ogni artefatto.
    - Metadati e ricerca base su titoli, tag e owner.
 2. **Publisher Service**
@@ -115,6 +115,24 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
 3. **Sistema di plugin**
    - Definire un SDK per estendere la piattaforma con moduli custom (es. integrazione CRM, analytics esterne).
    - Implementare la gestione di installazione e aggiornamento dei plugin.
+
+## ⚛️ Fase 10 – Artefatti UI React e Packaging NPM
+
+> *Fase fuori dalla roadmap originale, dipendente da Fase 2 (Portal UI) e Fase 6 (Packaging & distribuzione).*
+
+1. **Backend: supporto MODULE e COMPONENT**
+   - Estendere l’enum `ArtifactType` con `MODULE` e `COMPONENT`; aggiornare migrazioni DB con campi per codice sorgente React e dipendenze npm.
+   - Implementare API CRUD specifiche e gestire la relazione Modulo→Componenti via tabella `dependency`.
+2. **Editor UI React**
+   - Sviluppare un editor di codice React basato su Monaco con supporto TypeScript e IntelliSense.
+   - Wizard di creazione per pool, droplet e trigger con gestione dipendenze npm.
+3. **Build e Packaging NPM**
+   - NPM Build Service: compilazione codice React, risoluzione dipendenze npm, generazione pacchetto npm (Vite/Rollup).
+   - Pubblicazione su registry npm interno (Verdaccio); integrazione con il Publisher.
+4. **Runtime: caricamento plugin**
+   - I pacchetti npm generati vengono consumati dal runtime come plugin caricabili a run‑time.
+5. **Documentazione e test**
+   - Aggiornare manuali, esempi e diagrammi; test unitari/integrativi.
 
 ---
 

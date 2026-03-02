@@ -9,17 +9,19 @@ on:
 jobs:
   lint-frontend:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: portal-ui/pnpm-lock.yaml
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-      - name: Install pnpm
-        run: corepack prepare pnpm@latest --activate
       - name: Install and lint portal-ui
         working-directory: portal-ui
         run: |
@@ -71,17 +73,19 @@ jobs:
   build-frontend:
     needs: [lint-frontend]
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: portal-ui/pnpm-lock.yaml
-      - name: Enable corepack (pnpm)
-        run: corepack enable
-      - name: Install pnpm
-        run: corepack prepare pnpm@latest --activate
       - name: Install and build portal-ui
         working-directory: portal-ui
         run: |
@@ -149,20 +153,35 @@ jobs:
           name: ${{ matrix.service }}-test-results
           path: ${{ matrix.service }}/target/surefire-reports
 
-  test-frontend:
-    needs: build-frontend
+  build-npm-build-service:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: portal-ui/pnpm-lock.yaml
+      - name: Install and build npm-build-service
+        working-directory: npm-build-service
+        run: |
+          npm install
+          npm run build
+
+  test-frontend:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
       - name: Enable corepack (pnpm)
         run: corepack enable
       - name: Install pnpm
         run: corepack prepare pnpm@latest --activate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: portal-ui/pnpm-lock.yaml
       - name: Install and test portal-ui
         working-directory: portal-ui
         run: |

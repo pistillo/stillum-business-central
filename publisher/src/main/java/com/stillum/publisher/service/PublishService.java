@@ -1,6 +1,9 @@
 package com.stillum.publisher.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stillum.publisher.client.NpmBuildClient;
+import com.stillum.publisher.client.NpmBuildRequest;
+import com.stillum.publisher.client.NpmBuildResponse;
 import com.stillum.publisher.dto.request.PublishRequest;
 import com.stillum.publisher.dto.response.PublicationResponse;
 import com.stillum.publisher.entity.Artifact;
@@ -22,6 +25,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import java.io.ByteArrayOutputStream;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
@@ -66,6 +70,10 @@ public class PublishService {
     @Inject
     EntityManager em;
 
+    @Inject
+    @RestClient
+    NpmBuildClient npmBuildClient;
+
     @Transactional
     public PublicationResponse publish(UUID tenantId, PublishRequest req) {
         try {
@@ -86,8 +94,14 @@ public class PublishService {
                 throw new ConflictException("Version is already published: " + version.id);
             }
 
-            if (version.payloadRef == null || version.payloadRef.isBlank()) {
+            boolean isSourceCodeBased = StoragePathBuilder.isSourceCodeBased(artifact.type);
+
+            // MODULE/COMPONENT use sourceCode; other types use payloadRef from S3
+            if (!isSourceCodeBased && (version.payloadRef == null || version.payloadRef.isBlank())) {
                 throw new ConflictException("Version has no payloadRef: " + version.id);
+            }
+            if (isSourceCodeBased && (version.sourceCode == null || version.sourceCode.isBlank())) {
+                throw new ConflictException("Version has no sourceCode: " + version.id);
             }
 
             String bundleKey = StoragePathBuilder.bundleKey(tenantId, artifact.type, artifact.id, version.id);
@@ -97,16 +111,32 @@ public class PublishService {
 
             List<BundleFile> files = new ArrayList<>();
             String rootExt = StoragePathBuilder.extensionFor(artifact.type);
-            byte[] rootBytes = s3.downloadBytes(s3.getArtifactsBucket(), version.payloadRef);
-            validatePayload(artifact.type, rootBytes);
-            files.add(new BundleFile(
-                    "artifact/" + artifact.id + "/" + version.id + "." + rootExt,
-                    artifact.id,
-                    version.id,
-                    artifact.type,
-                    version.payloadRef,
-                    rootBytes
-            ));
+
+            if (isSourceCodeBased) {
+                // MODULE/COMPONENT: use sourceCode from DB as bundle content
+                byte[] rootBytes = version.sourceCode.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                String sourceRef = "sourceCode:" + artifact.id + "/" + version.id;
+                files.add(new BundleFile(
+                        "artifact/" + artifact.id + "/" + version.id + "." + rootExt,
+                        artifact.id,
+                        version.id,
+                        artifact.type,
+                        sourceRef,
+                        rootBytes
+                ));
+            } else {
+                // Standard flow: download payload from S3
+                byte[] rootBytes = s3.downloadBytes(s3.getArtifactsBucket(), version.payloadRef);
+                validatePayload(artifact.type, rootBytes);
+                files.add(new BundleFile(
+                        "artifact/" + artifact.id + "/" + version.id + "." + rootExt,
+                        artifact.id,
+                        version.id,
+                        artifact.type,
+                        version.payloadRef,
+                        rootBytes
+                ));
+            }
 
             List<Dependency> deps = dependencyRepo.findByVersion(version.id);
             for (Dependency dep : deps) {
@@ -119,24 +149,100 @@ public class PublishService {
                         .orElseThrow(() -> new NotFoundException(
                                 "Dependency version not found: " + dep.dependsOnVersionId));
 
-                if (!"PUBLISHED".equalsIgnoreCase(depVersion.state)) {
-                    throw new ConflictException("Dependency version not published: " + depVersion.id);
+                boolean depIsSourceCodeBased = StoragePathBuilder.isSourceCodeBased(depArtifact.type);
+
+                if (!depIsSourceCodeBased) {
+                    // Standard dependency: must be published with payloadRef
+                    if (!"PUBLISHED".equalsIgnoreCase(depVersion.state)) {
+                        throw new ConflictException("Dependency version not published: " + depVersion.id);
+                    }
+                    if (depVersion.payloadRef == null || depVersion.payloadRef.isBlank()) {
+                        throw new ConflictException("Dependency has no payloadRef: " + depVersion.id);
+                    }
+
+                    String ext = StoragePathBuilder.extensionFor(depArtifact.type);
+                    byte[] bytes = s3.downloadBytes(s3.getArtifactsBucket(), depVersion.payloadRef);
+                    validatePayload(depArtifact.type, bytes);
+                    files.add(new BundleFile(
+                            "dependency/" + depArtifact.id + "/" + depVersion.id + "." + ext,
+                            depArtifact.id,
+                            depVersion.id,
+                            depArtifact.type,
+                            depVersion.payloadRef,
+                            bytes
+                    ));
+                } else {
+                    // MODULE/COMPONENT dependency: include sourceCode
+                    String ext = StoragePathBuilder.extensionFor(depArtifact.type);
+                    byte[] bytes = depVersion.sourceCode != null
+                            ? depVersion.sourceCode.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                            : new byte[0];
+                    String sourceRef = "sourceCode:" + depArtifact.id + "/" + depVersion.id;
+                    files.add(new BundleFile(
+                            "dependency/" + depArtifact.id + "/" + depVersion.id + "." + ext,
+                            depArtifact.id,
+                            depVersion.id,
+                            depArtifact.type,
+                            sourceRef,
+                            bytes
+                    ));
                 }
-                if (depVersion.payloadRef == null || depVersion.payloadRef.isBlank()) {
-                    throw new ConflictException("Dependency has no payloadRef: " + depVersion.id);
+            }
+
+            // For MODULE/COMPONENT: trigger npm build service to compile and publish to Nexus
+            if (isSourceCodeBased) {
+                List<NpmBuildRequest.ComponentSource> componentSources = new ArrayList<>();
+                for (Dependency dep : deps) {
+                    Artifact depArtifact = artifactRepo.findByIdAndTenant(dep.dependsOnArtifactId, tenantId)
+                            .orElse(null);
+                    ArtifactVersion depVersion = depArtifact != null
+                            ? versionRepo.findByIdAndArtifact(
+                                    dep.dependsOnVersionId,
+                                    dep.dependsOnArtifactId).orElse(null)
+                            : null;
+                    if (depArtifact != null && depVersion != null
+                            && StoragePathBuilder.isSourceCodeBased(depArtifact.type)
+                            && depVersion.sourceCode != null) {
+                        componentSources.add(new NpmBuildRequest.ComponentSource(
+                                depArtifact.id.toString(),
+                                depArtifact.title,
+                                depVersion.sourceCode));
+                    }
                 }
 
-                String ext = StoragePathBuilder.extensionFor(depArtifact.type);
-                byte[] bytes = s3.downloadBytes(s3.getArtifactsBucket(), depVersion.payloadRef);
-                validatePayload(depArtifact.type, bytes);
-                files.add(new BundleFile(
-                        "dependency/" + depArtifact.id + "/" + depVersion.id + "." + ext,
-                        depArtifact.id,
-                        depVersion.id,
-                        depArtifact.type,
-                        depVersion.payloadRef,
-                        bytes
-                ));
+                Map<String, String> npmDeps = Map.of();
+                if (version.npmDependencies != null) {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        Map<String, String> parsed = mapper.readValue(
+                                version.npmDependencies, Map.class);
+                        npmDeps = parsed;
+                    } catch (Exception e) {
+                        throw new RuntimeException(
+                                "Invalid npmDependencies JSON", e);
+                    }
+                }
+
+                NpmBuildRequest buildReq = new NpmBuildRequest(
+                        tenantId.toString(),
+                        artifact.id.toString(),
+                        version.id.toString(),
+                        artifact.title,
+                        artifact.type,
+                        version.version,
+                        version.sourceCode,
+                        npmDeps,
+                        componentSources.isEmpty() ? null : componentSources);
+
+                NpmBuildResponse buildResp = npmBuildClient.build(buildReq);
+                if (!buildResp.success()) {
+                    throw new RuntimeException("NPM build failed at phase " + buildResp.phase()
+                            + ": " + buildResp.error()
+                            + (buildResp.details() != null ? " - " + buildResp.details() : ""));
+                }
+
+                version.npmPackageRef = buildResp.npmPackageRef();
+                em.flush();
             }
 
             byte[] bundle = buildBundle(tenantId, artifact, version, req, files);
@@ -215,15 +321,20 @@ public class PublishService {
                     ))
                     .toList();
 
-            Map<String, Object> manifest = Map.of(
-                    "tenantId", tenantId,
-                    "artifactId", artifact.id,
-                    "versionId", version.id,
-                    "type", artifact.type,
-                    "environmentId", req.environmentId(),
-                    "publishedAt", OffsetDateTime.now().toString(),
-                    "files", fileEntries
-            );
+            java.util.HashMap<String, Object> manifest = new java.util.HashMap<>();
+            manifest.put("tenantId", tenantId);
+            manifest.put("artifactId", artifact.id);
+            manifest.put("versionId", version.id);
+            manifest.put("type", artifact.type);
+            manifest.put("environmentId", req.environmentId());
+            manifest.put("publishedAt", OffsetDateTime.now().toString());
+            manifest.put("files", fileEntries);
+            if (version.npmPackageRef != null && !version.npmPackageRef.isBlank()) {
+                manifest.put("npmPackageRef", version.npmPackageRef);
+            }
+            if (version.npmDependencies != null && !version.npmDependencies.isBlank()) {
+                manifest.put("npmDependencies", version.npmDependencies);
+            }
             byte[] manifestBytes = mapper.writeValueAsBytes(manifest);
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();

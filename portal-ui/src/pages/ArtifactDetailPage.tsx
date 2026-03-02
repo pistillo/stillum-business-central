@@ -80,7 +80,9 @@ export function ArtifactDetailPage() {
       <div className="card overflow-hidden">
         <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-200 dark:border-slate-700">
           <Code2 size={18} className="text-gray-400 dark:text-slate-500" />
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">{t('artifactDetail.versions')}</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {t('artifactDetail.versions')}
+          </h2>
         </div>
 
         {versions.isLoading && (
