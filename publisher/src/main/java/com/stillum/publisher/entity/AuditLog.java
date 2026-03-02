@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -38,10 +39,17 @@ public class AuditLog extends PanacheEntityBase {
     @Column(name = "actor_id")
     public UUID actorId;
 
-    @Column(name = "timestamp", updatable = false)
+    @Column(name = "timestamp", nullable = false, updatable = false)
     public OffsetDateTime timestamp;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     public JsonNode details;
-}
 
+    @PrePersist
+    void prePersist() {
+        if (timestamp == null) {
+            timestamp = OffsetDateTime.now();
+        }
+    }
+}

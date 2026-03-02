@@ -320,7 +320,7 @@ public class PublishService {
             manifest.put("tenantId", tenantId);
             manifest.put("artifactId", artifact.id);
             manifest.put("versionId", version.id);
-            manifest.put("type", artifact.type);
+            manifest.put("type", artifact.type.name());
             manifest.put("environmentId", req.environmentId());
             manifest.put("publishedAt", OffsetDateTime.now().toString());
             manifest.put("files", fileEntries);

@@ -1,5 +1,6 @@
 package com.stillum.registry.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,7 +44,7 @@ public class AuditLog extends PanacheEntityBase {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    public String details;
+    public JsonNode details;
 
     @PrePersist
     void prePersist() {

@@ -68,7 +68,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.service }}-build
-          path: ${{ matrix.service }}/target/*.jar
+          path: |
+            ${{ matrix.service }}/target/quarkus-app/**
+            ${{ matrix.service }}/target/*-runner.jar
 
   build-frontend:
     needs: [lint-frontend]

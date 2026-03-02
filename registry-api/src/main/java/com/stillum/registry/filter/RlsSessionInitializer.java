@@ -30,21 +30,18 @@ public class RlsSessionInitializer {
     Optional<String> assumeRole;
 
     public void propagate() {
-        // Se assumeRole è configurato, eseguiamo SET LOCAL ROLE
         assumeRole
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .filter(RlsSessionInitializer::isValidRoleName)
             .ifPresent(role -> em.createNativeQuery("SET LOCAL ROLE " + role).executeUpdate());
 
-        // Se siamo qui (interceptor @EnforceTenantRls), il tenantId DEVE essere presente
         if (!tenantContext.isSet()) {
             throw new IllegalArgumentException("tenantId is required for this operation");
         }
 
         var tenantId = tenantContext.get();
 
-        // Verifica defense-in-depth che il tenant esista
         Number tenantCount = (Number) em.createNativeQuery(
                 "SELECT COUNT(1) FROM tenant WHERE id = :tid")
             .setParameter("tid", tenantId)
@@ -53,7 +50,6 @@ public class RlsSessionInitializer {
             throw new ObjectNotFoundException("Tenant not found: " + tenantId);
         }
 
-        // Imposta la GUC per RLS
         em.createNativeQuery(
             "SELECT set_config('app.current_tenant', :tid, true)"
         ).setParameter("tid", tenantId.toString())
