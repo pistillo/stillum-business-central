@@ -6,8 +6,11 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Provider
@@ -23,8 +26,13 @@ public class TenantContextFilter implements ContainerRequestFilter {
         if (values != null && !values.isEmpty()) {
             try {
                 tenantContext.set(UUID.fromString(values.get(0)));
-            } catch (IllegalArgumentException ignored) {
-                // Tenant ID non valido – lasciamo che il resource method gestisca il 400
+            } catch (IllegalArgumentException e) {
+                ctx.abortWith(Response.status(Response.Status.BAD_REQUEST)
+                        .type(MediaType.APPLICATION_JSON + "; charset=utf-8")
+                        .entity(Map.of(
+                                "error", "Invalid tenantId format: " + values.get(0),
+                                "status", Response.Status.BAD_REQUEST.getStatusCode()))
+                        .build());
             }
         }
     }

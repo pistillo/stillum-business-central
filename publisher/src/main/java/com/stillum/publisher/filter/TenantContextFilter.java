@@ -23,9 +23,9 @@ public class TenantContextFilter implements ContainerRequestFilter {
         if (values != null && !values.isEmpty()) {
             try {
                 tenantContext.set(UUID.fromString(values.get(0)));
-            } catch (IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid tenantId: " + values.get(0));
             }
         }
     }
 }
-

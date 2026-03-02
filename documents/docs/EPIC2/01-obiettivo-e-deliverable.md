@@ -18,7 +18,8 @@ L’EPIC 2 abilita quindi un uso reale dei servizi sviluppati in EPIC 1 (Registr
 
 Restano esplicitamente fuori scope:
 
-- editor BPMN/DMN/forms completi (vengono introdotti in iterazioni successive),
+- editor BPMN/DMN completi (vengono introdotti in iterazioni successive),
+- editor forms avanzato con validazioni complete (l'implementazione v0 usa StillumFormsEditor per editazione base),
 - wizard publish avanzato con dipendenze/validazioni dettagliate,
 - workflow di approvazione e ciclo di vita completo (EPIC 3),
 - runtime/task (EPIC 4),

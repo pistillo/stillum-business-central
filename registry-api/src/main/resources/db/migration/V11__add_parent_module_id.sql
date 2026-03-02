@@ -4,7 +4,6 @@ ALTER TABLE artifact
     ADD COLUMN parent_module_id UUID REFERENCES artifact(id) ON DELETE SET NULL;
 
 -- Backfill: ricava il legame da righe già presenti nella tabella dependency
--- (seed V9: COMPONENT 311 -> MODULE 210)
 UPDATE artifact a
 SET parent_module_id = d.depends_on_artifact_id
 FROM dependency d

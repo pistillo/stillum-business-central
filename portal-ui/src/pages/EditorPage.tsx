@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -66,17 +67,63 @@ function yamlToJson(yamlStr: string): string {
   }
 }
 
-const reactTypeDefinitions = `declare module 'react' {
-  export * from 'react';
-  export default React;
+const reactTypeDefinitions = `
+declare namespace React {
+  type Key = string | number;
+  type ReactText = string | number;
+  type ReactChild = ReactElement | ReactText;
+  type ReactNode =
+    | ReactChild
+    | boolean
+    | null
+    | undefined
+    | Iterable<ReactNode>;
+
+  interface Attributes {
+    key?: Key | null;
+  }
+
+  interface Component<P = any, S = any> {
+    props: P;
+    state: S;
+    setState(state: any): void;
+    render(): ReactNode;
+  }
+
+  type JSXElementConstructor<P> =
+    | ((props: P) => ReactElement | null)
+    | (new (props: P) => any);
+
+  interface ReactElement<
+    P = any,
+    T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>,
+  > {
+    type: T;
+    props: P;
+    key: Key | null;
+  }
 }
+
+declare module 'react' {
+  export = React;
+  export as namespace React;
+}
+
+declare module 'react/jsx-runtime' {
+  export const Fragment: any;
+  export function jsx(type: any, props: any, key?: any): any;
+  export function jsxs(type: any, props: any, key?: any): any;
+}
+
 declare namespace JSX {
   interface Element extends React.ReactElement<any, any> {}
-  interface ElementClass extends React.Component<any> {}
+  interface ElementClass extends React.Component<any, any> {}
   interface ElementAttributesProperty { props: {}; }
   interface ElementChildrenAttribute { children: {}; }
-  interface IntrinsicAttributes { [elemName: string]: any; }
-}`;
+  interface IntrinsicAttributes extends React.Attributes {}
+  interface IntrinsicElements { [elemName: string]: any; }
+}
+`;
 
 function configureMonacoForTypeScript(monaco: Monaco) {
   monaco.languages.typescript.typescriptDefaults.addExtraLib(
@@ -86,12 +133,13 @@ function configureMonacoForTypeScript(monaco: Monaco) {
   monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
     target: monaco.languages.typescript.ScriptTarget.ES2020,
     allowNonTsExtensions: true,
-    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-    module: monaco.languages.typescript.ModuleKind.CommonJS,
+    moduleResolution:
+      (monaco.languages.typescript.ModuleResolutionKind as any).Bundler ??
+      monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+    module: monaco.languages.typescript.ModuleKind.ESNext,
     noEmit: true,
     esModuleInterop: true,
-    jsx: monaco.languages.typescript.JsxEmit.React,
-    reactNamespace: 'React',
+    jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
     allowJs: true,
     typeRoots: ['node_modules/@types'],
   });

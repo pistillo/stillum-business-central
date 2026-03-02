@@ -1,13 +1,16 @@
 package com.stillum.publisher.entity;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.stillum.publisher.entity.enums.VersionState;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -31,8 +34,9 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(nullable = false)
     public String version;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public String state;
+    public VersionState state;
 
     @Column(name = "payload_ref")
     public String payloadRef;
@@ -44,14 +48,15 @@ public class ArtifactVersion extends PanacheEntityBase {
     public OffsetDateTime createdAt;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    public JsonNode metadata;
+    @Column(columnDefinition = "jsonb")
+    public String metadata;
 
     @Column(name = "source_code")
     public String sourceCode;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "npm_dependencies", columnDefinition = "jsonb")
-    public String npmDependencies;
+    public Map<String, String> npmDependencies;
 
     @Column(name = "npm_package_ref")
     public String npmPackageRef;

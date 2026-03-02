@@ -1,9 +1,14 @@
 import { config } from '../config';
 
-export type ApiError = {
+export class ApiError extends Error {
   status: number;
-  error: string;
-};
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = 'ApiError';
+  }
+}
 
 export async function apiFetch<T>(
   url: string,
@@ -28,7 +33,7 @@ export async function apiFetch<T>(
     }
     const err = payload as { error?: string } | null;
     const message = typeof err?.error === 'string' ? err.error : `${res.status} ${res.statusText}`;
-    throw { status: res.status, error: message } satisfies ApiError;
+    throw new ApiError(res.status, message);
   }
   return (await res.json()) as T;
 }

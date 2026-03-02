@@ -8,7 +8,7 @@ public record NpmBuildRequest(
         String artifactId,
         String versionId,
         String artifactTitle,
-        String artifactType,
+        NpmArtifactType artifactType,
         String version,
         String sourceCode,
         Map<String, String> npmDependencies,

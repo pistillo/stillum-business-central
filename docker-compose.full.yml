@@ -43,7 +43,7 @@ services:
     networks:
       - stillum-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8081/q/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,7 +82,7 @@ services:
     networks:
       - stillum-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8082/q/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8082/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -101,7 +101,7 @@ services:
       NEXUS_NPM_REGISTRY_URL: http://nexus:8081/repository/npm-hosted/
       NEXUS_NPM_GROUP_URL: http://nexus:8081/repository/npm-group/
       NEXUS_USERNAME: ${NEXUS_USERNAME:-admin}
-      NEXUS_PASSWORD: ${NEXUS_PASSWORD:-admin123}
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:?Set NEXUS_PASSWORD (docker exec stillum-nexus cat /nexus-data/admin.password)}
       BUILD_TEMP_DIR: /tmp/stillum-builds
       BUILD_TIMEOUT_MS: "120000"
       BUILD_MAX_CONCURRENT: "4"
@@ -139,7 +139,7 @@ services:
     networks:
       - stillum-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/q/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

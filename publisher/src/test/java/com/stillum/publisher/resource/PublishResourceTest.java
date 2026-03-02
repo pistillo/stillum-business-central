@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.notNullValue;
 class PublishResourceTest {
 
     static final UUID TENANT_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    static final UUID OTHER_TENANT_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
     static final UUID ENV_DEV = UUID.fromString("00000000-0000-0000-0000-000000000020");
 
     @Inject
@@ -86,6 +87,33 @@ class PublishResourceTest {
     }
 
     @Test
+    void getPublication_failsForOtherTenant() {
+        seedTenant(OTHER_TENANT_ID);
+
+        UUID artifactId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+        String payloadKey = "tenant-" + TENANT_ID + "/artifacts/process/" + artifactId + "/" + versionId + ".xml";
+
+        seedArtifactWithVersion(artifactId, versionId, payloadKey, "DRAFT");
+        s3.uploadBytes(s3.getArtifactsBucket(), payloadKey, "<definitions/>".getBytes(), "application/xml");
+
+        String publicationId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"artifactId\":\"" + artifactId + "\",\"versionId\":\"" + versionId + "\",\"environmentId\":\"" + ENV_DEV + "\",\"notes\":\"r1\"}")
+            .when()
+            .post("/api/tenants/" + TENANT_ID + "/publish")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .when()
+            .get("/api/tenants/" + OTHER_TENANT_ID + "/publish/" + publicationId)
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
     void publish_failsWhenDependencyNotPublished_writesFailureAudit() {
         UUID rootArtifactId = UUID.randomUUID();
         UUID rootVersionId = UUID.randomUUID();
@@ -131,6 +159,31 @@ class PublishResourceTest {
                 .setParameter("tid", TENANT_ID)
                 .getSingleResult()).longValue();
         org.junit.jupiter.api.Assertions.assertEquals(auditBefore + 1, auditAfter);
+    }
+
+    @Test
+    void publish_failsWhenTenantDoesNotExist() {
+        UUID unknownTenantId = UUID.randomUUID();
+        UUID artifactId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"artifactId\":\"" + artifactId + "\",\"versionId\":\"" + versionId + "\",\"environmentId\":\"" + ENV_DEV + "\"}")
+            .when()
+            .post("/api/tenants/" + unknownTenantId + "/publish")
+            .then()
+            .statusCode(404)
+            .body("error", containsString("Tenant not found"));
+    }
+
+    @Transactional
+    void seedTenant(UUID tenantId) {
+        em.createNativeQuery("INSERT INTO tenant (id, name, domain) VALUES (:id, :name, :domain) ON CONFLICT (id) DO NOTHING")
+            .setParameter("id", tenantId)
+            .setParameter("name", "t-" + tenantId)
+            .setParameter("domain", "d-" + tenantId)
+            .executeUpdate();
     }
 
     @Transactional
