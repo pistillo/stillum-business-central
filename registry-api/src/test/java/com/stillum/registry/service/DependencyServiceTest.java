@@ -1,6 +1,7 @@
 package com.stillum.registry.service;
 
 import com.stillum.registry.entity.Dependency;
+import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.exception.DependencyCycleException;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
@@ -67,13 +68,12 @@ class DependencyServiceTest {
         avB.artifactId = artifactId;
         avB.state = VersionState.DRAFT;
         when(versionRepo.findByIdOptional(versionB)).thenReturn(Optional.of(avB));
-
-        when(depRepo.findByVersionAndDependsOn(any(), any())).thenReturn(Optional.empty());
     }
 
     @Test
     void addDependency_noCycle_succeeds() {
         // A→B: no cycle
+        when(depRepo.findByVersionAndDependsOn(any(), any())).thenReturn(Optional.empty());
         when(depRepo.listAll()).thenReturn(List.of());
         doNothing().when(depRepo).persist(any(Dependency.class));
 
@@ -85,6 +85,7 @@ class DependencyServiceTest {
     @Test
     void addDependency_directCycle_throws() {
         // Setup: B→A already exists (via listAll)
+        when(depRepo.findByVersionAndDependsOn(any(), any())).thenReturn(Optional.empty());
         Dependency existing = new Dependency();
         existing.id = UUID.randomUUID();
         existing.artifactVersionId = versionB;
@@ -100,6 +101,7 @@ class DependencyServiceTest {
     @Test
     void addDependency_transitveCycle_throws() {
         // B→C, C→A already exist; adding A→B creates cycle
+        when(depRepo.findByVersionAndDependsOn(any(), any())).thenReturn(Optional.empty());
         Dependency depBC = new Dependency();
         depBC.id = UUID.randomUUID();
         depBC.artifactVersionId = versionB;
@@ -114,6 +116,20 @@ class DependencyServiceTest {
 
         AddDependencyRequest req = new AddDependencyRequest(artifactId, versionB);
         assertThrows(DependencyCycleException.class,
+                () -> service.add(tenantId, artifactId, versionA, req));
+    }
+
+    @Test
+    void addDependency_targetVersionDoesNotMatchArtifact_throws() {
+        UUID otherArtifactId = UUID.randomUUID();
+        ArtifactVersion avB = new ArtifactVersion();
+        avB.id = versionB;
+        avB.artifactId = otherArtifactId;
+        avB.state = VersionState.DRAFT;
+        when(versionRepo.findByIdOptional(versionB)).thenReturn(Optional.of(avB));
+
+        AddDependencyRequest req = new AddDependencyRequest(artifactId, versionB);
+        assertThrows(ArtifactNotFoundException.class,
                 () -> service.add(tenantId, artifactId, versionA, req));
     }
 }

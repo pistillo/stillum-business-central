@@ -54,10 +54,13 @@ public class DependencyService {
         versionRepo.findByIdAndArtifact(versionId, artifactId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
 
-        // Verifica che la versione di destinazione esista
-        versionRepo.findByIdOptional(req.dependsOnVersionId())
+        // Verifica che la versione di destinazione esista e appartenga all'artifact indicato
+        var targetVersion = versionRepo.findByIdOptional(req.dependsOnVersionId())
                 .orElseThrow(() -> new ArtifactNotFoundException(
-                    req.dependsOnArtifactId(), req.dependsOnVersionId()));
+                        req.dependsOnArtifactId(), req.dependsOnVersionId()));
+        if (!targetVersion.artifactId.equals(req.dependsOnArtifactId())) {
+            throw new ArtifactNotFoundException(req.dependsOnArtifactId(), req.dependsOnVersionId());
+        }
 
         // Verifica duplicato
         if (depRepo.findByVersionAndDependsOn(versionId, req.dependsOnVersionId()).isPresent()) {
@@ -79,6 +82,8 @@ public class DependencyService {
     public void remove(UUID tenantId, UUID artifactId, UUID versionId, UUID dependencyId) {
         artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+        versionRepo.findByIdAndArtifact(versionId, artifactId)
+                .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
         Dependency dep = depRepo.findByIdOptional(dependencyId)
                 .orElseThrow(() -> new IllegalArgumentException("Dependency not found: " + dependencyId));
         if (!dep.artifactVersionId.equals(versionId)) {

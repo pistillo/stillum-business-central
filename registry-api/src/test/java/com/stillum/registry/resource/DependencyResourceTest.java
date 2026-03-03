@@ -258,4 +258,73 @@ class DependencyResourceTest {
             .statusCode(404)
             .body("status", is(404));
     }
+
+    @Test
+    void dependencies_mismatchedArtifactAndVersion_returns404() {
+        String a1 = given()
+            .contentType(ContentType.JSON)
+            .body("{\"type\":\"PROCESS\",\"title\":\"A1\"}")
+            .when()
+            .post(ARTIFACTS_A)
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String v1 = given()
+            .contentType(ContentType.JSON)
+            .body("{\"version\":\"1.0.0\"}")
+            .when()
+            .post(ARTIFACTS_A + "/" + a1 + "/versions")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String a2 = given()
+            .contentType(ContentType.JSON)
+            .body("{\"type\":\"PROCESS\",\"title\":\"A2\"}")
+            .when()
+            .post(ARTIFACTS_A)
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String v2 = given()
+            .contentType(ContentType.JSON)
+            .body("{\"version\":\"1.0.0\"}")
+            .when()
+            .post(ARTIFACTS_A + "/" + a2 + "/versions")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String a3 = given()
+            .contentType(ContentType.JSON)
+            .body("{\"type\":\"PROCESS\",\"title\":\"A3\"}")
+            .when()
+            .post(ARTIFACTS_A)
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String v3 = given()
+            .contentType(ContentType.JSON)
+            .body("{\"version\":\"1.0.0\"}")
+            .when()
+            .post(ARTIFACTS_A + "/" + a3 + "/versions")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String base = ARTIFACTS_A + "/" + a1 + "/versions/" + v1 + "/dependencies";
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"dependsOnArtifactId\":\"" + a2 + "\",\"dependsOnVersionId\":\"" + v3 + "\"}")
+            .when()
+            .post(base)
+            .then()
+            .statusCode(404)
+            .body("error", containsString("Artifact version not found"))
+            .body("status", is(404));
+    }
 }
