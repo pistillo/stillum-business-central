@@ -3,9 +3,6 @@
  * Usato nella EditorPage come secondo tab visivo oltre all'editor custom (palette + albero).
  */
 
-import '../styles/stillum-editor.css';
-import '../styles/erp-design-system.css';
-
 import type { ComponentType } from 'react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -13,6 +10,11 @@ import {
   type EditorProps,
   type ThemeMode,
 } from '@tecnosys/stillum-forms-editor';
+import '@tecnosys/erp-design-system';
+
+import '@tecnosys/stillum-forms-editor/styles';
+import '@tecnosys/erp-design-system/styles';
+
 import type { FormDefinition } from '@tecnosys/stillum-forms-core';
 
 // Cast per compatibilità React 18 (portal-ui) vs React 19 (stillum-forms-editor)

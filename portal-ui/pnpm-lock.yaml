@@ -27,17 +27,17 @@ importers:
         specifier: ^5.66.0
         version: 5.90.21(react@19.2.4)
       '@tecnosys/erp-design-system':
-        specifier: ^v1.4.0-alpha.5
-        version: 1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^1.4.0-alpha.8
+        version: 1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tecnosys/stillum-forms-core':
-        specifier: ^v1.4.0-alpha.5
-        version: 1.4.0-alpha.5(i18next@25.8.13(typescript@5.6.3))
+        specifier: ^1.4.0-alpha.8
+        version: 1.4.0-alpha.8(i18next@25.8.13(typescript@5.6.3))
       '@tecnosys/stillum-forms-editor':
-        specifier: ^v1.4.0-alpha.5
-        version: 1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^1.4.0-alpha.8
+        version: 1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tecnosys/stillum-forms-react':
-        specifier: ^v1.4.0-alpha.5
-        version: 1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^1.4.0-alpha.8
+        version: 1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       autoprefixer:
         specifier: ^10.4.24
         version: 10.4.27(postcss@8.5.6)
@@ -756,25 +756,25 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@tecnosys/erp-design-system@1.4.0-alpha.5':
-    resolution: {integrity: sha1-4sZLSOEa3S3HCRUZCs8JmPtgAXQ=}
+  '@tecnosys/erp-design-system@1.4.0-alpha.8':
+    resolution: {integrity: sha1-P4Nlf94CJQcJn8QQEwYuMdLMs+I=}
     peerDependencies:
       react: '>=19'
       react-dom: '>=19'
 
-  '@tecnosys/stillum-forms-core@1.4.0-alpha.5':
-    resolution: {integrity: sha1-AcqsUE/78ROt0V7e1c4bc0eQyn8=}
+  '@tecnosys/stillum-forms-core@1.4.0-alpha.8':
+    resolution: {integrity: sha1-2qdQzgAE3f2TB1NHN0F2xbos3JM=}
     peerDependencies:
       i18next: '>=23.10.0 <26'
 
-  '@tecnosys/stillum-forms-editor@1.4.0-alpha.5':
-    resolution: {integrity: sha1-n7LIWs0mWisqELlihp8h4rRdqIc=}
+  '@tecnosys/stillum-forms-editor@1.4.0-alpha.8':
+    resolution: {integrity: sha1-mMf7l1X3S3/jy09XSAWLrYLqTtA=}
     peerDependencies:
       react: ^19.1.0
       react-dom: ^19.1.0
 
-  '@tecnosys/stillum-forms-react@1.4.0-alpha.5':
-    resolution: {integrity: sha1-yHJc8158hUD5VmraSIDagVKGjB4=}
+  '@tecnosys/stillum-forms-react@1.4.0-alpha.8':
+    resolution: {integrity: sha1-6uxpwsm/HgvfxF6NaWQgXJRkvlk=}
     peerDependencies:
       react: ^19.1.0
       react-dom: ^19.1.0
@@ -3279,10 +3279,10 @@ snapshots:
       '@tanstack/query-core': 5.90.20
       react: 19.2.4
 
-  '@tecnosys/erp-design-system@1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@tecnosys/erp-design-system@1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@tecnosys/stillum-forms-core': 1.4.0-alpha.5(i18next@25.8.13(typescript@5.6.3))
-      '@tecnosys/stillum-forms-react': 1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tecnosys/stillum-forms-core': 1.4.0-alpha.8(i18next@25.8.13(typescript@5.6.3))
+      '@tecnosys/stillum-forms-react': 1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       lucide-react: 0.555.0(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
@@ -3291,7 +3291,7 @@ snapshots:
       - i18next
       - supports-color
 
-  '@tecnosys/stillum-forms-core@1.4.0-alpha.5(i18next@25.8.13(typescript@5.6.3))':
+  '@tecnosys/stillum-forms-core@1.4.0-alpha.8(i18next@25.8.13(typescript@5.6.3))':
     dependencies:
       i18next: 25.8.13(typescript@5.6.3)
       peggy: 3.0.2
@@ -3299,13 +3299,13 @@ snapshots:
       xstate: 5.28.0
       zod: 3.25.76
 
-  '@tecnosys/stillum-forms-editor@1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@tecnosys/stillum-forms-editor@1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@ark-ui/react': 5.34.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@iconify/react': 6.0.2(react@19.2.4)
-      '@tecnosys/erp-design-system': 1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@tecnosys/stillum-forms-core': 1.4.0-alpha.5(i18next@25.8.13(typescript@5.6.3))
-      '@tecnosys/stillum-forms-react': 1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tecnosys/erp-design-system': 1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tecnosys/stillum-forms-core': 1.4.0-alpha.8(i18next@25.8.13(typescript@5.6.3))
+      '@tecnosys/stillum-forms-react': 1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       dot-prop: 10.1.0
       immer: 10.2.0
       react: 19.2.4
@@ -3318,13 +3318,13 @@ snapshots:
       - i18next
       - supports-color
 
-  '@tecnosys/stillum-forms-react@1.4.0-alpha.5(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@tecnosys/stillum-forms-react@1.4.0-alpha.8(@types/react@19.2.14)(i18next@25.8.13(typescript@5.6.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@ark-ui/react': 5.34.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@emotion/react': 11.14.0(@types/react@19.2.14)(react@19.2.4)
       '@fortawesome/fontawesome-free': 7.2.0
       '@iconify/react': 6.0.2(react@19.2.4)
-      '@tecnosys/stillum-forms-core': 1.4.0-alpha.5(i18next@25.8.13(typescript@5.6.3))
+      '@tecnosys/stillum-forms-core': 1.4.0-alpha.8(i18next@25.8.13(typescript@5.6.3))
       '@xstate/react': 6.1.0(@types/react@19.2.14)(react@19.2.4)(xstate@5.28.0)
       bootstrap-icons: 1.13.1
       immer: 10.2.0
