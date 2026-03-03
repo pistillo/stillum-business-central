@@ -159,7 +159,7 @@ export function EditorPage() {
   const [xmlContent, setXmlContent] = useState('');
   const [sourceCode, setSourceCode] = useState('');
   const [artifactType, setArtifactType] = useState<ArtifactType>('PROCESS');
-  const [activeTab, setActiveTab] = useState<EditorFormat>('json');
+  const [activeTab, setActiveTab] = useState<EditorFormat>('stillum-editor');
   const [dependenciesVersion, setDependenciesVersion] = useState<ArtifactVersion | null>(null);
   const [dependenciesArtifactId, setDependenciesArtifactId] = useState<string | null>(null);
   const [dependenciesVersionId, setDependenciesVersionId] = useState<string | null>(null);
@@ -430,7 +430,7 @@ export function EditorPage() {
                     : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'
                 }`}
             >
-              {fmt === 'stillum-editor' ? 'Editor StillumForms' : fmt.toUpperCase()}
+              {fmt === 'stillum-editor' ? 'Designer' : fmt.toUpperCase()}
             </button>
           ))}
           <div className="flex-1" />
