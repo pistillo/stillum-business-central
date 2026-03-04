@@ -1,6 +1,7 @@
 package com.stillum.registry.dto.response;
 
 import com.stillum.registry.entity.ArtifactVersion;
+import com.stillum.registry.entity.BuildSnapshot;
 import com.stillum.registry.entity.enums.VersionState;
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -17,7 +18,8 @@ public record ArtifactVersionResponse(
         String metadata,
         String sourceCode,
         Map<String, String> npmDependencies,
-        String npmPackageRef
+        String npmPackageRef,
+        BuildSnapshot buildSnapshot
 ) {
 
     public static ArtifactVersionResponse from(ArtifactVersion v) {
@@ -32,7 +34,8 @@ public record ArtifactVersionResponse(
                 v.metadata,
                 v.sourceCode,
                 v.npmDependencies,
-                v.npmPackageRef
+                v.npmPackageRef,
+                v.buildSnapshot
         );
     }
 }

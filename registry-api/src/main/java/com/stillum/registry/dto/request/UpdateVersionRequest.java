@@ -1,5 +1,6 @@
 package com.stillum.registry.dto.request;
 
+import com.stillum.registry.entity.BuildSnapshot;
 import java.util.Map;
 
 public record UpdateVersionRequest(
@@ -7,6 +8,7 @@ public record UpdateVersionRequest(
         String metadata,
         String sourceCode,
         Map<String, String> npmDependencies,
-        String npmPackageRef
+        String npmPackageRef,
+        BuildSnapshot buildSnapshot
 ) {
 }

@@ -34,6 +34,9 @@ public class ArtifactService {
     @Inject
     ArtifactVersionRepository versionRepo;
 
+    @Inject
+    ProjectTemplateService templateService;
+
     @Transactional
     public ArtifactResponse create(UUID tenantId, CreateArtifactRequest req) {
         Artifact artifact = new Artifact();
@@ -60,7 +63,8 @@ public class ArtifactService {
             UUID parentModuleId,
             int page,
             int pageSize) {
-        List<ArtifactResponse> items = repo.findByTenant(tenantId, type, status, area, tag, parentModuleId, page, pageSize)
+        List<ArtifactResponse> items = repo
+                .findByTenant(tenantId, type, status, area, tag, parentModuleId, page, pageSize)
                 .stream()
                 .map(ArtifactResponse::from)
                 .toList();
@@ -138,10 +142,14 @@ public class ArtifactService {
         artifact.status = ArtifactStatus.DRAFT;
         repo.persist(artifact);
 
+        var snapshot = templateService.generateSnapshot(
+                req.title(), req.description(), req.port(), req.keywords());
+
         ArtifactVersion version = new ArtifactVersion();
         version.artifactId = artifact.id;
         version.version = "0.1.0";
         version.state = VersionState.DRAFT;
+        version.buildSnapshot = snapshot;
         versionRepo.persist(version);
 
         return ArtifactResponse.from(artifact);

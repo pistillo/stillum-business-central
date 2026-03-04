@@ -1,5 +1,6 @@
 package com.stillum.registry.dto.request;
 
+import com.stillum.registry.entity.BuildSnapshot;
 import jakarta.validation.constraints.NotBlank;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ public record CreateVersionRequest(
         String metadata,
         String sourceCode,
         Map<String, String> npmDependencies,
-        String npmPackageRef
+        String npmPackageRef,
+        BuildSnapshot buildSnapshot
 ) {
 }

@@ -7,6 +7,8 @@ public record CreateModuleRequest(
         @NotBlank String title,
         String description,
         String area,
-        List<String> tags
+        List<String> tags,
+        String port,
+        String keywords
 ) {
 }

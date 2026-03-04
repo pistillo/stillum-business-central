@@ -43,6 +43,7 @@ export function NewArtifactPage() {
 
   const [type, setType] = useState<ArtifactType>('PROCESS');
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [area, setArea] = useState('');
   const [tags, setTags] = useState('');
   const [version, setVersion] = useState('1.0.0');
@@ -83,6 +84,7 @@ export function NewArtifactPage() {
         token: getAccessToken(),
         tenantId,
         title,
+        description: description || undefined,
         area: area || undefined,
         tags: tagList.length ? tagList : undefined,
       };
@@ -211,6 +213,19 @@ export function NewArtifactPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('newArtifact.titlePlaceholder')}
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            {t('newArtifact.descriptionLabel', 'Description')}
+          </label>
+          <input
+            className="input"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={t('newArtifact.descriptionPlaceholder', 'A short description...')}
           />
         </div>
 

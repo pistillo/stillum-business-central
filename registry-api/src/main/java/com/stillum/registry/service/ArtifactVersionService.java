@@ -45,6 +45,7 @@ public class ArtifactVersionService {
         v.sourceCode = req.sourceCode();
         v.npmDependencies = req.npmDependencies();
         v.npmPackageRef = req.npmPackageRef();
+        v.buildSnapshot = req.buildSnapshot();
         v.state = VersionState.DRAFT;
         versionRepo.persist(v);
         return ArtifactVersionResponse.from(v);
@@ -92,6 +93,9 @@ public class ArtifactVersionService {
         }
         if (req.npmPackageRef() != null) {
             v.npmPackageRef = req.npmPackageRef();
+        }
+        if (req.buildSnapshot() != null) {
+            v.buildSnapshot = req.buildSnapshot();
         }
         return ArtifactVersionResponse.from(v);
     }

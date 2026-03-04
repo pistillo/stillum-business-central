@@ -62,6 +62,10 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(name = "npm_package_ref")
     public String npmPackageRef;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "build_snapshot", columnDefinition = "jsonb")
+    public BuildSnapshot buildSnapshot;
+
     @PrePersist
     void prePersist() {
         createdAt = OffsetDateTime.now();

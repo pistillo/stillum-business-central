@@ -1,0 +1,10 @@
+{
+  "templateVersion": "1.0.0",
+  "description": "Template di progetto per moduli StillumForms",
+  "inputs": {
+    "name": { "required": true,  "description": "Nome del catalogo (es: my-awesome-components)" },
+    "description": { "required": true,  "description": "Descrizione del catalogo" },
+    "port": { "required": false, "default": "5002", "description": "Porta per il development server" },
+    "keywords": { "required": false, "default": "",  "description": "Keywords separate da virgola" }
+  }
+}
