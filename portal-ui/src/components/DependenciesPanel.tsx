@@ -5,8 +5,21 @@ import { useTranslation } from 'react-i18next';
 import { updateVersion } from '../api/registry';
 import type { ArtifactVersion } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
+import { config } from '../config';
 
 type NpmDependencies = Record<string, string>;
+
+/** Confronto semplice per ordinare versioni (major.minor.patch). */
+function compareVersions(a: string, b: string): number {
+  const partsA = a.split('.').map(Number);
+  const partsB = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+    const na = partsA[i] ?? 0;
+    const nb = partsB[i] ?? 0;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
+}
 
 interface DependenciesPanelProps {
   version: ArtifactVersion | null;
@@ -43,11 +56,25 @@ export function DependenciesPanel({
 
   const searchMutation = useMutation({
     mutationFn: async (query: string) => {
-      const res = await fetch(
-        `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=5`
-      );
+      const searchUrl = `${config.nexus.npmSearchUrl}?text=${encodeURIComponent(query)}&size=5`;
+      const res = await fetch(searchUrl);
       if (!res.ok) {
-        throw new Error(`Failed to search npm packages: ${res.status} ${res.statusText}`);
+        const fallbackUrl = `${config.nexus.npmProxyPackageUrl}/${encodeURIComponent(query)}`;
+        const fallbackRes = await fetch(fallbackUrl);
+        if (!fallbackRes.ok) {
+          throw new Error(`Failed to search npm packages: ${res.status} ${res.statusText}`);
+        }
+        const pkg = (await fallbackRes.json()) as {
+          name: string;
+          'dist-tags'?: { latest?: string };
+          versions?: Record<string, unknown>;
+        };
+        const version =
+          pkg['dist-tags']?.latest ??
+          (pkg.versions && Object.keys(pkg.versions).length > 0
+            ? Object.keys(pkg.versions).sort(compareVersions).pop()!
+            : '');
+        return [{ name: pkg.name, version }];
       }
       const data = (await res.json()) as {
         objects: Array<{ package: { name: string; version: string } }>;

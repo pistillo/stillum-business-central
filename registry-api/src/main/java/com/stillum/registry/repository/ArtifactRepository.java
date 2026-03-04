@@ -29,10 +29,11 @@ public class ArtifactRepository implements PanacheRepositoryBase<Artifact, UUID>
             ArtifactStatus status,
             String area,
             String tag,
+            UUID parentModuleId,
             int page,
             int pageSize) {
         if (tag != null && !tag.isBlank()) {
-            return findByTenantWithTagNative(tenantId, type, status, area, tag, page, pageSize);
+            return findByTenantWithTagNative(tenantId, type, status, area, tag, parentModuleId, page, pageSize);
         }
 
         StringBuilder query = new StringBuilder("tenantId = :tid");
@@ -51,6 +52,10 @@ public class ArtifactRepository implements PanacheRepositoryBase<Artifact, UUID>
             conditions.add("area = :area");
             params.and("area", area);
         }
+        if (parentModuleId != null) {
+            conditions.add("parentModuleId = :pmid");
+            params.and("pmid", parentModuleId);
+        }
 
         for (String cond : conditions) {
             query.append(" and ").append(cond);
@@ -66,7 +71,8 @@ public class ArtifactRepository implements PanacheRepositoryBase<Artifact, UUID>
             ArtifactType type,
             ArtifactStatus status,
             String area,
-            String tag) {
+            String tag,
+            UUID parentModuleId) {
         if (tag != null && !tag.isBlank()) {
             return countByTenantWithTagNative(tenantId, type, status, area, tag);
         }
@@ -86,8 +92,17 @@ public class ArtifactRepository implements PanacheRepositoryBase<Artifact, UUID>
             query.append(" and area = :area");
             params.and("area", area);
         }
+        if (parentModuleId != null) {
+            query.append(" and parentModuleId = :pmid");
+            params.and("pmid", parentModuleId);
+        }
 
         return count(query.toString(), params);
+    }
+
+    public List<Artifact> findByParentModule(UUID tenantId, UUID parentModuleId) {
+        return list("tenantId = :tid and parentModuleId = :pmid order by title asc",
+                Parameters.with("tid", tenantId).and("pmid", parentModuleId));
     }
 
     public Optional<Artifact> findByIdAndTenant(UUID id, UUID tenantId) {
@@ -102,6 +117,7 @@ public class ArtifactRepository implements PanacheRepositoryBase<Artifact, UUID>
             ArtifactStatus status,
             String area,
             String tag,
+            UUID parentModuleId,
             int page,
             int pageSize) {
         StringBuilder sql = new StringBuilder("SELECT * FROM artifact WHERE tenant_id = :tid");
@@ -119,6 +135,10 @@ public class ArtifactRepository implements PanacheRepositoryBase<Artifact, UUID>
         if (area != null && !area.isBlank()) {
             sql.append(" AND area = :area");
             params.put("area", area);
+        }
+        if (parentModuleId != null) {
+            sql.append(" AND parent_module_id = :pmid");
+            params.put("pmid", parentModuleId);
         }
 
         sql.append(" AND :tag = ANY(tags)");

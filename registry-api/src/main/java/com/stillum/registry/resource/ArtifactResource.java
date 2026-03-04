@@ -48,10 +48,11 @@ public class ArtifactResource {
             @QueryParam("status") ArtifactStatus status,
             @QueryParam("area") String area,
             @QueryParam("tag") String tag,
+            @QueryParam("parentModuleId") UUID parentModuleId,
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
         PagedResponse<ArtifactResponse> resp = service.list(
-                tenantId, type, status, area, tag, page, size);
+                tenantId, type, status, area, tag, parentModuleId, page, size);
         return Response.ok(resp).build();
     }
 
@@ -79,6 +80,14 @@ public class ArtifactResource {
             @PathParam("artifactId") UUID artifactId) {
         service.retire(tenantId, artifactId);
         return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/{moduleId}/workspace")
+    public Response getWorkspace(
+            @PathParam("tenantId") UUID tenantId,
+            @PathParam("moduleId") UUID moduleId) {
+        return Response.ok(service.getWorkspace(tenantId, moduleId)).build();
     }
 
     @POST

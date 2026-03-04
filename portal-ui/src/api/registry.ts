@@ -8,6 +8,7 @@ import type {
   Environment,
   PagedResponse,
   PresignedUrlResponse,
+  WorkspaceResponse,
 } from './types';
 
 export async function listArtifacts(params: {
@@ -277,4 +278,15 @@ export async function createComponent(params: {
       parentModuleId: params.parentModuleId,
     }),
   });
+}
+
+export async function getModuleWorkspace(params: {
+  token: string | null;
+  tenantId: string;
+  moduleId: string;
+}): Promise<WorkspaceResponse> {
+  return apiFetch(
+    registryUrl(`/tenants/${params.tenantId}/artifacts/${params.moduleId}/workspace`),
+    { token: params.token }
+  );
 }

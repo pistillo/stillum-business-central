@@ -6,7 +6,9 @@ import com.stillum.registry.dto.request.CreateModuleRequest;
 import com.stillum.registry.dto.request.UpdateArtifactRequest;
 import com.stillum.registry.dto.response.ArtifactDetailResponse;
 import com.stillum.registry.dto.response.ArtifactResponse;
+import com.stillum.registry.dto.response.ArtifactVersionResponse;
 import com.stillum.registry.dto.response.PagedResponse;
+import com.stillum.registry.dto.response.WorkspaceResponse;
 import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.ArtifactVersion;
 import com.stillum.registry.entity.enums.ArtifactStatus;
@@ -55,13 +57,14 @@ public class ArtifactService {
             ArtifactStatus status,
             String area,
             String tag,
+            UUID parentModuleId,
             int page,
             int pageSize) {
-        List<ArtifactResponse> items = repo.findByTenant(tenantId, type, status, area, tag, page, pageSize)
+        List<ArtifactResponse> items = repo.findByTenant(tenantId, type, status, area, tag, parentModuleId, page, pageSize)
                 .stream()
                 .map(ArtifactResponse::from)
                 .toList();
-        long total = repo.countByTenant(tenantId, type, status, area, tag);
+        long total = repo.countByTenant(tenantId, type, status, area, tag, parentModuleId);
         return PagedResponse.of(items, page, pageSize, total);
     }
 
@@ -90,6 +93,35 @@ public class ArtifactService {
         Artifact artifact = repo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
         artifact.status = ArtifactStatus.RETIRED;
+    }
+
+    @Transactional
+    public WorkspaceResponse getWorkspace(UUID tenantId, UUID moduleId) {
+        Artifact module = repo.findByIdAndTenant(moduleId, tenantId)
+                .orElseThrow(() -> new ArtifactNotFoundException(moduleId));
+        if (module.type != ArtifactType.MODULE) {
+            throw new IllegalArgumentException("Artifact must be of type MODULE");
+        }
+
+        List<ArtifactVersion> moduleVersions = versionRepo.findByArtifact(moduleId);
+        ArtifactVersionResponse moduleVersion = moduleVersions.isEmpty()
+                ? null
+                : ArtifactVersionResponse.from(moduleVersions.get(0));
+
+        List<Artifact> components = repo.findByParentModule(tenantId, moduleId);
+        List<WorkspaceResponse.ComponentEntry> entries = components.stream()
+                .map(comp -> {
+                    List<ArtifactVersion> compVersions = versionRepo.findByArtifact(comp.id);
+                    ArtifactVersionResponse compVersion = compVersions.isEmpty()
+                            ? null
+                            : ArtifactVersionResponse.from(compVersions.get(0));
+                    return new WorkspaceResponse.ComponentEntry(
+                            ArtifactResponse.from(comp), compVersion);
+                })
+                .toList();
+
+        return new WorkspaceResponse(
+                ArtifactResponse.from(module), moduleVersion, entries);
     }
 
     @Transactional

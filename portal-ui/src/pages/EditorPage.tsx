@@ -21,6 +21,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
 import { useTheme } from '../theme/ThemeContext';
 import { DependenciesPanel } from '../components/DependenciesPanel';
+import { TheiaEditor } from '../components/TheiaEditor';
 
 type EditorFormat = 'json' | 'yaml' | 'xml' | 'stillum-editor' | 'typescript';
 
@@ -392,28 +393,31 @@ export function EditorPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {save.isSuccess && (
-            <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-              <Check size={14} />
-              {t('editor.saved')}
-            </span>
-          )}
-          {save.isError && (
-            <span className="flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
-              <AlertCircle size={14} />
-              {t('editor.error')}
-            </span>
-          )}
-          <button
-            className="btn-primary btn-sm"
-            disabled={save.isPending || status !== 'ready' || isReadOnly}
-            onClick={() => save.mutate()}
-          >
-            {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            {t('editor.save')}
-          </button>
-        </div>
+        {/* Save button — hidden for TypeScript artifacts (Theia handles save) */}
+        {!isTypeScriptBased && (
+          <div className="flex items-center gap-2 shrink-0">
+            {save.isSuccess && (
+              <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <Check size={14} />
+                {t('editor.saved')}
+              </span>
+            )}
+            {save.isError && (
+              <span className="flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
+                <AlertCircle size={14} />
+                {t('editor.error')}
+              </span>
+            )}
+            <button
+              className="btn-primary btn-sm"
+              disabled={save.isPending || status !== 'ready' || isReadOnly}
+              onClick={() => save.mutate()}
+            >
+              {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {t('editor.save')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Format tabs (only for JSON-based types) */}
@@ -443,65 +447,92 @@ export function EditorPage() {
       {/* Editor area: min-h-0 so flex child can shrink and editor gets correct height */}
       <div className="flex-1 min-h-0 flex gap-4">
         <div className="flex-1 card overflow-hidden rounded-t-none border-t-0 flex flex-col">
-          {status === 'loading' && (
-            <div className="flex items-center justify-center h-full">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 size={28} className="animate-spin text-brand-600 dark:text-brand-400" />
-                <span className="text-sm text-gray-500 dark:text-slate-400">
-                  {t('editor.loadingPayload')}
-                </span>
-              </div>
-            </div>
+          {/* TypeScript artifacts (MODULE/COMPONENT): Theia IDE in iframe */}
+          {isTypeScriptBased && artifact && (
+            <TheiaEditor
+              moduleArtifactId={
+                artifact.type === 'MODULE' ? artifactId : (artifact.parentModuleId ?? artifactId)
+              }
+              moduleVersionId={
+                artifact.type === 'MODULE' ? versionId : (dependenciesVersionId ?? versionId)
+              }
+              openComponentId={artifact.type === 'COMPONENT' ? artifactId : undefined}
+              readOnly={isReadOnly}
+              onSaveNotification={() => {
+                queryClient.invalidateQueries({
+                  queryKey: ['version', tenantId, artifactId, versionId],
+                });
+              }}
+            />
           )}
 
-          {status === 'error' && (
-            <div className="flex items-center justify-center h-full">
-              <div className="flex flex-col items-center gap-3">
-                <AlertCircle size={28} className="text-red-500" />
-                <span className="text-sm text-red-500 dark:text-red-400">
-                  {t('editor.loadError')}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {status === 'ready' && activeTab === 'stillum-editor' && (
-            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-              <StillumFormsEditorTab
-                initialContent={jsonContent}
-                onContentChange={setJsonContent}
-                theme={theme === 'dark' ? 'dark' : theme === 'light' ? 'light' : 'system'}
-              />
-            </div>
-          )}
-
-          {status === 'ready' && activeTab !== 'stillum-editor' && (
-            <div className="flex-1 min-h-0 flex flex-col">
-              <Editor
-                height="100%"
-                language={editorLanguage}
-                value={editorValue}
-                onChange={handleEditorChange}
-                theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                beforeMount={isTypeScriptBased ? configureMonacoForTypeScript : undefined}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 13,
-                  lineNumbers: 'on',
-                  readOnly: isReadOnly,
-                  scrollBeyondLastLine: false,
-                  wordWrap: 'on',
-                  tabSize: 2,
-                  automaticLayout: true,
-                  padding: { top: 12 },
-                }}
-                loading={
-                  <div className="flex items-center justify-center h-full">
-                    <Loader2 size={24} className="animate-spin text-gray-400" />
+          {/* Non-TypeScript artifacts: original Monaco editor */}
+          {!isTypeScriptBased && (
+            <>
+              {status === 'loading' && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2
+                      size={28}
+                      className="animate-spin text-brand-600 dark:text-brand-400"
+                    />
+                    <span className="text-sm text-gray-500 dark:text-slate-400">
+                      {t('editor.loadingPayload')}
+                    </span>
                   </div>
-                }
-              />
-            </div>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="flex flex-col items-center gap-3">
+                    <AlertCircle size={28} className="text-red-500" />
+                    <span className="text-sm text-red-500 dark:text-red-400">
+                      {t('editor.loadError')}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {status === 'ready' && activeTab === 'stillum-editor' && (
+                <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                  <StillumFormsEditorTab
+                    initialContent={jsonContent}
+                    onContentChange={setJsonContent}
+                    theme={theme === 'dark' ? 'dark' : theme === 'light' ? 'light' : 'system'}
+                  />
+                </div>
+              )}
+
+              {status === 'ready' && activeTab !== 'stillum-editor' && (
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <Editor
+                    height="100%"
+                    language={editorLanguage}
+                    value={editorValue}
+                    onChange={handleEditorChange}
+                    theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                    beforeMount={isTypeScriptBased ? configureMonacoForTypeScript : undefined}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      lineNumbers: 'on',
+                      readOnly: isReadOnly,
+                      scrollBeyondLastLine: false,
+                      wordWrap: 'on',
+                      tabSize: 2,
+                      automaticLayout: true,
+                      padding: { top: 12 },
+                    }}
+                    loading={
+                      <div className="flex items-center justify-center h-full">
+                        <Loader2 size={24} className="animate-spin text-gray-400" />
+                      </div>
+                    }
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
 

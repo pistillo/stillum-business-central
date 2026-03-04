@@ -120,7 +120,10 @@
     "loadingPayload": "Loading payload…",
     "loadError": "Error loading payload",
     "persistence": "Persistence: JSON",
-    "conversionError": "# Error converting JSON -> YAML"
+    "conversionError": "# Error converting JSON -> YAML",
+    "openInChe": "Open in Che",
+    "theiaLoading": "Loading editor…",
+    "theiaConnectionLost": "Editor connection lost"
   },
 
   "newArtifact": {

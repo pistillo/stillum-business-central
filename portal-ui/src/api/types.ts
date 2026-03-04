@@ -69,3 +69,12 @@ export type Environment = {
   name: string;
   description?: string | null;
 };
+
+export type WorkspaceResponse = {
+  module: Artifact;
+  moduleVersion: ArtifactVersion | null;
+  components: Array<{
+    artifact: Artifact;
+    version: ArtifactVersion | null;
+  }>;
+};
