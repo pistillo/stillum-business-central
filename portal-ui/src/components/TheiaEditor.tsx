@@ -5,6 +5,8 @@ import { useTenant } from '../tenancy/TenantContext';
 import { useTheme } from '../theme/ThemeContext';
 import { config } from '../config';
 import { useTranslation } from 'react-i18next';
+import { getModuleWorkspace, updateVersion } from '../api/registry';
+import type { WorkspaceResponse } from '../api/types';
 
 interface TheiaEditorProps {
   moduleArtifactId: string;
@@ -27,6 +29,32 @@ export function TheiaEditor({
   const { tenantId } = useTenant();
   const { resolved: theme } = useTheme();
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const workspaceRef = useRef<WorkspaceResponse | null>(null);
+
+  // Fetch workspace data from the portal side (avoids CORS from the iframe)
+  useEffect(() => {
+    if (!tenantId) return;
+    let cancelled = false;
+
+    getModuleWorkspace({
+      token: getAccessToken(),
+      tenantId,
+      moduleId: moduleArtifactId,
+    })
+      .then((data) => {
+        if (!cancelled) {
+          workspaceRef.current = data;
+        }
+      })
+      .catch((err) => {
+        console.error('[TheiaEditor] Failed to fetch workspace:', err);
+        if (!cancelled) setStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId, moduleArtifactId, getAccessToken]);
 
   const sendInit = useCallback(() => {
     const iframe = iframeRef.current;
@@ -43,6 +71,8 @@ export function TheiaEditor({
         registryApiBaseUrl: config.registryApiBaseUrl,
         openComponentId,
         readOnly,
+        // Send workspace data directly — no need for Theia to fetch it
+        workspace: workspaceRef.current,
       },
       config.theiaBaseUrl
     );
@@ -73,17 +103,57 @@ export function TheiaEditor({
       switch (data.type) {
         case 'stillum:ready':
           setStatus('ready');
-          sendInit();
+          // If workspace already fetched, send init immediately;
+          // otherwise wait a bit for the fetch to complete
+          if (workspaceRef.current) {
+            sendInit();
+          } else {
+            const interval = setInterval(() => {
+              if (workspaceRef.current) {
+                clearInterval(interval);
+                sendInit();
+              }
+            }, 200);
+            // Clear after 15s to avoid infinite polling
+            setTimeout(() => clearInterval(interval), 15_000);
+          }
           break;
-        case 'stillum:save-notification':
-          onSaveNotification?.();
+
+        case 'stillum:save-request': {
+          // Proxy the save through the portal to avoid CORS
+          const { requestId, artifactId, versionId, sourceCode } = data;
+          if (!tenantId) break;
+
+          updateVersion({
+            token: getAccessToken(),
+            tenantId,
+            artifactId,
+            versionId,
+            sourceCode,
+          })
+            .then(() => {
+              iframeRef.current?.contentWindow?.postMessage(
+                { type: 'stillum:save-response', requestId, success: true },
+                config.theiaBaseUrl
+              );
+              // Notify parent (EditorPage) so it can invalidate React Query cache
+              onSaveNotification?.();
+            })
+            .catch((err) => {
+              console.error('[TheiaEditor] Save failed:', err);
+              iframeRef.current?.contentWindow?.postMessage(
+                { type: 'stillum:save-response', requestId, success: false, error: String(err) },
+                config.theiaBaseUrl
+              );
+            });
           break;
+        }
       }
     };
 
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [sendInit, onSaveNotification]);
+  }, [sendInit, onSaveNotification, tenantId, getAccessToken]);
 
   // Sync theme changes
   useEffect(() => {
