@@ -19,7 +19,8 @@ public record ArtifactVersionResponse(
         String sourceCode,
         Map<String, String> npmDependencies,
         String npmPackageRef,
-        BuildSnapshot buildSnapshot
+        BuildSnapshot buildSnapshot,
+        Map<String, String> sourceFiles
 ) {
 
     public static ArtifactVersionResponse from(ArtifactVersion v) {
@@ -35,7 +36,8 @@ public record ArtifactVersionResponse(
                 v.sourceCode,
                 v.npmDependencies,
                 v.npmPackageRef,
-                v.buildSnapshot
+                v.buildSnapshot,
+                v.sourceFiles
         );
     }
 }

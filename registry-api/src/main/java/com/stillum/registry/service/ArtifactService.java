@@ -13,6 +13,7 @@ import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.ArtifactVersion;
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
+import com.stillum.registry.entity.enums.ComponentType;
 import com.stillum.registry.entity.enums.VersionState;
 import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.filter.EnforceTenantRls;
@@ -22,6 +23,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -168,7 +170,13 @@ public class ArtifactService {
         component.type = ArtifactType.COMPONENT;
         component.title = req.title();
         component.description = req.description();
-        component.area = req.area();
+        component.componentType = req.componentType();
+        // Derive area from componentType for workspace folder structure
+        component.area = switch (req.componentType()) {
+            case DROPLET -> "droplets";
+            case POOL -> "pools";
+            case TRIGGER -> "triggers";
+        };
         if (req.tags() != null) {
             component.tags = req.tags().toArray(new String[0]);
         }
@@ -180,8 +188,81 @@ public class ArtifactService {
         version.artifactId = component.id;
         version.version = "0.1.0";
         version.state = VersionState.DRAFT;
+        version.sourceFiles = generateComponentTemplate(req.title(), req.componentType());
         versionRepo.persist(version);
 
         return ArtifactResponse.from(component);
+    }
+
+    /**
+     * Generate a starter source file for a new component based on its type.
+     */
+    private Map<String, String> generateComponentTemplate(String title, ComponentType componentType) {
+        String fileName = title + ".tsx";
+        String content = switch (componentType) {
+            case DROPLET -> """
+                    import React from 'react';
+
+                    export interface %sProps {
+                      children?: React.ReactNode;
+                    }
+
+                    export const %s: React.FC<%sProps> = ({ children }) => {
+                      return (
+                        <div>
+                          {children}
+                        </div>
+                      );
+                    };
+
+                    export default %s;
+                    """.formatted(title, title, title, title);
+            case POOL -> """
+                    import { createContext, useContext, useState, ReactNode } from 'react';
+
+                    interface %sState {
+                      // Define your state shape here
+                    }
+
+                    const %sContext = createContext<%sState | undefined>(undefined);
+
+                    export function %sProvider({ children }: { children: ReactNode }) {
+                      const [state] = useState<%sState>({});
+
+                      return (
+                        <%sContext.Provider value={state}>
+                          {children}
+                        </%sContext.Provider>
+                      );
+                    }
+
+                    export function use%s() {
+                      const context = useContext(%sContext);
+                      if (!context) {
+                        throw new Error('use%s must be used within a %sProvider');
+                      }
+                      return context;
+                    }
+                    """.formatted(title, title, title, title, title, title, title, title, title, title, title);
+            case TRIGGER -> """
+                    /**
+                     * %s trigger — handles events and dispatches actions.
+                     */
+
+                    export interface %sEvent {
+                      type: string;
+                      payload?: unknown;
+                    }
+
+                    export function on%s(event: %sEvent): void {
+                      console.log('[%s] Event received:', event);
+                      // Handle the event here
+                    }
+
+                    export default on%s;
+                    """.formatted(title, title, title, title, title, title);
+        };
+
+        return Map.of(fileName, content);
     }
 }

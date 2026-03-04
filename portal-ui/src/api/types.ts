@@ -1,6 +1,7 @@
 export type ArtifactType = 'PROCESS' | 'RULE' | 'FORM' | 'REQUEST' | 'MODULE' | 'COMPONENT';
 export type ArtifactStatus = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'RETIRED';
 export type VersionState = 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'RETIRED';
+export type ComponentType = 'DROPLET' | 'POOL' | 'TRIGGER';
 
 export type Artifact = {
   id: string;
@@ -11,10 +12,18 @@ export type Artifact = {
   ownerId?: string | null;
   status: ArtifactStatus;
   area?: string | null;
+  componentType?: ComponentType | null;
   tags?: string[] | null;
   parentModuleId?: string | null;
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type BuildSnapshot = {
+  generatedAt: string;
+  templateVersion: string;
+  inputs: Record<string, string>;
+  files: Record<string, string>;
 };
 
 export type ArtifactVersion = {
@@ -29,6 +38,8 @@ export type ArtifactVersion = {
   sourceCode?: string | null;
   npmDependencies?: Record<string, string> | null;
   npmPackageRef?: string | null;
+  buildSnapshot?: BuildSnapshot | null;
+  sourceFiles?: Record<string, string> | null;
 };
 
 export type Dependency = {

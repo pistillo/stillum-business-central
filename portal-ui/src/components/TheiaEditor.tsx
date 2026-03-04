@@ -121,7 +121,7 @@ export function TheiaEditor({
 
         case 'stillum:save-request': {
           // Proxy the save through the portal to avoid CORS
-          const { requestId, artifactId, versionId, sourceCode } = data;
+          const { requestId, artifactId, versionId, sourceCode, sourceFiles } = data;
           if (!tenantId) break;
 
           updateVersion({
@@ -130,6 +130,7 @@ export function TheiaEditor({
             artifactId,
             versionId,
             sourceCode,
+            sourceFiles,
           })
             .then(() => {
               iframeRef.current?.contentWindow?.postMessage(

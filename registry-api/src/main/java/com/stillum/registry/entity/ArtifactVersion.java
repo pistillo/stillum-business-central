@@ -66,6 +66,10 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(name = "build_snapshot", columnDefinition = "jsonb")
     public BuildSnapshot buildSnapshot;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "source_files", columnDefinition = "jsonb")
+    public Map<String, String> sourceFiles;
+
     @PrePersist
     void prePersist() {
         createdAt = OffsetDateTime.now();

@@ -219,6 +219,7 @@ export async function updateVersion(params: {
   sourceCode?: string;
   npmDependencies?: Record<string, string>;
   npmPackageRef?: string;
+  sourceFiles?: Record<string, string>;
 }): Promise<ArtifactVersion> {
   return apiFetch(
     registryUrl(
@@ -233,6 +234,7 @@ export async function updateVersion(params: {
         sourceCode: params.sourceCode,
         npmDependencies: params.npmDependencies,
         npmPackageRef: params.npmPackageRef,
+        sourceFiles: params.sourceFiles,
       }),
     }
   );
@@ -263,7 +265,7 @@ export async function createComponent(params: {
   tenantId: string;
   title: string;
   description?: string;
-  area?: string;
+  componentType: 'DROPLET' | 'POOL' | 'TRIGGER';
   tags?: string[];
   parentModuleId: string;
 }): Promise<Artifact> {
@@ -273,7 +275,7 @@ export async function createComponent(params: {
     body: JSON.stringify({
       title: params.title,
       description: params.description,
-      area: params.area,
+      componentType: params.componentType,
       tags: params.tags,
       parentModuleId: params.parentModuleId,
     }),

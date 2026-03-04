@@ -2,6 +2,7 @@ package com.stillum.registry.entity;
 
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
+import com.stillum.registry.entity.enums.ComponentType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,10 @@ public class Artifact extends PanacheEntityBase {
     public ArtifactStatus status;
 
     public String area;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "component_type")
+    public ComponentType componentType;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(columnDefinition = "text[]")

@@ -3,6 +3,7 @@ package com.stillum.registry.dto.response;
 import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
+import com.stillum.registry.entity.enums.ComponentType;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public record ArtifactResponse(
         UUID ownerId,
         ArtifactStatus status,
         String area,
+        ComponentType componentType,
         List<String> tags,
         UUID parentModuleId,
         OffsetDateTime createdAt,
@@ -32,6 +34,7 @@ public record ArtifactResponse(
                 a.ownerId,
                 a.status,
                 a.area,
+                a.componentType,
                 a.tags != null ? List.of(a.tags) : List.of(),
                 a.parentModuleId,
                 a.createdAt,

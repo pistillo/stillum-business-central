@@ -9,6 +9,7 @@ public record UpdateVersionRequest(
         String sourceCode,
         Map<String, String> npmDependencies,
         String npmPackageRef,
-        BuildSnapshot buildSnapshot
+        BuildSnapshot buildSnapshot,
+        Map<String, String> sourceFiles
 ) {
 }
