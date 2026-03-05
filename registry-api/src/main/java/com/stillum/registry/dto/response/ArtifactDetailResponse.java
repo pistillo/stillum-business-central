@@ -1,7 +1,6 @@
 package com.stillum.registry.dto.response;
 
 import com.stillum.registry.entity.Artifact;
-import com.stillum.registry.entity.ArtifactVersion;
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
 import com.stillum.registry.entity.enums.ComponentType;
@@ -25,7 +24,7 @@ public record ArtifactDetailResponse(
         OffsetDateTime updatedAt,
         List<ArtifactVersionResponse> versions
 ) {
-    public static ArtifactDetailResponse from(Artifact a, List<ArtifactVersion> versions) {
+    public static ArtifactDetailResponse from(Artifact a, List<ArtifactVersionResponse> versions) {
         return new ArtifactDetailResponse(
                 a.id,
                 a.tenantId,
@@ -40,7 +39,7 @@ public record ArtifactDetailResponse(
                 a.parentModuleId,
                 a.createdAt,
                 a.updatedAt,
-                versions.stream().map(ArtifactVersionResponse::from).toList()
+                versions
         );
     }
 }

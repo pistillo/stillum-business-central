@@ -29,6 +29,15 @@ public final class StoragePathBuilder {
     }
 
     /**
+     * Percorso oggetto per i sorgenti di una versione:
+     * tenant-{tenantId}/sources/{artifactId}/{versionId}.json
+     */
+    public static String sourceKey(UUID tenantId, UUID artifactId, UUID versionId) {
+        return String.format("tenant-%s/sources/%s/%s.json",
+                tenantId, artifactId, versionId);
+    }
+
+    /**
      * Estensione file in base al tipo di artefatto.
      */
     public static String extensionFor(String artifactType) {

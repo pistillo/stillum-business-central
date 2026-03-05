@@ -19,6 +19,7 @@ import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
+import com.stillum.registry.storage.SourceStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -38,6 +39,9 @@ public class ArtifactService {
 
     @Inject
     ProjectTemplateService templateService;
+
+    @Inject
+    SourceStorageService sourceStorage;
 
     @Transactional
     public ArtifactResponse create(UUID tenantId, CreateArtifactRequest req) {
@@ -78,7 +82,11 @@ public class ArtifactService {
     public ArtifactDetailResponse getById(UUID tenantId, UUID artifactId) {
         Artifact artifact = repo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
-        return ArtifactDetailResponse.from(artifact, versionRepo.findByArtifact(artifactId));
+        List<ArtifactVersion> versions = versionRepo.findByArtifact(artifactId);
+        List<ArtifactVersionResponse> versionResponses = versions.stream()
+                .map(v -> ArtifactVersionResponse.from(v, sourceStorage.load(v.sourceRef)))
+                .toList();
+        return ArtifactDetailResponse.from(artifact, versionResponses);
     }
 
     @Transactional
@@ -112,7 +120,9 @@ public class ArtifactService {
         List<ArtifactVersion> moduleVersions = versionRepo.findByArtifact(moduleId);
         ArtifactVersionResponse moduleVersion = moduleVersions.isEmpty()
                 ? null
-                : ArtifactVersionResponse.from(moduleVersions.get(0));
+                : ArtifactVersionResponse.from(
+                        moduleVersions.get(0),
+                        sourceStorage.load(moduleVersions.get(0).sourceRef));
 
         List<Artifact> components = repo.findByParentModule(tenantId, moduleId);
         List<WorkspaceResponse.ComponentEntry> entries = components.stream()
@@ -120,7 +130,9 @@ public class ArtifactService {
                     List<ArtifactVersion> compVersions = versionRepo.findByArtifact(comp.id);
                     ArtifactVersionResponse compVersion = compVersions.isEmpty()
                             ? null
-                            : ArtifactVersionResponse.from(compVersions.get(0));
+                            : ArtifactVersionResponse.from(
+                                    compVersions.get(0),
+                                    sourceStorage.load(compVersions.get(0).sourceRef));
                     return new WorkspaceResponse.ComponentEntry(
                             ArtifactResponse.from(comp), compVersion);
                 })
@@ -151,8 +163,13 @@ public class ArtifactService {
         version.artifactId = artifact.id;
         version.version = "0.1.0";
         version.state = VersionState.DRAFT;
-        version.buildSnapshot = snapshot;
         versionRepo.persist(version);
+
+        // Save build snapshot to MinIO
+        String sourceRef = sourceStorage.save(
+                tenantId, artifact.id, version.id,
+                null, null, snapshot);
+        version.sourceRef = sourceRef;
 
         return ArtifactResponse.from(artifact);
     }
@@ -184,12 +201,19 @@ public class ArtifactService {
         component.parentModuleId = parentModule.id;
         repo.persist(component);
 
+        Map<String, String> templateFiles = generateComponentTemplate(req.title(), req.componentType());
+
         ArtifactVersion version = new ArtifactVersion();
         version.artifactId = component.id;
         version.version = "0.1.0";
         version.state = VersionState.DRAFT;
-        version.sourceFiles = generateComponentTemplate(req.title(), req.componentType());
         versionRepo.persist(version);
+
+        // Save component template to MinIO
+        String sourceRef = sourceStorage.save(
+                component.tenantId, component.id, version.id,
+                null, templateFiles, null);
+        version.sourceRef = sourceRef;
 
         return ArtifactResponse.from(component);
     }

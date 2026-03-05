@@ -52,15 +52,21 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(columnDefinition = "jsonb")
     public String metadata;
 
-    @Column(name = "source_code")
-    public String sourceCode;
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "npm_dependencies", columnDefinition = "jsonb")
     public Map<String, String> npmDependencies;
 
     @Column(name = "npm_package_ref")
     public String npmPackageRef;
+
+    /** S3 object key pointing to the JSON source bundle in MinIO. */
+    @Column(name = "source_ref")
+    public String sourceRef;
+
+    // ── Legacy columns — kept mapped for the data migrator, cleared after migration ──
+
+    @Column(name = "source_code")
+    public String sourceCode;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "build_snapshot", columnDefinition = "jsonb")

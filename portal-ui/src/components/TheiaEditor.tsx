@@ -122,7 +122,18 @@ export function TheiaEditor({
         case 'stillum:save-request': {
           // Proxy the save through the portal to avoid CORS
           const { requestId, artifactId, versionId, sourceCode, sourceFiles } = data;
-          if (!tenantId) break;
+          console.log('[TheiaEditor] 📥 Received save-request:', {
+            requestId,
+            artifactId,
+            versionId,
+            hasSourceCode: !!sourceCode,
+            hasSourceFiles: !!sourceFiles,
+            sourceFileKeys: sourceFiles ? Object.keys(sourceFiles) : [],
+          });
+          if (!tenantId) {
+            console.error('[TheiaEditor] ❌ No tenantId, cannot save');
+            break;
+          }
 
           updateVersion({
             token: getAccessToken(),
@@ -133,6 +144,11 @@ export function TheiaEditor({
             sourceFiles,
           })
             .then(() => {
+              console.log('[TheiaEditor] ✅ Save successful:', {
+                requestId,
+                artifactId,
+                versionId,
+              });
               iframeRef.current?.contentWindow?.postMessage(
                 { type: 'stillum:save-response', requestId, success: true },
                 config.theiaBaseUrl
@@ -141,7 +157,7 @@ export function TheiaEditor({
               onSaveNotification?.();
             })
             .catch((err) => {
-              console.error('[TheiaEditor] Save failed:', err);
+              console.error('[TheiaEditor] ❌ Save failed:', err);
               iframeRef.current?.contentWindow?.postMessage(
                 { type: 'stillum:save-response', requestId, success: false, error: String(err) },
                 config.theiaBaseUrl

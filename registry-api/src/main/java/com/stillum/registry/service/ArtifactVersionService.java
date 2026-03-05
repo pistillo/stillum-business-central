@@ -4,6 +4,7 @@ import com.stillum.registry.dto.request.CreateVersionRequest;
 import com.stillum.registry.dto.request.UpdatePayloadRefRequest;
 import com.stillum.registry.dto.request.UpdateVersionRequest;
 import com.stillum.registry.dto.response.ArtifactVersionResponse;
+import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.ArtifactVersion;
 import com.stillum.registry.entity.enums.VersionState;
 import com.stillum.registry.exception.ArtifactNotFoundException;
@@ -11,6 +12,8 @@ import com.stillum.registry.exception.ImmutableVersionException;
 import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
+import com.stillum.registry.storage.SourceBundle;
+import com.stillum.registry.storage.SourceStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -27,9 +30,12 @@ public class ArtifactVersionService {
     @Inject
     ArtifactRepository artifactRepo;
 
+    @Inject
+    SourceStorageService sourceStorage;
+
     @Transactional
     public ArtifactVersionResponse create(UUID tenantId, UUID artifactId, CreateVersionRequest req) {
-        artifactRepo.findByIdAndTenant(artifactId, tenantId)
+        Artifact artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
 
         if (versionRepo.existsByArtifactAndVersion(artifactId, req.version())) {
@@ -42,14 +48,19 @@ public class ArtifactVersionService {
         v.version = req.version();
         v.payloadRef = req.payloadRef();
         v.metadata = req.metadata();
-        v.sourceCode = req.sourceCode();
         v.npmDependencies = req.npmDependencies();
         v.npmPackageRef = req.npmPackageRef();
-        v.buildSnapshot = req.buildSnapshot();
-        v.sourceFiles = req.sourceFiles();
         v.state = VersionState.DRAFT;
         versionRepo.persist(v);
-        return ArtifactVersionResponse.from(v);
+
+        // Save source data to MinIO
+        String sourceRef = sourceStorage.save(
+                tenantId, artifactId, v.id,
+                req.sourceCode(), req.sourceFiles(), req.buildSnapshot());
+        v.sourceRef = sourceRef;
+
+        SourceBundle source = new SourceBundle(req.sourceCode(), req.sourceFiles(), req.buildSnapshot());
+        return ArtifactVersionResponse.from(v, source);
     }
 
     @Transactional
@@ -58,7 +69,7 @@ public class ArtifactVersionService {
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
         return versionRepo.findByArtifact(artifactId)
                 .stream()
-                .map(ArtifactVersionResponse::from)
+                .map(v -> ArtifactVersionResponse.from(v, sourceStorage.load(v.sourceRef)))
                 .toList();
     }
 
@@ -66,15 +77,15 @@ public class ArtifactVersionService {
     public ArtifactVersionResponse getById(UUID tenantId, UUID artifactId, UUID versionId) {
         artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
-        return versionRepo.findByIdAndArtifact(versionId, artifactId)
-                .map(ArtifactVersionResponse::from)
+        ArtifactVersion v = versionRepo.findByIdAndArtifact(versionId, artifactId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
+        return ArtifactVersionResponse.from(v, sourceStorage.load(v.sourceRef));
     }
 
     @Transactional
     public ArtifactVersionResponse update(
             UUID tenantId, UUID artifactId, UUID versionId, UpdateVersionRequest req) {
-        artifactRepo.findByIdAndTenant(artifactId, tenantId)
+        Artifact artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
         ArtifactVersion v = versionRepo.findByIdAndArtifact(versionId, artifactId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
@@ -86,22 +97,36 @@ public class ArtifactVersionService {
         if (req.metadata() != null) {
             v.metadata = req.metadata();
         }
-        if (req.sourceCode() != null) {
-            v.sourceCode = req.sourceCode();
-        }
         if (req.npmDependencies() != null) {
             v.npmDependencies = req.npmDependencies();
         }
         if (req.npmPackageRef() != null) {
             v.npmPackageRef = req.npmPackageRef();
         }
-        if (req.buildSnapshot() != null) {
-            v.buildSnapshot = req.buildSnapshot();
+
+        // If any source-related field is being updated, reload the existing bundle,
+        // merge changes, and write back to MinIO.
+        boolean sourceChanged = req.sourceCode() != null
+                || req.sourceFiles() != null
+                || req.buildSnapshot() != null;
+
+        SourceBundle source;
+        if (sourceChanged) {
+            SourceBundle existing = sourceStorage.load(v.sourceRef);
+            String newSourceCode = req.sourceCode() != null ? req.sourceCode() : existing.sourceCode();
+            var newSourceFiles = req.sourceFiles() != null ? req.sourceFiles() : existing.sourceFiles();
+            var newBuildSnapshot = req.buildSnapshot() != null ? req.buildSnapshot() : existing.buildSnapshot();
+
+            String sourceRef = sourceStorage.save(
+                    tenantId, artifactId, versionId,
+                    newSourceCode, newSourceFiles, newBuildSnapshot);
+            v.sourceRef = sourceRef;
+            source = new SourceBundle(newSourceCode, newSourceFiles, newBuildSnapshot);
+        } else {
+            source = sourceStorage.load(v.sourceRef);
         }
-        if (req.sourceFiles() != null) {
-            v.sourceFiles = req.sourceFiles();
-        }
-        return ArtifactVersionResponse.from(v);
+
+        return ArtifactVersionResponse.from(v, source);
     }
 
     @Transactional
@@ -125,7 +150,7 @@ public class ArtifactVersionService {
 
         assertMutable(v);
         v.payloadRef = req.payloadRef();
-        return ArtifactVersionResponse.from(v);
+        return ArtifactVersionResponse.from(v, sourceStorage.load(v.sourceRef));
     }
 
     @Transactional
@@ -137,7 +162,7 @@ public class ArtifactVersionService {
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
 
         v.state = VersionState.PUBLISHED;
-        return ArtifactVersionResponse.from(v);
+        return ArtifactVersionResponse.from(v, sourceStorage.load(v.sourceRef));
     }
 
     private void assertMutable(ArtifactVersion v) {
