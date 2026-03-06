@@ -4,23 +4,23 @@ title: Runtime e Orchestrazione
 sidebar_label: Runtime
 ---
 
-### Motore di Orchestrazione
+### Stato nel worktree
 
-Il runtime della piattaforma è basato su **Temporal**, una soluzione per orchestrare flussi di lavoro distribuiti. Le definizioni BPMN vengono tradotte o mappate a workflow Temporal all’atto della pubblicazione.
+Nel worktree corrente non è presente un runtime di orchestrazione basato su Temporal. Il servizio `runtime-gateway/` espone endpoint di utilità (proxy verso Nexus) e healthcheck; la parte di orchestrazione è pianificata nelle fasi successive.
 
-### Integrazione con Temporal
+### Motore di orchestrazione (pianificato)
 
-- Ogni tenant può usare un namespace dedicato oppure condiviso, con `tenantId` e `workflowId` nel naming.
-- Il Runtime Gateway deve invocare l’SDK Temporal per avviare workflow a partire da un “release bundle”.
-- Deve essere possibile recuperare stato, output e logs per ogni istanza.
+- Il runtime della piattaforma è progettato per basarsi su **Temporal** (workflow engine).
+- Le definizioni BPMN dovranno essere tradotte/mappate a workflow Temporal al momento della pubblicazione (o tramite una fase di build dedicata).
+- Ogni tenant potrà usare namespace dedicato o namespace condiviso, con isolamento logico tramite naming e search attributes.
 
-### Gestione Istanze
+### Gestione istanze (pianificata)
 
 - Le istanze (pratiche) vengono create con metadati: tenant, versione del processo, chiavi di correlazione.
 - Devono essere tracciati eventi come avvio, completamento, errore, retry.
 - L’utente deve poter visualizzare il percorso (timeline) e i task correnti.
 
-### Task e Human Interaction
+### Task e human interaction (pianificata)
 
 - Se il processo prevede human tasks, il Gateway deve integrarsi con un task manager per assegnazioni e completamenti.
 - Ogni task è legato a un’istanza e a un utente/ruolo.

@@ -1,92 +1,134 @@
-# Piano: Migrazione sourceCode/sourceFiles/buildSnapshot da PostgreSQL a MinIO
+# Piano: Publisher MinIO + Rimozione npm_dependencies
 
-## Obiettivo
-Spostare i dati di codice sorgente (`sourceCode`, `sourceFiles`) e lo snapshot di build (`buildSnapshot`) dalla tabella `artifact_version` (PostgreSQL JSONB/TEXT) ad oggetti JSON su MinIO (S3-compatible). In PostgreSQL rimane solo un riferimento S3 (`source_ref`).
+## Contesto
 
-## Struttura S3 chiavi
+1. **Publisher legge sourceCode dal DB** — ma il `SourceDataMigrator` svuota quelle colonne dopo la migrazione a MinIO. Il publisher va aggiornato per leggere da MinIO via `source_ref`.
+2. **`npm_dependencies` è un campo generico** nella tabella `artifact_version` — le dipendenze npm appartengono al `package.json` del progetto (nel buildSnapshot), non a un campo DB separato.
+3. **`npm_package_ref`** — rimandato a discussione futura.
 
-```
-stillum-artifacts/
-  tenant-{tenantId}/
-    sources/
-      {artifactId}/
-        {versionId}.json    ← un unico JSON con tutto il contenuto sorgente
-```
+---
 
-**Contenuto del file `{versionId}.json`:**
-```json
-{
-  "sourceCode": "...",
-  "sourceFiles": { "file.tsx": "..." },
-  "buildSnapshot": { "generatedAt": "...", "templateVersion": "...", "inputs": {...}, "files": {...} }
-}
-```
+## Fase 1: Publisher legge da MinIO
 
-Un singolo oggetto per versione semplifica lettura/scrittura e garantisce atomicità.
+Il publisher ha già `S3StorageClient` con accesso al bucket `stillum-artifacts`. Serve aggiungere il supporto per deserializzare il `SourceBundle` JSON da MinIO.
 
-## File da modificare
+### 1.1 Aggiungere `SourceBundle` e `BuildSnapshot` al publisher
 
-### 1. `S3StorageClient.java` — aggiungere `downloadBytes()`
-- Nuovo metodo: `byte[] downloadBytes(String bucket, String key)` che legge l'oggetto S3 come byte array.
+Creare nel publisher i record per deserializzare il JSON da MinIO:
 
-### 2. `StoragePathBuilder.java` — aggiungere `sourceKey()`
-- Nuovo metodo statico: `sourceKey(tenantId, artifactId, versionId)` → `tenant-{tenantId}/sources/{artifactId}/{versionId}.json`
+- **Nuovo** `publisher/.../storage/SourceBundle.java`
+- **Nuovo** `publisher/.../storage/BuildSnapshot.java`
 
-### 3. Nuovo `SourceStorageService.java`
-- Service dedicato alla gestione del contenuto sorgente su MinIO.
-- Metodi:
-  - `save(tenantId, artifactId, versionId, sourceCode, sourceFiles, buildSnapshot)` → serializza in JSON, upload su MinIO, restituisce la chiave S3
-  - `load(sourceRef)` → scarica JSON da MinIO, deserializza, restituisce un record `SourceBundle`
-- Record `SourceBundle`: `sourceCode`, `sourceFiles`, `buildSnapshot`
+### 1.2 Aggiungere `SourceStorageService` al publisher
 
-### 4. `ArtifactVersion.java` (entity) — aggiungere `sourceRef`, rimuovere i campi inline
-- Aggiungere: `String sourceRef` (VARCHAR) — chiave S3 che punta all'oggetto JSON in MinIO
-- Rimuovere: `sourceCode` (TEXT), `sourceFiles` (JSONB), `buildSnapshot` (JSONB)
-- Il campo `buildSnapshot` viene eliminato dalla entity — lo teniamo nel JSON su MinIO
+Servizio minimale che usa `S3StorageClient` + `ObjectMapper`:
 
-### 5. Migrazione `V16__move_sources_to_minio.sql`
-- `ALTER TABLE artifact_version ADD COLUMN source_ref VARCHAR(500);`
-- Non droppiamo ancora le colonne vecchie per sicurezza (la migrazione dei dati si fa programmaticamente)
+- **Nuovo** `publisher/.../storage/SourceStorageService.java`
+  - `load(String sourceRef) → SourceBundle`
+  - Restituisce `SourceBundle.EMPTY` se sourceRef è null/blank
 
-### 6. Migrazione dati: `SourceDataMigrator.java`
-- `@Startup @Observes StartupEvent` — al primo avvio, legge tutte le versioni con `sourceCode/sourceFiles/buildSnapshot` non nulli, le salva su MinIO, imposta il `sourceRef`, e svuota i campi vecchi.
-- Logga progresso. Idempotente (skip se `sourceRef` già presente).
+### 1.3 Aggiungere `sourceKey()` a `StoragePathBuilder` del publisher
 
-### 7. `ArtifactVersionService.java` — aggiornare create/update
-- **Create**: salva il contenuto su MinIO via `SourceStorageService.save()`, salva `sourceRef` nella entity (non più `sourceCode`/`sourceFiles`/`buildSnapshot` direttamente)
-- **Update**: stessa logica — nuova versione del JSON su MinIO
+- **Modifica** `publisher/.../storage/StoragePathBuilder.java`
 
-### 8. `ArtifactVersionResponse.java` — mantiene gli stessi campi nel JSON di risposta
-- Il record resta invariato (id, sourceCode, sourceFiles, buildSnapshot...)
-- Il metodo `from()` cambia: riceve `ArtifactVersion` + `SourceBundle` (caricato da MinIO)
-- Nuovo factory method `from(ArtifactVersion v, SourceBundle source)`
+### 1.4 Aggiungere `sourceRef` all'entity ArtifactVersion del publisher
 
-### 9. `ArtifactService.getWorkspace()` — carica contenuti da MinIO
-- Per ogni versione (module + components), chiama `SourceStorageService.load(v.sourceRef)` per recuperare i sorgenti
-- Compone la `WorkspaceResponse` con i dati scaricati da MinIO
+- **Modifica** `publisher/.../entity/ArtifactVersion.java` — aggiungere campo `source_ref`
 
-### 10. `ArtifactService.createModule()` e `createComponent()` — salva su MinIO
-- Dopo aver creato la versione, salva buildSnapshot/sourceFiles su MinIO e imposta `sourceRef`
+### 1.5 Aggiornare `PublishService.java`
 
-### 11. Migrazione `V17__drop_source_columns.sql` (futura, non ora)
-- Da eseguire quando la migrazione dati è consolidata
-- `ALTER TABLE artifact_version DROP COLUMN source_code, source_files, build_snapshot;`
-- Per ora NON implementiamo questo step — i campi restano nel DB ma vuoti
+- **Modifica** `publisher/.../service/PublishService.java`
 
-## Cosa NON cambia
-- **Portal-UI**: nessuna modifica — l'API REST continua a restituire `sourceCode`, `sourceFiles`, `buildSnapshot` nella response JSON come prima
-- **Theia extension**: nessuna modifica — il bridge e l'initializer ricevono lo stesso formato di workspace data
-- **DTOs di request**: restano uguali — il backend gestisce il routing verso MinIO internamente
-- **Il campo `payloadRef`** resta invariato — quello è per i binary payload (BPMN xml, form json, ecc.)
+Punti da cambiare:
 
-## Ordine di implementazione
-1. `S3StorageClient.downloadBytes()`
-2. `StoragePathBuilder.sourceKey()`
-3. `SourceBundle` record + `SourceStorageService`
-4. Migrazione V16
-5. Entity `ArtifactVersion` — aggiungere `sourceRef`
-6. `ArtifactVersionResponse.from()` con SourceBundle
-7. `ArtifactVersionService` — create/update usano MinIO
-8. `ArtifactService` — createModule/createComponent/getWorkspace usano MinIO
-9. `SourceDataMigrator` per dati esistenti
-10. Compilare e testare
+| Riga attuale | Cosa fa ora | Cosa farà |
+|---|---|---|
+| 105-107 | `version.sourceCode == null` check | Caricare `SourceBundle` da `version.sourceRef`, controllare `bundle.sourceCode()` |
+| 119 | `version.sourceCode.getBytes()` | `bundle.sourceCode().getBytes()` |
+| 179-180 | `depVersion.sourceCode` per dependency | Caricare SourceBundle della dependency da `depVersion.sourceRef` |
+| 207-211 | `depVersion.sourceCode` per ComponentSource | Usare `depBundle.sourceCode()` |
+| 215-217 | `version.npmDependencies` | Estrarre dal package.json nel buildSnapshot (vedi Fase 2) |
+| 226 | `version.sourceCode` passato a NpmBuildRequest | `bundle.sourceCode()` |
+
+---
+
+## Fase 2: Spostare npm_dependencies nel package.json
+
+Le dipendenze npm devono vivere nel `package.json` del progetto (dentro il buildSnapshot), non in un campo DB separato.
+
+### 2.1 Aggiornare il template package.json del buildSnapshot
+
+- **Modifica** `registry-api/.../templates/module-project/files/package.json.tpl`
+- Aggiungere `"dependencies": {}` (vuoto, verrà popolato via DependenciesPanel)
+
+### 2.2 Modificare DependenciesPanel per operare sul buildSnapshot
+
+- **Modifica** `portal-ui/src/components/DependenciesPanel.tsx`
+
+Invece di leggere `version.npmDependencies` e salvare via `updateVersion({ npmDependencies })`:
+- Leggere dal `buildSnapshot.files["package.json"]` → parsare JSON → `dependencies`
+- Scrivere aggiornando il package.json nel buildSnapshot e salvare via `updateVersion({ buildSnapshot })`
+
+### 2.3 Aggiornare il publisher per estrarre deps dal package.json
+
+- **Modifica** `publisher/.../service/PublishService.java`
+- Nuovo metodo privato `extractDependenciesFromPackageJson(SourceBundle)` che:
+  - Legge `bundle.buildSnapshot().files().get("package.json")`
+  - Parsa il JSON, estrae il campo `dependencies`
+  - Restituisce `Map<String, String>`
+
+### 2.4 Aggiornare npm-build-service (impatto minimo)
+
+Il publisher continua a passare le dependencies al build service, ma le estrae dal package.json invece che dal campo DB. Il `NpmBuildRequest` e `package-json.ts` restano invariati per ora — il refactoring del build service può avvenire in un secondo momento.
+
+### 2.5 Rimuovere `npmDependencies` (cleanup)
+
+**registry-api:**
+- Rimuovere da `CreateVersionRequest`, `UpdateVersionRequest`, `ArtifactVersionResponse`
+- Rimuovere dall'entity `ArtifactVersion`
+- Rimuovere logica in `ArtifactVersionService` (set/get npmDependencies)
+- Nuova migrazione SQL: `ALTER TABLE artifact_version DROP COLUMN npm_dependencies;`
+
+**publisher:**
+- Rimuovere dall'entity `ArtifactVersion`
+- Rimuovere dal manifest del bundle (linee 330-332 di PublishService)
+
+**portal-ui:**
+- Rimuovere `npmDependencies` dal tipo `ArtifactVersion`
+- Rimuovere dai parametri di `createVersion()` e `updateVersion()`
+
+---
+
+## Ordine di esecuzione
+
+1. **Fase 1** prima (publisher → MinIO): nessun breaking change, il publisher legge da MinIO
+2. **Fase 2** dopo (npm_dependencies → package.json): richiede coordinamento tra 4 moduli
+
+All'interno di ogni fase, l'ordine è sequenziale come numerato.
+
+---
+
+## File coinvolti — riepilogo
+
+### Fase 1 — Nuovi file
+- `publisher/.../storage/SourceBundle.java`
+- `publisher/.../storage/BuildSnapshot.java`
+- `publisher/.../storage/SourceStorageService.java`
+
+### Fase 1 — Modifiche
+- `publisher/.../storage/StoragePathBuilder.java`
+- `publisher/.../entity/ArtifactVersion.java`
+- `publisher/.../service/PublishService.java`
+
+### Fase 2 — Modifiche
+- `registry-api/.../templates/.../package.json.tpl`
+- `portal-ui/src/components/DependenciesPanel.tsx`
+- `publisher/.../service/PublishService.java`
+- `registry-api/.../dto/request/CreateVersionRequest.java`
+- `registry-api/.../dto/request/UpdateVersionRequest.java`
+- `registry-api/.../dto/response/ArtifactVersionResponse.java`
+- `registry-api/.../entity/ArtifactVersion.java`
+- `registry-api/.../service/ArtifactVersionService.java`
+- `portal-ui/src/api/types.ts`
+- `portal-ui/src/api/registry.ts`
+- Nuova migrazione SQL

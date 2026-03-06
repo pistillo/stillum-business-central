@@ -4,19 +4,21 @@ title: Gateway Runtime
 sidebar_label: Runtime Gateway
 ---
 
-Il **Runtime Gateway** è il componente che mette in comunicazione la piattaforma con il motore di esecuzione Temporal.
+Nel worktree corrente il **Runtime Gateway** è un servizio Quarkus che funge da **proxy HTTP verso Nexus** per evitare problemi di CORS dal browser. La parte di orchestrazione con Temporal è pianificata ma non è implementata in questo servizio.
 
 ## Responsabilità
 
-- **Avvio istanze**: crea nuove istanze di processo a partire da un bundle pubblicato, impostando i metadati di tenant, versione, e chiavi di correlazione.
-- **Monitoraggio**: espone API per recuperare lo stato corrente di un’istanza, inclusi step, tasks, log, variabili e errori.
-- **Gestione eventi**: intercetta eventi dal runtime (es. completamento step, errori) e li propaga alla UI per l’aggiornamento in tempo reale.
-- **Human tasks**: gestisce le interazioni manuali, assegnando tasks agli utenti o gruppi definiti.
-- **Interruzione e ripresa**: fornisce funzioni per terminare, sospendere o riavviare istanze (dove consentito).
+- **Proxy npm search**: inoltra richieste di ricerca package al repository group npm di Nexus.
+- **Proxy npm package**: inoltra richieste di fetch di un singolo package (lookup) a un repository proxy configurato in Nexus.
+- **CORS boundary**: il Portal UI può chiamare il gateway (stessa origine/whitelist) invece di chiamare Nexus direttamente.
 
-## Interfaccia verso Temporal
+## API (worktree)
 
-- Usa l’SDK Temporal per avviare workflow (startWorkflow).
-- Identifica workflow e run con naming convention che include `tenantId` e `versione`.
-- Permette di consultare il history log e le search attributes.
-- Deve supportare la configurazione di namespace per tenant o uso di un namespace condiviso.
+- `GET /api/health` → `ok`
+- `GET /api/nexus/search?text=<q>&size=<n>` → proxy verso `.../repository/npm-group/-/v1/search`
+- `GET /api/nexus/package/{name}` → proxy verso `.../repository/npmjs-proxy/{name}`
+
+## Evoluzione prevista (pianificata)
+
+- **Orchestrazione Temporal**: avvio e monitoraggio istanze di processo a partire da bundle pubblicati.
+- **Monitor istanze e task**: stato/timeline/log e gestione human task.

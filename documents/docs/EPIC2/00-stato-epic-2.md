@@ -10,7 +10,7 @@ sidebar_label: Stato EPIC 2
 
 **Contesto:** La UI vive nel progetto `portal-ui/` e integra **Registry API** (`registry-api`) e **Publisher** (`publisher`) tramite chiamate REST con `Authorization: Bearer <token>`.
 
-**Stato complessivo:** **Parzialmente implementato** — disponibili login OIDC, selezione tenant (con auto-select via `defaultTenantId` e post-login redirect), home v0, catalogo, dettaglio artefatto, creazione bozza, editor v0 (Monaco) con presigned URL e pubblicazione v0 (hook `useEnvironments`, dropdown ambienti da Registry, auto-selezione DEV, validazione PROD per versioni non approvate, redirect al dettaglio). **Completati:** i18n con i18next (LanguageSwitcher, traduzioni it/en su tutte le pagine), CI/build portal-ui con pnpm, mock OIDC per test in CI. Restano da completare editor BPMN/DMN/forms “real”, wizard publish multi-step, toast/error boundary e decisione su ricerca full-text.
+**Stato complessivo:** **Parzialmente implementato** — disponibili login OIDC, selezione tenant (con auto-select via `defaultTenantId` e post-login redirect), home v0, catalogo, dettaglio artefatto, creazione bozza, editor v0 (Monaco per XML/JSON/YAML, StillumForms per FORM, Theia via iframe per MODULE/COMPONENT) e pubblicazione v0 (hook `useEnvironments`, dropdown ambienti da Registry, auto-selezione DEV, validazione PROD per versioni non approvate, redirect al dettaglio). **Completati:** i18n con i18next (LanguageSwitcher, traduzioni it/en su tutte le pagine), tema light/dark, CI/build portal-ui con pnpm, mock OIDC per test in CI. Restano da completare editor BPMN/DMN, wizard publish multi-step, toast/error boundary e decisione su ricerca full-text.
 
 ---
 
@@ -21,7 +21,7 @@ sidebar_label: Stato EPIC 2
 | **2.1** Autenticazione e Selezione Tenant | ✅ Completato | OIDC + tenant selection + claim `tenantIds`/`defaultTenantId` (Keycloak) + deep-link `redirectTo` + test unitari completi |
 | **2.2** Dashboard | ✅ Completato | Home con sezioni “Le mie bozze” e “Ultime pubblicazioni” + hook dedicati + test unitari |
 | **2.3** Catalogo Artefatti | 🟡 Parziale | Lista paginata con filtri type/status/area/tag; full-text posticipata |
-| **2.4** Editor Integrati | 🔴 Mancante (v0 testuale) | Editor v0 usa Monaco (XML/JSON) con load/save; mancano embed BPMN/DMN/forms e auto-save |
+| **2.4** Editor Integrati | 🟡 Parziale | Monaco (XML/JSON/YAML), StillumForms (FORM), Theia (MODULE/COMPONENT); mancano embed BPMN/DMN e auto-save |
 | **2.5** Pubblicazione Guidata | 🟡 Parziale | Publish v0 con useEnvironments, dropdown ambienti (auto-selezione DEV), validazione PROD (blocco versione non approvata); EditorPage read-only per PUBLISHED; mancano wizard multi-step e step preview/validazione/conferma |
 | **2.6** Infrastruttura UI | 🟡 Parziale | Layout+router+i18n (i18next, LanguageSwitcher, it/en) completati; CI/build con pnpm; mancano toast, error boundary, audit a11y |
 
@@ -102,8 +102,8 @@ sidebar_label: Stato EPIC 2
 |----|------|------|
 | US-2.4.1 BPMN | 🔴 | Non integrato (solo editor testuale v0) |
 | US-2.4.2 DMN | 🔴 | Non integrato (solo editor testuale v0) |
-| US-2.4.3 Forms | 🔴 | Non integrato (solo editor testuale v0) |
-| US-2.4.4 Request | 🔴 | Non integrato (solo editor testuale v0) |
+| US-2.4.3 Forms | ✅ | Editor StillumForms integrato (tab visuale + JSON/YAML) |
+| US-2.4.4 Request | ✅ | Editor Monaco JSON/YAML |
 | US-2.4.5 Creazione nuovo artefatto | ✅ | Creazione artefatto + prima versione e redirect editor |
 
 ---
@@ -143,5 +143,6 @@ sidebar_label: Stato EPIC 2
 | Catalogo/dettaglio/bozza/editor v0/publish v0 | `portal-ui/src/pages/` |
 | Client API Registry/Publisher | `portal-ui/src/api/` |
 | i18n (i18next) | `portal-ui/src/i18n.ts`, `portal-ui/src/locales/`, `portal-ui/src/components/LanguageSwitcher.tsx` |
+| Editor Theia (MODULE/COMPONENT) | `portal-ui/src/components/TheiaEditor.tsx` |
 | Gestione ambienti e publish | `portal-ui/src/hooks/useEnvironments.ts`, `portal-ui/src/api/registry.ts` (listEnvironments), `portal-ui/src/pages/PublishPage.tsx` |
 | CI/build frontend | `.github/workflows/ci.yml` (pnpm), `portal-ui/Dockerfile` (pnpm), `portal-ui/pnpm-lock.yaml` |

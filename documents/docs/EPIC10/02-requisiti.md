@@ -12,12 +12,12 @@ sidebar_label: Requisiti
 
 - Il sistema deve supportare artefatti di tipo `MODULE` e `COMPONENT` accanto ai tipi esistenti (`PROCESS`, `RULE`, `FORM`, `REQUEST`).
 - Un `MODULE` rappresenta un modulo UI complesso, composto da uno o piu componenti.
-- Un `COMPONENT` rappresenta un singolo elemento UI (pool, droplet o trigger) ed e collegato a un modulo padre tramite dipendenza.
+- Un `COMPONENT` rappresenta un singolo elemento UI (pool, droplet o trigger) ed e associato a un modulo padre (workspace). Le dipendenze di versione restano gestite tramite tabella `dependency`.
 
 ### RF-10.2 – Codice sorgente React
 
 - Ogni versione di un artefatto MODULE o COMPONENT deve poter memorizzare codice sorgente React/TypeScript.
-- Il codice sorgente deve essere editabile tramite un editor Monaco con supporto TypeScript e IntelliSense.
+- Il codice sorgente deve essere editabile tramite un editor IDE integrato (Stillum Theia) con supporto TypeScript.
 
 ### RF-10.3 – Dipendenze npm
 
@@ -27,13 +27,13 @@ sidebar_label: Requisiti
 ### RF-10.4 – Build e generazione pacchetto npm
 
 - Al momento della pubblicazione, il sistema deve compilare il codice React, risolvere le dipendenze npm e generare un pacchetto npm.
-- Il pacchetto npm deve essere pubblicato su un registry npm interno (Verdaccio o equivalente).
+- Il pacchetto npm deve essere pubblicato su un registry npm interno (Nexus).
 - Il riferimento al pacchetto generato (`npm_package_ref`) deve essere memorizzato nella versione dell'artefatto.
 
 ### RF-10.5 – Relazione Modulo → Componenti
 
-- Un `COMPONENT` deve dichiarare una dipendenza verso il `MODULE` padre tramite la tabella `dependency` esistente.
-- Il sistema deve risolvere il grafo completo Modulo→Componenti e includere tutti i componenti nel pacchetto npm del modulo.
+- Un `COMPONENT` deve essere associato a un `MODULE` padre per comporre il workspace di sviluppo.
+- Il sistema deve consentire di dichiarare (a livello versione) le dipendenze del `MODULE` verso versioni di `COMPONENT` (tabella `dependency`) e includere i componenti nel pacchetto npm del modulo.
 
 ### RF-10.6 – Wizard di creazione
 

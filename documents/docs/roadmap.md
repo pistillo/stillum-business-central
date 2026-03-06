@@ -12,8 +12,9 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
    - Finalizzare il modello dati: Tenant, Artifact, ArtifactVersion, Publication, Instance e altre entità centrali.
    - Scegliere lo stack tecnologico di riferimento (PostgreSQL, S3/MinIO per il payload, Temporal come motore runtime, framework UI).
 2. **Infrastruttura di base**
-   - Preparare l’ambiente di sviluppo su un cluster Kubernetes (k3s o equivalente).
-   - Predisporre un repository Git dedicato e pipeline di CI per build, lint e test.
+   - Predisporre un ambiente locale via Docker Compose (PostgreSQL, MinIO, Keycloak, Nexus).
+   - Preparare l’ambiente di sviluppo su Kubernetes (k3s o equivalente) come evoluzione.
+   - Predisporre pipeline di CI per build, lint e test.
 
 ## 🧱 Fase 1 – MVP backend
 
@@ -38,8 +39,8 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
    - Visualizzazione di dettaglio con preview e lista delle versioni disponibili.
    - Creazione o modifica delle bozze con salvataggio nel registry.
 3. **Designer integrati**
-   - Incorporare gli editor BPMN, DMN e StillumForms all’interno della UI.
-   - Consentire il salvataggio delle definizioni come bozze senza esporre la gestione file.
+   - Incorporare editor: Monaco per XML/JSON/YAML, StillumForms per FORM, Stillum Theia (iframe) per `MODULE`/`COMPONENT` (TypeScript/React).
+   - Consentire salvataggio bozze via Registry API (payloadRef per payload-based; source bundle per TypeScript-based).
 
 ## 🚀 Fase 3 – Pubblicazione e ciclo di vita
 
@@ -54,8 +55,8 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
 ## 🔧 Fase 4 – Runtime & orchestrazione
 
 1. **Runtime Gateway**
-   - Avviare istanze di processo tramite Temporal, passando i parametri iniziali e l’identificatore di versione.
-   - Esporre API per interrogare lo stato e la cronologia degli eventi.
+   - Nel worktree corrente il gateway è usato come proxy verso Nexus (anti-CORS).
+   - Evoluzione: avviare istanze di processo tramite Temporal e offrire API per stato e cronologia eventi.
 2. **Gestione task umani**
    - Fornire un sistema di assegnazione e completamento delle task di tipo umano (to‑do list, scadenze, riassegnazioni).
    - Collegare la gestione task con la UI affinché l’utente veda le attività assegnate.
@@ -128,7 +129,7 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
    - Wizard di creazione per pool, droplet e trigger con gestione dipendenze npm.
 3. **Build e Packaging NPM**
    - NPM Build Service: compilazione codice React, risoluzione dipendenze npm, generazione pacchetto npm (Vite/Rollup).
-   - Pubblicazione su registry npm interno (Verdaccio); integrazione con il Publisher.
+   - Pubblicazione su registry npm interno (Nexus); integrazione con il Publisher.
 4. **Runtime: caricamento plugin**
    - I pacchetti npm generati vengono consumati dal runtime come plugin caricabili a run‑time.
 5. **Documentazione e test**

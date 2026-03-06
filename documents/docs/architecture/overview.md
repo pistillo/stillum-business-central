@@ -10,11 +10,12 @@ La piattaforma Stillum mira a offrire un portale centralizzato per utenti di bus
 
 ## Strati principali
 
-- **Interfaccia utente (Portal UI)** – un’applicazione web che funge da “Business Central” per navigare, modellare, pubblicare e monitorare.
-- **Registry API** – il backend che gestisce i metadati, le versioni e il ciclo di vita degli artefatti.
-- **Publisher** – servizio che valida, risolve dipendenze e produce versioni immutabili pronte per l’esecuzione.
-- **Runtime Gateway** – la porta d’accesso al runtime basato su Temporal, responsabile dell’avvio e del monitoraggio delle istanze.
-- **Storage e database** – Postgres per i metadati e MinIO/S3 per i payload degli artefatti.
-- **Identità e multi-tenant** – gestione di tenant, utenti, ruoli e permessi con isolamento dei dati.
+- **Interfaccia utente (Portal UI)** – web app React (Vite) per login OIDC, selezione tenant, catalogo, editor e pubblicazione.
+- **Editor avanzato (Stillum Theia)** – IDE Theia custom avviato separatamente e integrato nel Portal UI via iframe per l’editing di artefatti `MODULE`/`COMPONENT` (TypeScript/React).
+- **Registry API** – servizio Quarkus che gestisce metadati, versioni, ambienti e dipendenze; espone API REST sotto prefisso `/api`.
+- **Publisher** – servizio Quarkus che valida e pubblica versioni: costruisce bundle immutabili su MinIO, aggiorna lo stato a `PUBLISHED`, integra `npm-build-service` per `MODULE`/`COMPONENT`.
+- **NPM Build Service** – servizio Node.js/Fastify che genera e pubblica pacchetti npm su Nexus a partire dal codice sorgente React.
+- **Runtime Gateway** – nel worktree corrente è un gateway Quarkus usato come proxy verso Nexus (evita CORS dal browser). L’orchestrazione Temporal è pianificata ma non implementata qui.
+- **Storage e database** – PostgreSQL per metadati (con RLS multi-tenant) e MinIO/S3 per payload e bundle; Keycloak per OIDC; Nexus come npm registry interno.
 
 Ogni sezione della documentazione approfondisce i requisiti specifici di questi elementi.

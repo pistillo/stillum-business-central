@@ -21,7 +21,7 @@ sidebar_label: Stato EPIC 10
 | FEATURE | Stato | Note |
 |---------|-------|------|
 | **10.1** Backend: Enum, DB e API per MODULE/COMPONENT | 🟢 Completato | Enum, migrazioni DB, entity, DTOs e API CRUD implementati |
-| **10.2** Editor React (Monaco + TypeScript) | 🟡 In corso (85%) | Monaco TS configurato, DependenciesPanel, NewArtifactPage con API dedicate |
+| **10.2** Editor React (Theia + TypeScript) | 🟡 In corso (85%) | Integrazione Stillum Theia (iframe + postMessage), DependenciesPanel (Nexus proxy), NewArtifactPage con API dedicate |
 | **10.3** Build e Packaging NPM | 🟡 In corso (80%) | NPM Build Service implementato, Nexus in docker-compose, integrazione Publisher |
 | **10.4** Runtime: Caricamento Plugin UI | 🔴 Non iniziato | Definire architettura plugin loader |
 | **10.5** Documentazione e Test | 🟡 In corso (40%) | Documentazione architetturale aggiornata, test da completare |
@@ -42,12 +42,12 @@ sidebar_label: Stato EPIC 10
 | T-10.1.1.2 Creare migrazione DB: campi `source_code`, `npm_dependencies`, `npm_package_ref` su `artifact_version` | 🟢 | Migrazione V10 creata e applicata |
 | T-10.1.1.3 Aggiornare entity JPA `ArtifactVersion` con i nuovi campi | 🟢 | Entity aggiornata con sourceCode, npmDependencies, npmPackageRef |
 | T-10.1.1.4 Implementare API CRUD specifiche per MODULE e COMPONENT | 🟢 | Endpoint POST /modules e /components implementati |
-| T-10.1.1.5 Gestire relazione Modulo→Componenti via tabella `dependency` | 🟢 | Validazione COMPONENT→MODULE implementata in ArtifactService |
+| T-10.1.1.5 Gestire relazione Modulo→Componenti (workspace) | 🟢 | `artifact.parent_module_id` + endpoint `GET /artifacts/{moduleId}/workspace` |
 | T-10.1.1.6 Scrivere test unitari e di integrazione per i nuovi endpoint | 🟢 | Test ArtifactResourceTest estesi (13 test, tutti passanti) |
 
 ---
 
-### FEATURE 10.2 – Editor React (Monaco + TypeScript)
+### FEATURE 10.2 – Editor React (Theia + TypeScript)
 
 **Stato (worktree):** 🟡 In corso (85%).
 
@@ -55,8 +55,8 @@ sidebar_label: Stato EPIC 10
 
 | Task | Stato | Evidenza |
 |------|-------|----------|
-| T-10.2.1.1 Configurare Monaco Editor per linguaggio TypeScript/TSX con IntelliSense | 🟢 | `EditorPage.tsx`: `configureMonacoForTypeScript()` con React type definitions |
-| T-10.2.1.2 Implementare load/save del codice sorgente React da/verso Registry API | 🟢 | `EditorPage.tsx`: load da `version.sourceCode`, save via `updateVersion()` |
+| T-10.2.1.1 Integrare Stillum Theia come editor TypeScript/React | 🟢 | `TheiaEditor.tsx` (iframe + protocollo `stillum:*`) |
+| T-10.2.1.2 Implementare load/save sorgenti via Registry API | 🟢 | Workspace da `GET /workspace`, save via `updateVersion()` mediato dal portale (postMessage) |
 | T-10.2.1.3 Integrare campo per selezionare/installare dipendenze npm (autocomplete da registry) | 🟢 | `DependenciesPanel.tsx`: ricerca npm, add/remove dipendenze con persistenza |
 | T-10.2.1.4 Sviluppare wizard di creazione "Nuovo Pool / Droplet / Trigger" | 🔴 | Da sviluppare |
 | T-10.2.1.5 Aggiornare NewArtifactPage con opzioni MODULE e COMPONENT | 🟢 | `NewArtifactPage.tsx`: usa `createModule()`/`createComponent()` API dedicate |
@@ -122,9 +122,9 @@ sidebar_label: Stato EPIC 10
 |-------------|---------------|
 | Migrazione DB per campi MODULE/COMPONENT | `registry-api/src/main/resources/db/migration/V10__*.sql` |
 | API CRUD per MODULE/COMPONENT | `registry-api/src/main/java/.../service/ArtifactService.java` |
-| Editor React Monaco con TypeScript | `portal-ui/src/pages/EditorPage.tsx` e `portal-ui/src/components/DependenciesPanel.tsx` |
+| Editor React (Theia) + dipendenze npm | `portal-ui/src/components/TheiaEditor.tsx` e `portal-ui/src/components/DependenciesPanel.tsx` |
 | NPM Build Service | `npm-build-service/` (Fastify + esbuild) |
 | Configurazione Nexus | `docker-compose.yml` (servizio `nexus`) |
 | Integrazione Publisher | `publisher/src/.../service/PublishService.java` + `publisher/src/.../client/NpmBuildClient.java` |
-| Plugin loader runtime | `portal-ui/src/runtime/` (da implementare) |
+| Plugin loader runtime | Da definire (non presente nel worktree) |
 | Documentazione | `documents/docs/EPIC10/` |

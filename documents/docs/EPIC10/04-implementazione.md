@@ -13,15 +13,16 @@ sidebar_label: Implementazione
 Servizio dedicato alla compilazione del codice React degli artefatti MODULE/COMPONENT:
 
 - **Input:** codice sorgente React/TypeScript + mappa dipendenze npm.
-- **Processo:** installazione dipendenze in sandbox → compilazione con Vite/Rollup → generazione pacchetto npm.
-- **Output:** pacchetto npm pubblicato su registry interno.
-- **Tecnologia suggerita:** container Node.js con Vite/Rollup; API REST per trigger build.
+- **Processo (worktree):** generazione progetto temporaneo → `npm install` (con `--ignore-scripts`) → bundling con esbuild (ESM) → `npm publish` su Nexus.
+- **Output:** pacchetto npm pubblicato su registry interno (Nexus) + `npmPackageRef`.
+- **Tecnologia (worktree):** Node.js + Fastify + esbuild; API REST `POST /api/build`.
 
-### Registry NPM interno (Verdaccio)
+### Registry NPM interno (Nexus)
 
-- Registry npm privato per ospitare i pacchetti generati.
-- Autenticazione per tenant (token-based).
-- Integrazione con Docker Compose e Helm chart.
+- Nexus Repository Manager usato come registry npm interno:
+  - repository hosted per publish
+  - repository group per install (risoluzione dipendenze)
+- Integrazione con Docker Compose (servizio `nexus`).
 
 ### Plugin Loader
 
@@ -38,15 +39,14 @@ La scelta sara determinata durante l'implementazione in base ai vincoli di compa
 ```
 1. Sviluppatore crea artefatto MODULE nella UI
 2. Aggiunge COMPONENT collegati (pool, droplet, trigger)
-3. Scrive codice React nell'editor Monaco (TypeScript)
+3. Scrive codice React nell'editor Theia (TypeScript)
 4. Seleziona dipendenze npm
 5. Salva come DRAFT nel Registry
 6. Avvia pubblicazione → Publisher invoca NPM Build Service
 7. Build Service:
    a. Installa dipendenze npm in sandbox
-   b. Compila codice React con Vite/Rollup
-   c. Genera pacchetto npm
-   d. Pubblica su Verdaccio
+   b. Compila/bundla codice React con esbuild
+   c. Pubblica su Nexus
 8. Publisher salva npm_package_ref nella versione
 9. Versione diventa PUBLISHED
 10. Runtime carica il pacchetto npm come plugin UI
@@ -56,16 +56,16 @@ La scelta sara determinata durante l'implementazione in base ai vincoli di compa
 
 | Componente | Tecnologia | Note |
 |------------|------------|------|
-| Editor codice | Monaco Editor (TypeScript/TSX) | Gia presente per XML/JSON; da estendere |
-| Bundler | Vite o Rollup | Compilazione codice React |
+| Editor codice | Stillum Theia (iframe) | IDE per TypeScript/React; Monaco resta per XML/JSON/YAML |
+| Bundler | esbuild | Bundling ESM, externalize react/react-dom |
 | Runtime Node.js | Node.js 20+ in container | Per il Build Service |
-| Registry npm | Verdaccio | Registry privato npm |
+| Registry npm | Nexus | Registry privato npm |
 | Plugin loading | Module Federation o Dynamic Import | Da valutare |
 
 ## Sicurezza
 
 - La build npm avviene in container sandbox con risorse limitate (CPU, memoria, tempo).
-- Le dipendenze npm vengono verificate con `npm audit` prima della build.
+- Installazione dipendenze con `npm install --ignore-scripts --no-fund --no-audit` per ridurre superficie d’attacco; verifiche di sicurezza (audit/SCA) sono da integrare in CI.
 - Il registry npm interno e accessibile solo tramite autenticazione.
 - I plugin caricati a runtime sono isolati tramite iframe sandbox o shadow DOM.
 
@@ -76,8 +76,9 @@ La scelta sara determinata durante l'implementazione in base ai vincoli di compa
 ### Dettaglio tecnico
 
 #### Entity aggiornate
-- `ArtifactVersion`: aggiunti campi `sourceCode`, `npmDependencies`, `npmPackageRef`
-- Campi mappati su colonne DB: `source_code`, `npm_dependencies` (JSONB), `npm_package_ref`
+- `ArtifactVersion`: campi `npmDependencies`, `npmPackageRef` e `sourceRef` (bundle sorgenti su MinIO)
+- Campi DB principali: `npm_dependencies` (JSONB), `npm_package_ref`, `source_ref` (S3 key)
+- Colonne `source_code`, `build_snapshot`, `source_files` restano mappate per compatibilità/migrazione
 
 #### DTOs creati/modificati
 - `CreateModuleRequest`: per creazione artefatti MODULE

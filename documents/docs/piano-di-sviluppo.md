@@ -22,15 +22,15 @@ Riferimento sintetico rispetto all’implementazione presente nel repository.
 |------|------|---:|------|----------|
 | EPIC 0 | ✅ Completato | 90% | Deliverable documentali + Docker Compose/CI presenti; chart Helm è uno scaffold | [Stato EPIC 0](/docs/EPIC0/epic0-stato) |
 | EPIC 1 | 🟡 Quasi completo (MVP) | 90% | Core completo; restano validazioni semantiche e hardening auth tenant | [Stato EPIC 1](/docs/EPIC1/epic1-stato) |
-| EPIC 2 | 🟡 Parziale (v0) | 65% | UI v0 operativa con login/tenant/catalogo/dettaglio/editor Monaco, publish con ambienti (useEnvironments) e validazione PROD, i18n (i18next) completato, CI con pnpm; mancano editor BPMN/DMN integrati e wizard publish multi-step | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
+| EPIC 2 | 🟡 Parziale (v0) | 70% | UI v0 operativa con login/tenant/catalogo/dettaglio; editor Monaco (XML/JSON/YAML) + StillumForms (FORM) + Theia (MODULE/COMPONENT); publish v0 con ambienti (useEnvironments) e validazione PROD; i18n (i18next) e tema completati | [Stato EPIC 2](/docs/EPIC2/epic2-stato) |
 | EPIC 3 | 🔴 Non iniziato | 0% | Workflow approvazione e ciclo di vita avanzato | |
-| EPIC 4 | 🟡 In avvio | 10% | Servizio `runtime-gateway` minimale; Temporal disponibile in docker-compose, integrazione applicativa da implementare | |
+| EPIC 4 | 🟡 In avvio | 10% | `runtime-gateway` presente come proxy Nexus (anti-CORS) + health; orchestrazione Temporal pianificata (Temporal non incluso nei compose di questo repo) | |
 | EPIC 5 | 🟡 In parte | 15% | Hardening multi-tenant già avviato (RLS); RBAC/ACL e onboarding tenant non implementati | |
 | EPIC 6 | 🔴 Non iniziato | 5% | Chart Helm presente come scaffold, mancano Dockerfile e chart applicativi | |
 | EPIC 7 | 🔴 Non iniziato | 0% | Export/import Git, webhook e diff versioni | |
 | EPIC 8 | 🔴 Non iniziato | 0% | Analytics, SLA e audit consultabile | |
 | EPIC 9 | 🔴 Non iniziato | 0% | Marketplace, assistente AI e plugin | |
-| EPIC 10 | 🔴 Non iniziato | 0% | Artefatti UI React e Packaging NPM (fuori roadmap originale; dipende da EPIC 2 e EPIC 6) | [Stato EPIC 10](/docs/EPIC10/epic10-stato) |
+| EPIC 10 | 🟡 In corso | 55% | MODULE/COMPONENT (API+DB), NPM build service + Nexus + integrazione Publisher, editor TypeScript via Theia; runtime plugin loader non iniziato | [Stato EPIC 10](/docs/EPIC10/epic10-stato) |
 
 Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/api`. Nei task dove il prefisso non è esplicitato, assumere `/api`.
 
@@ -579,7 +579,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 **Obiettivo:** Eseguire processi tramite Temporal, gestire task umani e monitorare le pratiche.
 
-**Stato (worktree):** 🟡 In avvio (10%) — servizio `runtime-gateway` presente (health); Temporal disponibile in docker-compose, integrazione applicativa non presente.
+**Stato (worktree):** 🟡 In avvio (10%) — `runtime-gateway` presente (health + proxy Nexus anti-CORS). Temporal e orchestrazione applicativa non sono presenti in questo repo (pianificati).
 
 **Stato task:** 🔴 per tutti i task di questo EPIC (salvo marcatura esplicita).
 
@@ -594,7 +594,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 | # | Task | Output |
 |---|------|--------|
-| 🟡 T-4.1.1.1 | Consolidare scaffolding del progetto runtime-gateway (Java/Quarkus) | Progetto base |
+| ✅ T-4.1.1.1 | Consolidare scaffolding del progetto runtime-gateway (Java/Quarkus) | Progetto base + `GET /api/health` + proxy Nexus |
 | T-4.1.1.2 | Integrare l'SDK Temporal (Go SDK o Java SDK) | Dipendenza SDK |
 | T-4.1.1.3 | Implementare `POST /api/tenants/{tenantId}/instances` – avvio workflow con processDefinitionId, versionId, parametri iniziali | Endpoint |
 | T-4.1.1.4 | Tradurre processDefinitionId + versionId nel workflowId Temporal corretto | Logica mapping |
@@ -1048,9 +1048,9 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 **Obiettivo:** Introdurre i tipi di artefatti `MODULE` e `COMPONENT` per definire pools, droplets e triggers tramite codice React, con editor dedicato, risoluzione dipendenze npm e generazione di pacchetti npm riutilizzabili dal runtime.
 
-**Stato (worktree):** 🟡 In corso (10%).
+**Stato (worktree):** 🟡 In corso (55%).
 
-**Stato task:** 🟢 US-10.1.1 e US-10.1.2 completate, restanti 🔴.
+**Stato task:** 🟢 FEATURE 10.1 completata; 🟡 FEATURE 10.2 e 10.3 in corso; restanti 🔴.
 
 **Dipendenze:** EPIC 2 (Portal UI) e EPIC 6 (Packaging & Distribuzione).
 > **Nota:** questa EPIC è fuori dalla roadmap originale (Fasi 0–9). I Form StillumForms basati su JSON Schema restano artefatti FORM. I nuovi artefatti MODULE e COMPONENT sono destinati alla definizione di pools/droplets/triggers con codice React effettivo.
@@ -1086,20 +1086,20 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | 🟢 T-10.1.2.5 | Aggiornare endpoint di ricerca per supportare filtri su MODULE e COMPONENT | Endpoint supporta filtri tipo |
 | 🟢 T-10.1.2.6 | Scrivere test unitari e di integrazione per le API MODULE/COMPONENT | Suite di test passanti (13 test) |
 
-### FEATURE 10.2 – Editor React (Monaco + TypeScript)
+### FEATURE 10.2 – Editor React (Theia + TypeScript)
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (85%).
 
 #### US-10.2.1 – Editor di codice React con supporto TypeScript
 *Come sviluppatore, voglio un editor di codice React con IntelliSense e supporto TypeScript, in modo da scrivere pools, droplets e triggers con produttività.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (85%).
 
 | # | Task | Output |
 |---|------|--------|
-| T-10.2.1.1 | Configurare Monaco Editor per linguaggio TypeScript/TSX con IntelliSense e type definitions React | Editor React |
-| T-10.2.1.2 | Implementare load/save del codice sorgente React da/verso Registry API (campo `source_code`) | Integrazione API |
-| T-10.2.1.3 | Implementare pannello laterale per gestire dipendenze npm: ricerca, aggiunta, rimozione | Componente npm deps |
+| ✅ T-10.2.1.1 | Integrare Stillum Theia come editor TypeScript/React (iframe) | `portal-ui/src/components/TheiaEditor.tsx` |
+| ✅ T-10.2.1.2 | Implementare load/save sorgenti via Registry API (source bundle) | `updateVersion()` + protocollo `stillum:save-*` |
+| ✅ T-10.2.1.3 | Implementare pannello dipendenze npm (ricerca + add/remove) | `DependenciesPanel` + proxy Nexus |
 | T-10.2.1.4 | Integrare validazione TypeScript in-editor con segnalazione errori in tempo reale | Diagnostica TS |
 | T-10.2.1.5 | Implementare anteprima live del componente React (opzionale, sandbox iframe) | Preview component |
 
@@ -1112,55 +1112,55 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 |---|------|--------|
 | T-10.2.2.1 | Progettare template di codice React per pool, droplet e trigger | Template di codice |
 | T-10.2.2.2 | Implementare wizard step-by-step: selezione tipo (pool/droplet/trigger) → nome → modulo padre → dipendenze npm → template | Wizard UI |
-| T-10.2.2.3 | Implementare collegamento automatico COMPONENT→MODULE padre via dependency API | Logica di business |
-| T-10.2.2.4 | Aggiornare NewArtifactPage con opzioni MODULE e COMPONENT nel selettore tipo | Pagina aggiornata |
+| T-10.2.2.3 | Implementare collegamento automatico COMPONENT→MODULE padre | Logica di business |
+| ✅ T-10.2.2.4 | Aggiornare NewArtifactPage con opzioni MODULE e COMPONENT nel selettore tipo | Pagina aggiornata |
 
 #### US-10.2.3 – Aggiornamento catalogo per MODULE/COMPONENT
 *Come utente del portale, voglio visualizzare moduli e componenti nel catalogo con vista aggregata, in modo da navigare facilmente la struttura pools/droplets/triggers.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (25%).
 
 | # | Task | Output |
 |---|------|--------|
-| T-10.2.3.1 | Aggiornare CataloguePage con filtri per tipo MODULE e COMPONENT | Pagina aggiornata |
+| ✅ T-10.2.3.1 | Aggiornare CataloguePage con filtri per tipo MODULE e COMPONENT | Pagina aggiornata |
 | T-10.2.3.2 | Implementare vista aggregata MODULE: mostrare modulo padre con elenco componenti figli | Componente UI |
 | T-10.2.3.3 | Implementare pagina dettaglio MODULE con tab "Componenti" che lista pool/droplet/trigger collegati | Pagina dettaglio |
 | T-10.2.3.4 | Aggiornare pagina dettaglio COMPONENT con link al MODULE padre | Pagina dettaglio |
 
 ### FEATURE 10.3 – Build e Packaging NPM
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (80%).
 
 #### US-10.3.1 – NPM Build Service
 *Come piattaforma, voglio compilare il codice React degli artefatti MODULE/COMPONENT e generare pacchetti npm, in modo da distribuirli come plugin riutilizzabili.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (85%).
 
 | # | Task | Output |
 |---|------|--------|
-| T-10.3.1.1 | Progettare architettura NPM Build Service: API REST, container sandbox, input/output | Documento architettura |
-| T-10.3.1.2 | Creare scaffolding progetto `npm-build-service` (Node.js) | Progetto base |
-| T-10.3.1.3 | Implementare endpoint `POST /build` che riceve source_code e npm_dependencies | Endpoint build |
-| T-10.3.1.4 | Implementare risoluzione e installazione dipendenze npm in directory sandbox isolata | Logica installazione |
-| T-10.3.1.5 | Implementare compilazione codice React/TypeScript con Vite o Rollup → bundle JS | Logica bundling |
-| T-10.3.1.6 | Implementare generazione manifest npm (`package.json`) con metadati dell'artefatto | Generatore manifest |
-| T-10.3.1.7 | Implementare `npm audit` sulle dipendenze prima della build (sicurezza) | Verifica sicurezza |
-| T-10.3.1.8 | Scrivere test per il flusso completo di build | Suite di test |
+| ✅ T-10.3.1.1 | Progettare architettura NPM Build Service: API REST, container sandbox, input/output | Implementata in `npm-build-service/` |
+| ✅ T-10.3.1.2 | Creare scaffolding progetto `npm-build-service` (Node.js) | Progetto base |
+| ✅ T-10.3.1.3 | Implementare endpoint `POST /api/build` | Endpoint build |
+| ✅ T-10.3.1.4 | Implementare installazione dipendenze in directory sandbox isolata | `npm install --ignore-scripts` |
+| ✅ T-10.3.1.5 | Implementare bundling codice React/TypeScript → ESM | esbuild |
+| ✅ T-10.3.1.6 | Implementare generazione `package.json` con metadati artefatto | Generatore manifest |
+| 🔴 T-10.3.1.7 | Integrare verifiche sicurezza dipendenze (SCA/audit) in CI | Pipeline sicurezza |
+| 🔴 T-10.3.1.8 | Scrivere test per il flusso completo di build | Suite di test |
 
 #### US-10.3.2 – Registry npm interno e integrazione Publisher
 *Come piattaforma, voglio pubblicare i pacchetti npm generati su un registry interno e integrare il flusso nel Publisher, in modo da automatizzare la distribuzione.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 In corso (75%).
 
 | # | Task | Output |
 |---|------|--------|
-| T-10.3.2.1 | Configurare Verdaccio (o equivalente) come registry npm interno | Docker Compose / Helm |
-| T-10.3.2.2 | Implementare autenticazione per tenant sul registry npm | Configurazione auth |
-| T-10.3.2.3 | Implementare pubblicazione automatica del pacchetto npm su Verdaccio dopo build | Logica publish |
-| T-10.3.2.4 | Integrare il NPM Build Service nel flusso del Publisher: trigger build per artefatti MODULE/COMPONENT | Integrazione Publisher |
-| T-10.3.2.5 | Aggiornare il Publisher per salvare `npm_package_ref` nella versione dopo la build | Logica Publisher |
-| T-10.3.2.6 | Includere riferimento al pacchetto npm nel bundle di pubblicazione | Bundle aggiornato |
-| T-10.3.2.7 | Scrivere test per il flusso Publisher→Build→Publish npm | Suite di test |
+| ✅ T-10.3.2.1 | Configurare Nexus come registry npm interno | Docker Compose |
+| 🔴 T-10.3.2.2 | Implementare autenticazione/segregazione per tenant sul registry npm | Configurazione auth |
+| ✅ T-10.3.2.3 | Implementare pubblicazione automatica del pacchetto npm su Nexus dopo build | `npm publish` |
+| ✅ T-10.3.2.4 | Integrare il NPM Build Service nel flusso del Publisher | Integrazione Publisher |
+| ✅ T-10.3.2.5 | Aggiornare il Publisher per salvare `npm_package_ref` dopo la build | Logica Publisher |
+| ✅ T-10.3.2.6 | Includere riferimento al pacchetto npm nel bundle di pubblicazione | Manifest bundle |
+| 🔴 T-10.3.2.7 | Scrivere test per il flusso Publisher→Build→Publish npm | Suite di test |
 
 ### FEATURE 10.4 – Runtime: Caricamento Plugin UI
 

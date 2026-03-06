@@ -14,16 +14,16 @@ Introdurre due nuovi tipi di artefatti, **MODULE** e **COMPONENT**, che consenta
 
 - **FORM** (esistente): interfacce StillumForms basate su JSON Schema, approccio dichiarativo.
 - **MODULE** (nuovo): modulo UI complesso composto da N componenti, definito tramite codice React/TypeScript.
-- **COMPONENT** (nuovo): singolo elemento UI (pool, droplet o trigger) con proprio codice React, collegabile a un modulo padre via dipendenza.
+- **COMPONENT** (nuovo): singolo elemento UI (pool, droplet o trigger) con proprio codice React, associabile a un modulo padre (workspace) e referenziabile come dipendenza di versione.
 
 ## Deliverable principali
 
-1. **Migrazioni DB** – Nuovi campi su `artifact_version`: `source_code`, `npm_dependencies`, `npm_package_ref`.
+1. **Migrazioni DB** – Supporto `MODULE/COMPONENT`, `parent_module_id`, `component_type`, `npm_dependencies`, `npm_package_ref`, `source_ref` (bundle sorgenti su MinIO).
 2. **API CRUD** – Endpoint per creare, leggere, aggiornare e pubblicare artefatti MODULE e COMPONENT.
-3. **Editor React** – Editor Monaco con supporto TypeScript/TSX, IntelliSense e gestione dipendenze npm.
+3. **Editor React** – Integrazione Stillum Theia (iframe) per TypeScript/React + gestione dipendenze npm.
 4. **Wizard** – Wizard di creazione per pool, droplet e trigger con template iniziali.
 5. **NPM Build Service** – Servizio che compila codice React, risolve dipendenze npm e genera pacchetto npm.
-6. **Registry npm interno** – Verdaccio (o equivalente) per ospitare i pacchetti generati.
+6. **Registry npm interno** – Nexus per ospitare i pacchetti generati.
 7. **Plugin loader** – Meccanismo di caricamento dinamico dei pacchetti npm come plugin UI nel runtime.
 8. **Documentazione** – Guide sviluppatore, diagrammi aggiornati e test end-to-end.
 

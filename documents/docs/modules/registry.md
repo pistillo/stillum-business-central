@@ -8,10 +8,11 @@ Il **Registry degli Artefatti** è il cuore della persistenza e del versionament
 
 ## Responsabilità
 
-- **Gestione artefatti**: creare, leggere, aggiornare, cancellare (soft delete) oggetti di tipo BPMN, DMN, Form, Request, Module e Component.
-- **Versionamento**: ogni artefatto mantiene un log di versioni; ogni versione ha uno stato (`DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`). L’immutabilità è garantita sulle versioni `PUBLISHED`.
-- **Dipendenze**: memorizza la relazione tra versioni (es. un processo pubblicato V3 usa la regola DMN V7 e il modulo V2). I componenti di tipo `COMPONENT` vengono collegati al rispettivo modulo padre (`MODULE`) tramite la tabella dependency; il Registry gestisce la risoluzione del grafo completo Modulo→Componenti.
-- **Codice sorgente e npm**: per artefatti `MODULE` e `COMPONENT`, il Registry memorizza il codice sorgente React (`source_code`), la mappa delle dipendenze npm (`npm_dependencies`) e il riferimento al pacchetto npm generato (`npm_package_ref`).
+- **Gestione artefatti**: creare, leggere, aggiornare, ritirare (soft delete) artefatti di tipo PROCESS/RULE/FORM/REQUEST/MODULE/COMPONENT.
+- **Versionamento**: ogni artefatto mantiene un log di versioni; ogni versione ha uno stato (`DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`). Le versioni `PUBLISHED` sono immutabili.
+- **Dipendenze tra versioni**: memorizza la relazione `artifact_version -> depends_on_version` usata dal Publisher per includere dipendenze nel bundle e per i flussi `MODULE`/`COMPONENT`.
+- **Workspace Modulo→Componenti**: i `COMPONENT` sono associati a un `MODULE` tramite `artifact.parent_module_id` (relazione strutturale usata per comporre il workspace editor).
+- **Codice sorgente e file progetto**: per `MODULE`/`COMPONENT` il Registry salva sorgenti e file progetto su MinIO/S3 come bundle JSON (referenziato da `artifact_version.source_ref`); in DB restano `npm_dependencies` e `npm_package_ref`.
 - **Metadata e tag**: permette di assegnare descrizioni, tag, area/modulo, owner e tenant.
 - **Ricerca**: fornisce endpoint per cercare artefatti per testo libero, tag, tipo, stato e versioni.
 
@@ -21,33 +22,37 @@ Il **Registry degli Artefatti** è il cuore della persistenza e del versionament
 |------|---------|-------------|
 | `PROCESS` | XML/BPMN | Definizione di processo |
 | `RULE` | XML/DMN | Regola decisionale |
-| `FORM` | JSON | Definizione di form (StillumForms basato su JSON Schema – interfacce dichiarative) |
+| `FORM` | JSON | Definizione di form (StillumForms) |
 | `REQUEST` | JSON | Definizione di request (contratto di servizio) |
-| `MODULE` | JSON + React | Modulo UI complesso composto da componenti: definisce pools, droplets e triggers tramite codice React effettivo con dipendenze npm |
-| `COMPONENT` | JSON + React | Componente UI singolo (pool, droplet o trigger): collegabile a un modulo padre tramite la tabella dependency, con proprio codice sorgente React e dipendenze npm |
+| `MODULE` | TypeScript/React | Modulo UI composto da componenti; contiene progetto/snapshot e codice sorgente |
+| `COMPONENT` | TypeScript/React | Componente UI singolo (POOL/DROPLET/TRIGGER) associato a un modulo padre |
 
 > **Distinzione FORM vs MODULE/COMPONENT:** gli artefatti `FORM` restano dedicati alla definizione di interfacce StillumForms basate su JSON Schema (approccio dichiarativo). Gli artefatti `MODULE` e `COMPONENT` introducono la possibilità di definire pools, droplets e triggers tramite codice React effettivo, importando librerie npm e producendo pacchetti npm riutilizzabili dal runtime come plugin caricabili.
 
-### Struttura dati MODULE e COMPONENT
+### Sorgenti MODULE e COMPONENT (worktree)
 
-Per gli artefatti `MODULE` e `COMPONENT`, la versione contiene campi aggiuntivi:
+Per gli artefatti `MODULE` e `COMPONENT`, la versione espone (via API) campi aggiuntivi:
 
-- **`source_code`** (text): il codice sorgente React/TypeScript del pool, droplet o trigger.
+- **`sourceCode`**: sorgente principale TypeScript/React.
+- **`sourceFiles`**: mappa file aggiuntivi (es. file per componenti).
+- **`buildSnapshot`**: snapshot del progetto (template file) usato per materializzare il workspace.
 - **`npm_dependencies`** (json): mappa `{ "react": "^18.0.0", "my-lib": "^1.2.0" }` delle librerie npm necessarie.
 - **`npm_package_ref`** (string): puntatore al pacchetto npm generato dalla pipeline di build (es. path nel registry npm interno).
 
-### Relazione Modulo→Componenti
+Il contenuto sorgente viene persistito su MinIO/S3 come bundle JSON, e referenziato in DB da `artifact_version.source_ref`. Le colonne DB `source_code`, `source_files`, `build_snapshot` sono presenti per compatibilità/migrazione e non rappresentano il formato “source of truth”.
 
-Un artefatto `MODULE` aggrega N artefatti `COMPONENT` tramite la tabella `dependency`:
+### Relazione Modulo→Componenti (workspace)
 
-- Ogni `COMPONENT` dichiara una dipendenza verso il `MODULE` padre.
-- Il Registry risolve il grafo delle dipendenze per restituire l'elenco completo dei componenti di un modulo.
-- Il Publisher utilizza questo grafo per generare il pacchetto npm unificato del modulo.
+Un artefatto `MODULE` aggrega N artefatti `COMPONENT` tramite `artifact.parent_module_id`:
 
-## API da sviluppare
+- Il Registry espone `GET /api/tenants/{tenantId}/artifacts/{moduleId}/workspace` che ritorna modulo + versione + componenti (con versioni).
+- L’editor Theia usa questo workspace per materializzare il progetto locale e aprire i file.
 
-- Endpoints REST/GraphQL per CRUD dei diversi tipi di artefatti.
-- Endpoints per ottenere la lista di versioni di un artefatto.
-- Endpoint per risolvere il grafo delle dipendenze.
-- Endpoints per promuovere lo stato (es. da Bozza a In Revisione).
-- Autorizzazione basata su tenant e ruolo per ogni operazione.
+## API (worktree)
+
+- CRUD artefatti: `POST/GET/PUT/DELETE /api/tenants/{tenantId}/artifacts`
+- Versioni: `POST/GET/PUT/DELETE /api/tenants/{tenantId}/artifacts/{artifactId}/versions`
+- Dipendenze tra versioni: `POST/GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies`
+- Ricerca: `GET /api/tenants/{tenantId}/search/artifacts`
+- Ambienti: `POST/GET/PUT/DELETE /api/tenants/{tenantId}/environments`
+- Workspace modulo: `GET /api/tenants/{tenantId}/artifacts/{moduleId}/workspace`

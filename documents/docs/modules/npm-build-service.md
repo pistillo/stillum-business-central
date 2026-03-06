@@ -71,7 +71,7 @@ interface BuildResponse {
 interface BuildErrorResponse {
   success: false;
   error: string;
-  phase: 'SETUP' | 'INSTALL' | 'COMPILE' | 'BUNDLE' | 'PUBLISH';
+  phase: 'SETUP' | 'INSTALL' | 'BUNDLE' | 'PUBLISH';
   details?: string;
 }
 ```
@@ -84,8 +84,8 @@ Health check endpoint per verificare che il servizio sia operativo.
 
 ```json
 {
-  "status": "ok",
-  "timestamp": "2025-03-02T12:00:00Z"
+  "status": "UP",
+  "service": "npm-build-service"
 }
 ```
 
@@ -97,16 +97,14 @@ Il servizio implementa un orchestrator di build che esegue le seguenti fasi:
 flowchart LR
   A[Request Build] --> B[SETUP]
   B --> C[INSTALL]
-  C --> D[COMPILE]
-  D --> E[BUNDLE]
-  E --> F[PUBLISH]
-  F --> G[Return BuildResponse]
+  C --> D[BUNDLE]
+  D --> E[PUBLISH]
+  E --> F[Return BuildResponse]
 
   B -.-> H[BuildError]
   C -.-> H
   D -.-> H
   E -.-> H
-  F -.-> H
   H --> I[Return BuildErrorResponse]
 ```
 
@@ -114,9 +112,8 @@ flowchart LR
 
 1. **SETUP**: Creazione directory temporanea, generazione package.json e tsconfig.json
 2. **INSTALL**: Installazione delle dipendenze npm (npm install)
-3. **COMPILE**: Compilazione TypeScript (tsc)
-4. **BUNDLE**: Bundling del codice compilato con esbuild
-5. **PUBLISH**: Generazione del pacchetto npm (.tgz) e calcolo delle dimensioni
+3. **BUNDLE**: Bundling del codice con esbuild (ESM, browser target) e tentativo best-effort di generazione `.d.ts` via `tsc`
+4. **PUBLISH**: Pubblicazione del pacchetto npm su Nexus (`npm publish`)
 
 ### Gestione Componenti (solo MODULE)
 
@@ -133,6 +130,14 @@ Per artefatti di tipo **MODULE**, il servizio:
 
 - `PORT`: Porta su cui il servizio ascolta (default: 8090)
 - `LOG_LEVEL`: Livello di logging (default: info)
+- `NEXUS_URL`: Base URL di Nexus (default: `http://localhost:8070`)
+- `NEXUS_NPM_REGISTRY_URL`: URL del repository npm hosted (default: `http://localhost:8070/repository/npm-hosted/`)
+- `NEXUS_NPM_GROUP_URL`: URL del repository npm group (default: `http://localhost:8070/repository/npm-group/`)
+- `NEXUS_USERNAME`: Username Nexus (default: `admin`)
+- `NEXUS_PASSWORD`: Password Nexus (obbligatoria)
+- `BUILD_TEMP_DIR`: Directory temporanea build (default: `/tmp/stillum-builds`)
+- `BUILD_TIMEOUT_MS`: Timeout install dipendenze (default: `120000`)
+- `BUILD_MAX_CONCURRENT`: Parametro previsto per throttling (non ancora applicato nel codice)
 
 ### Esempio docker-compose
 

@@ -8,20 +8,22 @@ Il **Publisher** svolge il ruolo di “gatekeeper” tra la fase di design e l�
 
 ## Funzioni
 
-- **Validazione**: controlla la sintassi e la coerenza degli artefatti (BPMN, DMN, form, request, moduli UI, componenti UI) e segnala errori prima della pubblicazione.
-- **Risoluzione dipendenze**: assicura che tutte le versioni referenziate siano nello stato corretto (tipicamente `PUBLISHED`) e segnala versioni mancanti/non pubblicate. Per i `MODULE`, risolve l’intero grafo Modulo→Componenti.
-- **Creazione bundle**: produce un pacchetto immutabile che comprende il processo e tutti i riferimenti alle versioni dipendenti.
-- **Build pacchetti npm** (per MODULE/COMPONENT): compila il codice sorgente React, risolve le dipendenze npm e genera un pacchetto npm pubblicabile su un registry interno (es. tramite Vite o Rollup). Il pacchetto viene incluso nel bundle di pubblicazione.
-- **Registrazione pubblicazione**: persiste una `Publication` associata a `environmentId` e aggiorna lo stato della versione a `PUBLISHED` nel database; per MODULE/COMPONENT, salva anche il riferimento al pacchetto npm generato (`npm_package_ref`).
-- **Notifiche**: notifica agli interessati l’avvenuta pubblicazione (via UI o email).
+- **Validazione payload (MVP)**: verifica sintassi XML/JSON per artefatti basati su `payloadRef` (PROCESS/RULE/FORM/REQUEST).
+- **Risoluzione dipendenze**: carica le dipendenze dichiarate su `dependency` per la versione da pubblicare e impone che le dipendenze “standard” siano `PUBLISHED`.
+- **Creazione bundle**: genera un bundle zip immutabile su MinIO/S3 con:
+  - `manifest.json` (tenantId, artifactId, versionId, environmentId, file list con SHA-256, eventuale `npmPackageRef`)
+  - file root dell’artefatto + file delle dipendenze
+- **Build pacchetti npm (MODULE/COMPONENT)**: invoca `npm-build-service` per compilare e pubblicare su Nexus; salva `artifact_version.npm_package_ref`.
+- **Registrazione pubblicazione**: persiste una `Publication` e aggiorna lo stato della versione a `PUBLISHED` nel DB; scrive audit log di successo/fallimento.
 
 ## Flusso di lavoro
 
 1. L’utente lancia il wizard di pubblicazione dalla UI.
-2. La UI invia la richiesta al Publisher con l’artefatto e la versione da rilasciare.
-3. Il Publisher valida il payload recuperandolo dallo storage oggetti tramite `payloadRef` e risolve le dipendenze.
-4. Se tutto è corretto, crea il bundle (zip) e registra la pubblicazione (DB + storage).
-5. La versione passa allo stato `PUBLISHED` ed è considerata immutabile.
+2. La UI invia `artifactId`, `versionId`, `environmentId` (e note) al Publisher.
+3. Il Publisher legge metadati/versioni/dipendenze dal DB e scarica i payload da MinIO/S3 tramite `payloadRef` (oppure usa `sourceCode` per `MODULE`/`COMPONENT`).
+4. Se `MODULE/COMPONENT`, invoca `npm-build-service` e registra `npm_package_ref` sulla versione.
+5. Se tutto è corretto, crea il bundle (zip) e registra la pubblicazione (DB + storage).
+6. La versione passa allo stato `PUBLISHED` ed è considerata immutabile.
 
 ## Vincoli (stato attuale)
 
