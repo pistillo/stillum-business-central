@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class ProjectTemplateService {
 
-    private static final String TEMPLATE_VERSION = "1.0.0";
+    private static final String TEMPLATE_VERSION = "2.0.0";
     private static final String TEMPLATE_BASE = "templates/module-project/files/";
 
     private static final List<String> TEMPLATE_FILES = List.of(

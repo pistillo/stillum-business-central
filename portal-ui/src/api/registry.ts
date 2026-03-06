@@ -95,11 +95,9 @@ export async function createVersion(params: {
   tenantId: string;
   artifactId: string;
   version: string;
-  payloadRef?: string;
   metadata?: unknown;
-  sourceCode?: string;
-  npmDependencies?: Record<string, string>;
   npmPackageRef?: string;
+  files?: Record<string, string>;
 }): Promise<ArtifactVersion> {
   return apiFetch(
     registryUrl(`/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions`),
@@ -108,28 +106,11 @@ export async function createVersion(params: {
       token: params.token,
       body: JSON.stringify({
         version: params.version,
-        payloadRef: params.payloadRef,
         metadata: params.metadata,
-        sourceCode: params.sourceCode,
-        npmDependencies: params.npmDependencies,
         npmPackageRef: params.npmPackageRef,
+        files: params.files,
       }),
     }
-  );
-}
-
-export async function updatePayloadRef(params: {
-  token: string | null;
-  tenantId: string;
-  artifactId: string;
-  versionId: string;
-  payloadRef: string;
-}): Promise<ArtifactVersion> {
-  return apiFetch(
-    registryUrl(
-      `/tenants/${params.tenantId}/artifacts/${params.artifactId}/versions/${params.versionId}/payload-ref`
-    ),
-    { method: 'PUT', token: params.token, body: JSON.stringify({ payloadRef: params.payloadRef }) }
   );
 }
 
@@ -214,12 +195,9 @@ export async function updateVersion(params: {
   tenantId: string;
   artifactId: string;
   versionId: string;
-  payloadRef?: string;
   metadata?: unknown;
-  sourceCode?: string;
-  npmDependencies?: Record<string, string>;
   npmPackageRef?: string;
-  sourceFiles?: Record<string, string>;
+  files?: Record<string, string>;
 }): Promise<ArtifactVersion> {
   return apiFetch(
     registryUrl(
@@ -229,12 +207,9 @@ export async function updateVersion(params: {
       method: 'PUT',
       token: params.token,
       body: JSON.stringify({
-        payloadRef: params.payloadRef,
         metadata: params.metadata,
-        sourceCode: params.sourceCode,
-        npmDependencies: params.npmDependencies,
         npmPackageRef: params.npmPackageRef,
-        sourceFiles: params.sourceFiles,
+        files: params.files,
       }),
     }
   );
@@ -265,7 +240,7 @@ export async function createComponent(params: {
   tenantId: string;
   title: string;
   description?: string;
-  componentType: 'DROPLET' | 'POOL' | 'TRIGGER';
+  area: string;
   tags?: string[];
   parentModuleId: string;
 }): Promise<Artifact> {
@@ -275,7 +250,7 @@ export async function createComponent(params: {
     body: JSON.stringify({
       title: params.title,
       description: params.description,
-      componentType: params.componentType,
+      area: params.area,
       tags: params.tags,
       parentModuleId: params.parentModuleId,
     }),

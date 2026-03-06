@@ -15,7 +15,6 @@ import {
   updateVersion,
   getPayloadUploadUrl,
   getPayloadDownloadUrl,
-  updatePayloadRef,
 } from '../api/registry';
 import { useAuth } from '../auth/AuthContext';
 import { useTenant } from '../tenancy/TenantContext';
@@ -66,6 +65,18 @@ function yamlToJson(yamlStr: string): string {
   } catch {
     return '{}';
   }
+}
+
+/** Get the main source file path from a version's files map. */
+function getMainSourceFile(
+  type: ArtifactType,
+  files?: Record<string, string> | null
+): string | null {
+  if (!files) return null;
+  if (type === 'MODULE') return files['src/index.tsx'] ?? null;
+  // COMPONENT: return the first .tsx file
+  const tsxEntry = Object.entries(files).find(([k]) => k.endsWith('.tsx'));
+  return tsxEntry ? tsxEntry[1] : null;
 }
 
 const reactTypeDefinitions = `
@@ -199,9 +210,10 @@ export function EditorPage() {
   }, [artifact]);
 
   useEffect(() => {
-    if (version && isTypeScriptBased) {
-      // Only update local state if it's empty to avoid overwriting user changes
-      setSourceCode((prev) => prev || version.sourceCode || getDefaultContent(artifact!.type));
+    if (version && isTypeScriptBased && artifact) {
+      // Extract main source file from version.files
+      const mainFile = getMainSourceFile(artifact.type, version.files);
+      setSourceCode((prev) => prev || mainFile || getDefaultContent(artifact.type));
     }
   }, [version, isTypeScriptBased, artifact]);
 
@@ -209,13 +221,7 @@ export function EditorPage() {
   useEffect(() => {
     if (!version || !artifact || isTypeScriptBased || !tenantId) return;
 
-    if (!version.payloadRef) {
-      const def = getDefaultContent(artifact.type);
-      if (isJsonBased) setJsonContent(def);
-      else setXmlContent(def);
-      return;
-    }
-
+    // Try to download using presigned URL (convention-based key)
     getPayloadDownloadUrl({
       token: getAccessToken(),
       tenantId,
@@ -231,7 +237,12 @@ export function EditorPage() {
         if (isJsonBased) setJsonContent(text);
         else setXmlContent(text);
       })
-      .catch((err) => console.error('Error loading payload:', err));
+      .catch(() => {
+        // No file exists yet — use default content
+        const def = getDefaultContent(artifact.type);
+        if (isJsonBased) setJsonContent(def);
+        else setXmlContent(def);
+      });
   }, [
     version,
     isTypeScriptBased,
@@ -329,14 +340,18 @@ export function EditorPage() {
     mutationFn: async () => {
       if (!tenantId) throw new Error('Tenant not selected');
       if (isTypeScriptBased) {
+        // Save as individual file via updateVersion({ files: { ... } })
+        const filePath =
+          artifact?.type === 'MODULE' ? 'src/index.tsx' : `${artifact?.title ?? 'Component'}.tsx`;
         return updateVersion({
           token: getAccessToken(),
           tenantId,
           artifactId,
           versionId,
-          sourceCode: contentToSave,
+          files: { [filePath]: contentToSave },
         });
       }
+      // Non-TS artifacts: upload via presigned URL (convention-based key)
       const contentType = getContentType(artifactType);
       const upload = await getPayloadUploadUrl({
         token: getAccessToken(),
@@ -354,13 +369,7 @@ export function EditorPage() {
         headers: { 'Content-Type': contentType },
         body: contentToSave,
       });
-      await updatePayloadRef({
-        token: getAccessToken(),
-        tenantId,
-        artifactId,
-        versionId,
-        payloadRef: key,
-      });
+      // No need to updateSourceRef — the file is already at the convention-based path
       return key;
     },
     onSuccess: () => {

@@ -49,9 +49,10 @@ public class StorageService {
         versionRepo.findByIdAndArtifact(versionId, artifactId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
 
-        String ext = StoragePathBuilder.extensionFor(artifact.type.name());
-        String key = StoragePathBuilder.artifactKey(tenantId, artifact.type.name(),
-                artifactId, versionId, ext);
+        // Convention-based key: tenant-{tid}/{type}/{aid}/{vid}/{defaultFile}
+        String defaultFile = StoragePathBuilder.defaultFileName(artifact.type.name());
+        String key = StoragePathBuilder.fileKey(tenantId, artifact.type.name(),
+                artifactId, versionId, defaultFile);
 
         String url = s3.generateUploadPresignedUrl(s3.getArtifactsBucket(), key, contentType);
         return new PresignedUrlResponse(url, key, expirySeconds);
@@ -69,15 +70,21 @@ public class StorageService {
         var artifact = artifactRepo.findByIdAndTenant(artifactId, tenantId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
 
-        var version = versionRepo.findByIdAndArtifact(versionId, artifactId)
+        versionRepo.findByIdAndArtifact(versionId, artifactId)
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId, versionId));
 
-        if (version.payloadRef == null) {
-            throw new IllegalArgumentException("Version " + versionId + " has no payload");
+        // Convention-based key: tenant-{tid}/{type}/{aid}/{vid}/{defaultFile}
+        String defaultFile = StoragePathBuilder.defaultFileName(artifact.type.name());
+        String key = StoragePathBuilder.fileKey(tenantId, artifact.type.name(),
+                artifactId, versionId, defaultFile);
+
+        if (!s3.exists(s3.getArtifactsBucket(), key)) {
+            throw new IllegalArgumentException(
+                    "Version " + versionId + " has no source reference");
         }
 
-        String url = s3.generateDownloadPresignedUrl(s3.getArtifactsBucket(), version.payloadRef);
-        return new PresignedUrlResponse(url, version.payloadRef, expirySeconds);
+        String url = s3.generateDownloadPresignedUrl(s3.getArtifactsBucket(), key);
+        return new PresignedUrlResponse(url, key, expirySeconds);
     }
 
     @Transactional

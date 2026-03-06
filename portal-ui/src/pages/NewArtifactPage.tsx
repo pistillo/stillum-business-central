@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Loader2, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { ArtifactType, ComponentType } from '../api/types';
+import type { ArtifactType } from '../api/types';
 import {
   createArtifact,
   createComponent,
@@ -35,12 +35,12 @@ const TYPE_DESC_KEYS: Record<ArtifactType, string> = {
   COMPONENT: 'newArtifact.typeComponentDesc',
 };
 
-const COMPONENT_TYPE_VALUES: ComponentType[] = ['DROPLET', 'POOL', 'TRIGGER'];
+const COMPONENT_AREAS = ['droplets', 'pools', 'triggers'] as const;
 
-const COMPONENT_TYPE_LABELS: Record<ComponentType, string> = {
-  DROPLET: 'Droplet',
-  POOL: 'Pool',
-  TRIGGER: 'Trigger',
+const COMPONENT_AREA_LABELS: Record<string, string> = {
+  droplets: 'Droplet',
+  pools: 'Pool',
+  triggers: 'Trigger',
 };
 
 export function NewArtifactPage() {
@@ -56,7 +56,7 @@ export function NewArtifactPage() {
   const [tags, setTags] = useState('');
   const [version, setVersion] = useState('1.0.0');
   const [parentModuleId, setParentModuleId] = useState('');
-  const [componentType, setComponentType] = useState<ComponentType>('DROPLET');
+  const [componentArea, setComponentArea] = useState<string>('droplets');
 
   const tagList = useMemo(
     () =>
@@ -109,10 +109,18 @@ export function NewArtifactPage() {
         return { artifactId: a.id, versionId: versions[0].id };
       }
 
-      // COMPONENT: use dedicated API with parent module (auto-creates v0.1.0 + dependency)
+      // COMPONENT: use dedicated API with parent module (auto-creates v0.1.0)
       if (type === 'COMPONENT') {
         if (!parentModuleId) throw new Error('Parent module is required for COMPONENT');
-        const a = await createComponent({ ...commonParams, componentType, parentModuleId });
+        const a = await createComponent({
+          token: getAccessToken(),
+          tenantId,
+          title,
+          description: description || undefined,
+          area: componentArea,
+          tags: tagList.length ? tagList : undefined,
+          parentModuleId,
+        });
         const versions = await listVersions({
           token: getAccessToken(),
           tenantId,
@@ -213,33 +221,32 @@ export function NewArtifactPage() {
             </div>
           )}
 
-          {/* Component type selector (only for COMPONENT) */}
+          {/* Component area selector (only for COMPONENT) */}
           {type === 'COMPONENT' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                {t('newArtifact.componentTypeLabel', 'Component Type')}{' '}
-                <span className="text-red-500">*</span>
+                {t('newArtifact.areaLabel')} <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {COMPONENT_TYPE_VALUES.map((ct) => (
+                {COMPONENT_AREAS.map((ca) => (
                   <button
-                    key={ct}
+                    key={ca}
                     type="button"
-                    onClick={() => setComponentType(ct)}
+                    onClick={() => setComponentArea(ca)}
                     className={`rounded-lg border-2 p-3 text-left transition-all ${
-                      componentType === ct
+                      componentArea === ca
                         ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-400'
                         : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                     }`}
                   >
                     <div
                       className={`text-sm font-semibold ${
-                        componentType === ct
+                        componentArea === ca
                           ? 'text-brand-700 dark:text-brand-400'
                           : 'text-gray-900 dark:text-slate-200'
                       }`}
                     >
-                      {COMPONENT_TYPE_LABELS[ct]}
+                      {COMPONENT_AREA_LABELS[ca]}
                     </div>
                   </button>
                 ))}
@@ -273,7 +280,7 @@ export function NewArtifactPage() {
             />
           </div>
 
-          {/* Area (hidden for COMPONENT — derived from componentType) */}
+          {/* Area (hidden for COMPONENT — uses dedicated selector) */}
           {type !== 'COMPONENT' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">

@@ -28,7 +28,13 @@ export async function generateProject(
       JSON.stringify(tsConfig, null, 2),
     );
 
-    // 3. .npmrc pointing to Nexus
+    // 3. .npmrc pointing to Nexus (richiesto per publish)
+    if (!config.nexus.password) {
+      throw new BuildError(
+        'CONFIG',
+        'NEXUS_PASSWORD is required to build and publish. Set it in the environment (e.g. .env).',
+      );
+    }
     const authToken = Buffer.from(
       `${config.nexus.username}:${config.nexus.password}`,
     ).toString('base64');

@@ -14,14 +14,33 @@ class StoragePathBuilderTest {
     private static final UUID VERSION = UUID.fromString("bbbbbbbb-0000-0000-0000-000000000001");
 
     @Test
-    void artifactKey_process_producesXmlPath() {
-        String key = StoragePathBuilder.artifactKey(TENANT, "PROCESS", ARTIFACT, VERSION, "xml");
+    void versionPrefix_producesCorrectPath() {
+        String prefix = StoragePathBuilder.versionPrefix(TENANT, "PROCESS", ARTIFACT, VERSION);
         assertEquals(
-            "tenant-00000000-0000-0000-0000-000000000001/artifacts/process/"
+            "tenant-00000000-0000-0000-0000-000000000001/process/"
             + "aaaaaaaa-0000-0000-0000-000000000001/"
-            + "bbbbbbbb-0000-0000-0000-000000000001.xml",
+            + "bbbbbbbb-0000-0000-0000-000000000001/",
+            prefix
+        );
+    }
+
+    @Test
+    void fileKey_producesCorrectPath() {
+        String key = StoragePathBuilder.fileKey(TENANT, "MODULE", ARTIFACT, VERSION, "src/index.tsx");
+        assertEquals(
+            "tenant-00000000-0000-0000-0000-000000000001/module/"
+            + "aaaaaaaa-0000-0000-0000-000000000001/"
+            + "bbbbbbbb-0000-0000-0000-000000000001/src/index.tsx",
             key
         );
+    }
+
+    @Test
+    void defaultFileName_returnsCorrectNames() {
+        assertEquals("process.bpmn", StoragePathBuilder.defaultFileName("PROCESS"));
+        assertEquals("rule.dmn", StoragePathBuilder.defaultFileName("RULE"));
+        assertEquals("form.json", StoragePathBuilder.defaultFileName("FORM"));
+        assertEquals("request.json", StoragePathBuilder.defaultFileName("REQUEST"));
     }
 
     @Test
@@ -48,5 +67,11 @@ class StoragePathBuilderTest {
     void extensionFor_moduleAndComponent_returnsTsx() {
         assertEquals("tsx", StoragePathBuilder.extensionFor("MODULE"));
         assertEquals("tsx", StoragePathBuilder.extensionFor("COMPONENT"));
+    }
+
+    @Test
+    void isSourceCodeBased_moduleAndComponent_returnsTrue() {
+        assertTrue(StoragePathBuilder.isSourceCodeBased("MODULE"));
+        assertTrue(StoragePathBuilder.isSourceCodeBased("COMPONENT"));
     }
 }

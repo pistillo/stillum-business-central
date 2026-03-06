@@ -1,5 +1,5 @@
 {
-  "templateVersion": "1.0.0",
+  "templateVersion": "2.0.0",
   "description": "Template di progetto per moduli StillumForms",
   "inputs": {
     "name": { "required": true,  "description": "Nome del catalogo (es: my-awesome-components)" },

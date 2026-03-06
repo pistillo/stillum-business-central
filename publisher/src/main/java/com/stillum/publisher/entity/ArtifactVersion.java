@@ -10,7 +10,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.UUID;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -38,9 +37,6 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(nullable = false)
     public VersionState state;
 
-    @Column(name = "payload_ref")
-    public String payloadRef;
-
     @Column(name = "created_by")
     public UUID createdBy;
 
@@ -50,13 +46,6 @@ public class ArtifactVersion extends PanacheEntityBase {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     public String metadata;
-
-    @Column(name = "source_code")
-    public String sourceCode;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "npm_dependencies", columnDefinition = "jsonb")
-    public Map<String, String> npmDependencies;
 
     @Column(name = "npm_package_ref")
     public String npmPackageRef;

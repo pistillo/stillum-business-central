@@ -9,13 +9,36 @@ public final class StoragePathBuilder {
     }
 
     /**
-     * Percorso oggetto per i payload degli artefatti:
-     * tenant-{tenantId}/artifacts/{type}/{artifactId}/{versionId}.{ext}
+     * Prefix per tutti i file di una versione:
+     * tenant-{tenantId}/{type}/{artifactId}/{versionId}/
      */
-    public static String artifactKey(
-            UUID tenantId, String type, UUID artifactId, UUID versionId, String extension) {
-        return String.format("tenant-%s/artifacts/%s/%s/%s.%s",
-                tenantId, type.toLowerCase(), artifactId, versionId, extension);
+    public static String versionPrefix(UUID tenantId, String type,
+            UUID artifactId, UUID versionId) {
+        return String.format("tenant-%s/%s/%s/%s/",
+                tenantId, type.toLowerCase(), artifactId, versionId);
+    }
+
+    /**
+     * Chiave per un singolo file dentro una versione:
+     * tenant-{tenantId}/{type}/{artifactId}/{versionId}/{filePath}
+     */
+    public static String fileKey(UUID tenantId, String type,
+            UUID artifactId, UUID versionId, String filePath) {
+        return versionPrefix(tenantId, type, artifactId, versionId) + filePath;
+    }
+
+    /**
+     * Nome file di default per i tipi non source-code-based:
+     * PROCESS -> process.bpmn, RULE -> rule.dmn, FORM/REQUEST -> form.json
+     */
+    public static String defaultFileName(String artifactType) {
+        return switch (artifactType.toUpperCase()) {
+            case "PROCESS" -> "process.bpmn";
+            case "RULE" -> "rule.dmn";
+            case "FORM" -> "form.json";
+            case "REQUEST" -> "request.json";
+            default -> "content.bin";
+        };
     }
 
     /**
@@ -29,16 +52,8 @@ public final class StoragePathBuilder {
     }
 
     /**
-     * Percorso oggetto per i sorgenti di una versione:
-     * tenant-{tenantId}/sources/{artifactId}/{versionId}.json
-     */
-    public static String sourceKey(UUID tenantId, UUID artifactId, UUID versionId) {
-        return String.format("tenant-%s/sources/%s/%s.json",
-                tenantId, artifactId, versionId);
-    }
-
-    /**
-     * Estensione file in base al tipo di artefatto.
+     * Estensione file del sorgente in base al tipo di artefatto.
+     * Usato nei bundle di pubblicazione per i nomi dei file interni.
      */
     public static String extensionFor(String artifactType) {
         return switch (artifactType.toUpperCase()) {
@@ -47,5 +62,13 @@ public final class StoragePathBuilder {
             case "MODULE", "COMPONENT" -> "tsx";
             default -> "bin";
         };
+    }
+
+    /**
+     * Indica se il tipo di artefatto contiene codice sorgente (MODULE/COMPONENT)
+     * salvato come file individuali in MinIO.
+     */
+    public static boolean isSourceCodeBased(String artifactType) {
+        return "MODULE".equalsIgnoreCase(artifactType) || "COMPONENT".equalsIgnoreCase(artifactType);
     }
 }
