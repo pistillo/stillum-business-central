@@ -74,7 +74,7 @@ export function TheiaEditor({
         // Send workspace data directly — no need for Theia to fetch it
         workspace: workspaceRef.current,
       },
-      config.theiaBaseUrl
+      window.location.origin
     );
   }, [
     getAccessToken,
@@ -90,12 +90,7 @@ export function TheiaEditor({
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       // Validate origin
-      try {
-        const theiaOrigin = new URL(config.theiaBaseUrl).origin;
-        if (event.origin !== theiaOrigin) return;
-      } catch {
-        return;
-      }
+      if (event.origin !== window.location.origin) return;
 
       const data = event.data;
       if (!data || typeof data.type !== 'string') return;
@@ -148,7 +143,7 @@ export function TheiaEditor({
               });
               iframeRef.current?.contentWindow?.postMessage(
                 { type: 'stillum:save-response', requestId, success: true },
-                config.theiaBaseUrl
+                window.location.origin
               );
               // Notify parent (EditorPage) so it can invalidate React Query cache
               onSaveNotification?.();
@@ -157,7 +152,7 @@ export function TheiaEditor({
               console.error('[TheiaEditor] ❌ Save failed:', err);
               iframeRef.current?.contentWindow?.postMessage(
                 { type: 'stillum:save-response', requestId, success: false, error: String(err) },
-                config.theiaBaseUrl
+                window.location.origin
               );
             });
           break;
@@ -179,7 +174,7 @@ export function TheiaEditor({
         type: 'stillum:theme-change',
         theme: theme === 'dark' ? 'dark' : 'light',
       },
-      config.theiaBaseUrl
+      window.location.origin
     );
   }, [theme, status]);
 
@@ -196,7 +191,7 @@ export function TheiaEditor({
           type: 'stillum:token-refresh',
           token: getAccessToken(),
         },
-        config.theiaBaseUrl
+        window.location.origin
       );
     }, 60_000);
 
