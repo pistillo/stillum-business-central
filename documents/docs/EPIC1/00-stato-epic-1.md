@@ -34,7 +34,7 @@ sidebar_label: Stato EPIC 1
 | Task | Stato | Evidenza |
 |------|--------|----------|
 | T-1.1.1.1 | ✅ | Progetto Quarkus in `registry-api/` |
-| T-1.1.1.2 | ✅ | Migrazioni core in `registry-api/src/main/resources/db/migration/` (in particolare `V2__create_core_tables.sql`) |
+| T-1.1.1.2 | ✅ | Migrazioni core in `registry-api/src/main/resources/db/migration/` (in particolare `V1__schema.sql`) |
 | T-1.1.1.3 | ✅ | `POST /api/tenants/{tenantId}/artifacts` in `com.stillum.registry.resource.ArtifactResource` |
 | T-1.1.1.4 | ✅ | `GET /api/tenants/{tenantId}/artifacts` con filtri base incluso `tag` (applicato anche nel conteggio paginato) |
 | T-1.1.1.5 | ✅ | `GET /api/tenants/{tenantId}/artifacts/{artifactId}` ritorna dettaglio + elenco versioni |
@@ -70,7 +70,7 @@ sidebar_label: Stato EPIC 1
 |------|--------|----------|
 | T-1.1.4.1 | ✅ | Endpoint `/api/tenants/{tenantId}/search/artifacts` usa Postgres FTS (baseline); strategia alternativa (Elastic/OpenSearch/altro) valutabile in futuro |
 | T-1.1.4.2 | ✅ | Filtri inclusi `tag` applicato su `tags` e coerente con conteggio/paginazione |
-| T-1.1.4.3 | ✅ | Indici GIN tags + FTS in `V3__create_indexes.sql` |
+| T-1.1.4.3 | ✅ | Indici GIN tags + FTS definiti in `V1__schema.sql` |
 | T-1.1.4.4 | ✅ | Test search end-to-end presenti (`SearchResourceTest`) |
 
 ---
@@ -124,11 +124,11 @@ sidebar_label: Stato EPIC 1
 | Task | Stato | Evidenza |
 |------|--------|----------|
 | T-1.4.1.1 | ✅ | Schema core in migrazioni Flyway |
-| T-1.4.1.2 | ✅ | RLS in `V4__create_rls_policies.sql` |
+| T-1.4.1.2 | ✅ | RLS in `V1__schema.sql` |
 | T-1.4.1.3 | ✅ | Propagazione `app.current_tenant` invocata sistematicamente per transazione (interceptor) |
-| T-1.4.1.4 | ✅ | Indici in `V3__create_indexes.sql` |
+| T-1.4.1.4 | ✅ | Indici in `V1__schema.sql` |
 | T-1.4.1.5 | ✅ | Test isolamento DB-level: verifica che la visibilità dipenda da `app.current_tenant` e non dai filtri applicativi |
-| T-1.4.1.6 | ✅ | Seed dev data in `V5__seed_dev_data.sql` |
+| T-1.4.1.6 | ✅ | Seed dev/demo in `V2__seed_data.sql` |
 
 ---
 

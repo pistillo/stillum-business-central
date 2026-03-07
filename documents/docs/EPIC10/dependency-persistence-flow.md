@@ -458,11 +458,8 @@ La tabella `dependency` gestisce due tipi di relazioni:
 La relazione strutturale Modulo→Componenti (workspace editor) è invece modellata su `artifact.parent_module_id`.
 
 ### Migrazioni Flyway
-- **V2**: Creazione tabelle core (artifact, artifact_version, dependency)
-- **V8**: Aggiunta MODULE/COMPONENT ai tipi artifact
-- **V10**: Aggiunta `npm_package_ref` su `artifact_version` (con campi legacy poi rimossi)
-- **V11**: Aggiunta `parent_module_id` su `artifact` per la relazione COMPONENT → MODULE
-- **V17/V19**: Rimozione campi legacy `payload_ref/source_ref/source_code/...` in favore di file su S3 con chiavi convenzionali
+- **V1__schema.sql**: schema completo (tabelle, indici, RLS) che include MODULE/COMPONENT, `parent_module_id` e `npm_package_ref`
+- **V2__seed_data.sql**: seed dev/demo idempotente (tenant, ruoli, utente demo, environments)
 
 ## API Endpoints
 
@@ -486,4 +483,4 @@ DELETE /api/tenants/{tenantId}/artifacts/{artifactId}
 
 **Sviluppato per**: Stillum Business Central  
 **Analisi completa**: Sistema di persistenza delle dipendenze tra artefatti  
-**Versioni rilevanti**: V2, V8, V10, V11, V17, V19
+**Versioni rilevanti**: V1__schema, V2__seed_data

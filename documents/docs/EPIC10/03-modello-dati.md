@@ -69,17 +69,17 @@ erDiagram
 ## Migrazione DB implementata
 
 ```sql
--- V8__add_module_component_types.sql
--- Aggiunta MODULE/COMPONENT all'enum/check dei tipi artifact
+-- V1__schema.sql
+-- Schema completo (tabelle, indici, RLS) con:
+-- - ArtifactType che include MODULE/COMPONENT (constraint su artifact.type)
+-- - artifact.parent_module_id per la relazione COMPONENT → MODULE
+-- - artifact_version.npm_package_ref
 
--- V11__add_parent_module_id.sql
--- Aggiunta parent_module_id su artifact per legare COMPONENT → MODULE
-
--- V17__unify_source_ref.sql + V19__drop_source_ref.sql
--- Rimozione campi legacy (payload_ref/source_ref/source_code/...) in favore di file su S3 con chiavi convenzionali
+-- V2__seed_data.sql
+-- Seed dev/demo (tenant, ruoli, utente demo, environments) con UUID espliciti e idempotenza
 ```
 
-Nel worktree sono presenti migrazioni “intermedie” (es. V10/V12/V13) introdotte durante l’evoluzione di EPIC 10 e poi superate: lo stato finale è la persistenza dei file su storage e l’uso di `npm_package_ref` su `artifact_version`.
+Nel worktree corrente lo schema è stato consolidato: le migrazioni storiche intermedie non sono più rilevanti e lo stato finale coincide con `V1__schema.sql` + `V2__seed_data.sql`.
 
 ## API implementate
 

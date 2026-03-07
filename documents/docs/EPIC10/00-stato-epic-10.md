@@ -120,7 +120,7 @@ sidebar_label: Stato EPIC 10
 
 | Deliverable | Dove si trova |
 |-------------|---------------|
-| Migrazioni DB MODULE/COMPONENT + relazione parent module | `registry-api/src/main/resources/db/migration/V8__*.sql`, `V11__*.sql` (con cleanup campi legacy in `V17__*.sql`, `V19__*.sql`) |
+| Migrazioni DB (schema consolidato + seed) | `registry-api/src/main/resources/db/migration/V1__schema.sql`, `V2__seed_data.sql` |
 | API CRUD per MODULE/COMPONENT | `registry-api/src/main/java/.../service/ArtifactService.java` |
 | Editor React (Theia) + dipendenze npm | `portal-ui/src/components/TheiaEditor.tsx` e `portal-ui/src/components/DependenciesPanel.tsx` |
 | NPM Build Service | `npm-build-service/` (Fastify + esbuild) |

@@ -106,7 +106,7 @@ La scelta sara determinata durante l'implementazione in base ai vincoli di compa
 - Test workspace/snapshot: `ModuleBuildSnapshotTest`
 
 ### File di riferimento
-- Migrazioni: `registry-api/src/main/resources/db/migration/V8__add_module_component_types.sql`, `V11__add_parent_module_id.sql` (con cleanup legacy in `V17__*.sql`, `V19__*.sql`)
+- Migrazioni: `registry-api/src/main/resources/db/migration/V1__schema.sql`, `V2__seed_data.sql`
 - Entity: `registry-api/src/main/java/com/stillum/registry/entity/ArtifactVersion.java`
 - DTOs: `registry-api/src/main/java/com/stillum/registry/dto/request/`
 - Services: `registry-api/src/main/java/com/stillum/registry/service/`
