@@ -58,12 +58,9 @@ classDiagram
         - UUID artifactId
         - String version
         - VersionState state
-        - String payloadRef
         - UUID createdBy
         - OffsetDateTime createdAt
         - String metadata (JSONB)
-        - String sourceCode
-        - Map~String, String~ npmDependencies (JSONB)
         - String npmPackageRef
         + prePersist()
     }
@@ -348,12 +345,9 @@ erDiagram
         uuid artifact_id FK
         varchar version
         varchar state
-        varchar payload_ref
         uuid created_by FK
         timestamptz created_at
         jsonb metadata
-        text source_code
-        jsonb npm_dependencies
         varchar npm_package_ref
     }
 
@@ -422,12 +416,9 @@ CREATE TABLE artifact_version (
     artifact_id UUID         NOT NULL REFERENCES artifact(id) ON DELETE CASCADE,
     version     VARCHAR(50)  NOT NULL,
     state       VARCHAR(20)  NOT NULL DEFAULT 'DRAFT',
-    payload_ref VARCHAR(500),
     created_by  UUID         REFERENCES app_user(id) ON DELETE SET NULL,
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     metadata    JSONB,
-    source_code TEXT,
-    npm_dependencies JSONB,
     npm_package_ref VARCHAR(500),
     UNIQUE (artifact_id, version),
     CONSTRAINT version_state_check CHECK (state IN ('DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED', 'RETIRED'))
@@ -462,12 +453,16 @@ PostgreSQL RLS viene applicato automaticamente tramite l'interceptor `EnforceTen
 ### Relazione Polimorfica
 La tabella `dependency` gestisce due tipi di relazioni:
 1. **Dipendenze tradizionali**: PROCESS → RULE, FORM → REQUEST
-2. **Relazione MODULE → COMPONENT**: Il Component dichiara la dipendenza dal Module padre
+2. **Dipendenze di build/publish**: un MODULE può dichiarare dipendenze verso COMPONENT/versioni da includere nel bundle e nella build npm
+
+La relazione strutturale Modulo→Componenti (workspace editor) è invece modellata su `artifact.parent_module_id`.
 
 ### Migrazioni Flyway
 - **V2**: Creazione tabelle core (artifact, artifact_version, dependency)
-- **V10**: Aggiunta campi source_code, npm_dependencies, npm_package_ref
-- **V11**: Aggiunta parent_module_id con backfill dalla tabella dependency
+- **V8**: Aggiunta MODULE/COMPONENT ai tipi artifact
+- **V10**: Aggiunta `npm_package_ref` su `artifact_version` (con campi legacy poi rimossi)
+- **V11**: Aggiunta `parent_module_id` su `artifact` per la relazione COMPONENT → MODULE
+- **V17/V19**: Rimozione campi legacy `payload_ref/source_ref/source_code/...` in favore di file su S3 con chiavi convenzionali
 
 ## API Endpoints
 
@@ -491,4 +486,4 @@ DELETE /api/tenants/{tenantId}/artifacts/{artifactId}
 
 **Sviluppato per**: Stillum Business Central  
 **Analisi completa**: Sistema di persistenza delle dipendenze tra artefatti  
-**Versioni rilevanti**: V2, V10, V11
+**Versioni rilevanti**: V2, V8, V10, V11, V17, V19

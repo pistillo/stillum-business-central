@@ -16,7 +16,9 @@ Nel worktree corrente il **Runtime Gateway** è un servizio Quarkus che funge da
 
 - `GET /api/health` → `ok`
 - `GET /api/nexus/search?text=<q>&size=<n>` → proxy verso `.../repository/npm-group/-/v1/search`
-- `GET /api/nexus/package/{name}` → proxy verso `.../repository/npmjs-proxy/{name}`
+- `GET /api/nexus/package/{name}` → proxy verso `.../repository/npm-group/{name}`
+
+Configurazione: il target è controllato dalla property `nexus.base-url` del gateway.
 
 ## Evoluzione prevista (pianificata)
 

@@ -8,7 +8,7 @@ Il **Publisher** svolge il ruolo di “gatekeeper” tra la fase di design e l�
 
 ## Funzioni
 
-- **Validazione payload (MVP)**: verifica sintassi XML/JSON per artefatti basati su `payloadRef` (PROCESS/RULE/FORM/REQUEST).
+- **Validazione payload (MVP)**: verifica sintassi XML/JSON per artefatti “payload-based” (PROCESS/RULE/FORM/REQUEST) scaricando il file di default dallo storage con chiave convenzionale.
 - **Risoluzione dipendenze**: carica le dipendenze dichiarate su `dependency` per la versione da pubblicare e impone che le dipendenze “standard” siano `PUBLISHED`.
 - **Creazione bundle**: genera un bundle zip immutabile su MinIO/S3 con:
   - `manifest.json` (tenantId, artifactId, versionId, environmentId, file list con SHA-256, eventuale `npmPackageRef`)
@@ -20,7 +20,7 @@ Il **Publisher** svolge il ruolo di “gatekeeper” tra la fase di design e l�
 
 1. L’utente lancia il wizard di pubblicazione dalla UI.
 2. La UI invia `artifactId`, `versionId`, `environmentId` (e note) al Publisher.
-3. Il Publisher legge metadati/versioni/dipendenze dal DB e scarica i payload da MinIO/S3 tramite `payloadRef` (oppure usa `sourceCode` per `MODULE`/`COMPONENT`).
+3. Il Publisher legge metadati/versioni/dipendenze dal DB e scarica i file da MinIO/S3 usando chiavi convenzionali (per `MODULE`/`COMPONENT` carica i file sorgente della versione).
 4. Se `MODULE/COMPONENT`, invoca `npm-build-service` e registra `npm_package_ref` sulla versione.
 5. Se tutto è corretto, crea il bundle (zip) e registra la pubblicazione (DB + storage).
 6. La versione passa allo stato `PUBLISHED` ed è considerata immutabile.

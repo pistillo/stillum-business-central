@@ -69,7 +69,7 @@
     "title": "Seleziona Tenant",
     "description": "Scegli l'organizzazione con cui vuoi operare.",
     "noTenantFound": "Nessun tenant trovato nel token. Inserisci manualmente un tenant ID:",
-    "manualPlaceholder": "00000000-0000-0000-0000-000000000001"
+    "manualPlaceholder": "501384f2-f659-4f85-8ad0-4e24c1789473"
   },
 
   "home": {

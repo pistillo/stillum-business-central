@@ -177,7 +177,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 | # | Task | Output |
 |---|------|--------|
-| ✅ T-1.1.2.1 | Implementare `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions` – creazione versione in bozza con payloadRef | Endpoint |
+| ✅ T-1.1.2.1 | Implementare `POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions` – creazione versione in bozza (metadata, npmPackageRef, files) | Endpoint |
 | ✅ T-1.1.2.2 | Implementare `GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – dettaglio versione | Endpoint |
 | ✅ T-1.1.2.3 | Implementare `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – aggiornamento bozza | Endpoint |
 | ✅ T-1.1.2.4 | Implementare `DELETE /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}` – cancellazione bozza (vietata per `PUBLISHED`) | Endpoint |
@@ -270,9 +270,9 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | # | Task | Output |
 |---|------|--------|
 | ✅ T-1.3.1.1 | Configurare il client S3 (compatibile MinIO/AWS) con parametri esternalizzati (endpoint, bucket, credenziali, region) | Modulo S3 client |
-| ✅ T-1.3.1.2 | Implementare endpoint per generare URL presignati per upload con path strutturato `tenant-<tenantId>/artifacts/<type>/<artifactId>/<versionId>.<ext>` | Endpoint presigned upload |
+| ✅ T-1.3.1.2 | Implementare endpoint per generare URL presignati per upload con path strutturato `tenant-<tenantId>/<type>/<artifactId>/<versionId>/<defaultFileName>` | Endpoint presigned upload |
 | ✅ T-1.3.1.3 | Implementare endpoint per generare URL presignati per download con scadenza breve | Endpoint presigned download |
-| ✅ T-1.3.1.4 | Implementare `PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/payload-ref` per aggiornare `payloadRef` nel DB dopo upload completato | Endpoint |
+| ✅ T-1.3.1.4 | Eliminare la necessità di registrare `payloadRef` nel DB (chiavi convenzionali) | Convenzione storage |
 | 🔴 T-1.3.1.5 | Implementare validazione che il `tenantId` nel path corrisponda al tenant autenticato | Controllo sicurezza |
 | ✅ T-1.3.1.6 | Scrivere test con MinIO locale per upload/download | Suite di test |
 
@@ -397,7 +397,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 
 ### FEATURE 2.4 – Editor Integrati
 
-**Stato (worktree):** 🔴 Non iniziato (10%) — presente editor v0 (Monaco), non gli editor integrati richiesti dai task.
+**Stato (worktree):** 🟡 Parziale (60%) — editor v0 operativo: Monaco (XML/JSON/YAML), StillumForms (FORM) e Theia (MODULE/COMPONENT). Mancano embed BPMN/DMN visuali e UX avanzata (auto-save/toast).
 
 #### US-2.4.1 – Editor BPMN
 *Come analista, voglio modellare processi BPMN nell'editor integrato, in modo da creare e modificare definizioni di processo senza uscire dal portale.*
@@ -407,7 +407,7 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | # | Task | Output |
 |---|------|--------|
 | 🔴 T-2.4.1.1 | Integrare bpmn-js come componente React nella pagina `/editor/:id/:version` | Componente BpmnEditor |
-| 🔴 T-2.4.1.2 | Caricare il payload XML dal `payloadRef` tramite URL presignato | Logica caricamento |
+| 🔴 T-2.4.1.2 | Caricare il payload XML tramite presigned download URL (file `process.bpmn`) | Logica caricamento |
 | 🔴 T-2.4.1.3 | Implementare salvataggio manuale: upload file su S3 e aggiornamento versione via API | Logica salvataggio |
 | 🔴 T-2.4.1.4 | Implementare auto-save periodico (ogni N secondi) | Timer auto-save |
 | 🔴 T-2.4.1.5 | Gestire stato di loading, errori e feedback (toast) | UX feedback |
@@ -426,23 +426,23 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 #### US-2.4.3 – Editor StillumForms
 *Come analista, voglio disegnare moduli (form) nell'editor integrato, in modo da definire le interfacce di raccolta dati.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** ✅ Completato (100%) — tab visuale StillumForms + JSON/YAML in EditorPage.
 
 | # | Task | Output |
 |---|------|--------|
-| 🔴 T-2.4.3.1 | Sviluppare componente React per l'editor StillumForms (basato su JSON Schema) | Componente FormEditor |
-| 🔴 T-2.4.3.2 | Implementare caricamento/salvataggio JSON dal/verso lo storage | Logica IO |
-| 🔴 T-2.4.3.3 | Implementare preview del modulo compilabile | Preview component |
+| ✅ T-2.4.3.1 | Integrare editor StillumForms in EditorPage (tab Designer) | StillumFormsEditorTab |
+| ✅ T-2.4.3.2 | Implementare caricamento/salvataggio JSON via presigned URL (file `form.json`) | Logica IO |
+| 🟡 T-2.4.3.3 | Implementare preview del modulo compilabile | Preview component |
 
 #### US-2.4.4 – Editor Request
 *Come analista, voglio definire contratti di servizio (request) tramite un editor JSON, in modo da descrivere le API invocabili dai processi.*
 
-**Stato (worktree):** 🔴 Non iniziato (0%).
+**Stato (worktree):** 🟡 Parziale (70%) — Monaco JSON/YAML + upload/download; manca validazione schema live.
 
 | # | Task | Output |
 |---|------|--------|
-| 🔴 T-2.4.4.1 | Sviluppare componente editor JSON/Schema per request | Componente RequestEditor |
-| 🔴 T-2.4.4.2 | Implementare caricamento/salvataggio JSON | Logica IO |
+| ✅ T-2.4.4.1 | Sviluppare componente editor JSON/YAML per request (Monaco) | EditorPage |
+| ✅ T-2.4.4.2 | Implementare caricamento/salvataggio JSON via presigned URL (file `request.json`) | Logica IO |
 | 🔴 T-2.4.4.3 | Implementare validazione schema in tempo reale | Validazione live |
 
 #### US-2.4.5 – Creazione nuovo artefatto
@@ -1067,10 +1067,10 @@ Nota: nel worktree corrente i servizi Quarkus espongono le API sotto prefisso `/
 | # | Task | Output |
 |---|------|--------|
 | 🟢 T-10.1.1.1 | Aggiungere valori MODULE e COMPONENT all'enum ArtifactType (già presenti) | Enum `ArtifactType.java` |
-| 🟢 T-10.1.1.2 | Creare migrazione DB: aggiungere campi `source_code` (TEXT), `npm_dependencies` (JSONB), `npm_package_ref` (VARCHAR) alla tabella `artifact_version` | Migrazione V10 creata |
-| 🟢 T-10.1.1.3 | Aggiornare entity JPA `ArtifactVersion` con i nuovi campi e annotazioni | Entity aggiornata |
-| 🟢 T-10.1.1.4 | Aggiornare DTOs per supportare i nuovi campi | DTOs aggiornati |
-| 🟢 T-10.1.1.5 | Scrivere test per i nuovi campi e la persistenza | Suite di test passanti |
+| 🟢 T-10.1.1.2 | Consolidare persistenza sorgenti su MinIO/S3 (no `payload_ref/source_ref/source_code`) | Migrazioni V17/V19 |
+| 🟢 T-10.1.1.3 | Mantenere `npm_package_ref` su `artifact_version` | Colonna DB + DTO |
+| 🟢 T-10.1.1.4 | Esporre e aggiornare i file via `files` su API versioni | DTO + FileStorageService |
+| 🟢 T-10.1.1.5 | Scrivere test per workspace e persistenza file | Suite di test passanti |
 
 #### US-10.1.2 – API CRUD per artefatti MODULE e COMPONENT
 *Come sviluppatore, voglio API CRUD per creare e gestire artefatti MODULE e COMPONENT, in modo da utilizzarli nella UI.*

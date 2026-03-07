@@ -22,7 +22,7 @@ La piattaforma è composta da diversi componenti interconnessi. Ogni componente 
 
 - Fornisce CRUD per artefatti (processi BPMN, regole DMN, form StillumForms, request, moduli UI React, componenti UI React).
 - Mantiene lo **storico delle versioni**, lo stato (bozza, pubblicato, ritirato) e le dipendenze tra artefatti.
-- Per gli artefatti `MODULE` e `COMPONENT`, gestisce anche codice sorgente e file progetto (bundle JSON su MinIO referenziato da `artifact_version.source_ref`), dipendenze npm e riferimento al pacchetto npm generato.
+- Per gli artefatti `MODULE` e `COMPONENT`, gestisce anche codice sorgente e file progetto come file su MinIO/S3 (chiavi convenzionali). Le dipendenze npm sono rappresentate nel `package.json` della versione; il riferimento al pacchetto npm generato è salvato come `artifact_version.npm_package_ref`.
 - Espone endpoint per la gestione del ciclo di vita e la ricerca nel catalogo.
 - Protegge gli accessi per tenant e ruolo.
 

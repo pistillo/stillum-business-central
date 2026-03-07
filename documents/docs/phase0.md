@@ -59,7 +59,8 @@ erDiagram
         string artifact_id
         string version
         string state
-        string payload_ref
+        string npm_package_ref
+        json metadata
         string created_by
         datetime created_at
     }

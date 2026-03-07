@@ -2,10 +2,15 @@
 export const gatewayApiBaseUrl =
   import.meta.env.VITE_GATEWAY_API_BASE_URL ?? 'http://localhost:8083/api';
 
+/** In dev usiamo il proxy Vite (/api/registry, /api/publisher) per evitare CORS. */
 export const config = {
   theiaBaseUrl: import.meta.env.VITE_THEIA_BASE_URL ?? 'http://localhost:3000',
-  registryApiBaseUrl: import.meta.env.VITE_REGISTRY_API_BASE_URL ?? 'http://localhost:8081/api',
-  publisherApiBaseUrl: import.meta.env.VITE_PUBLISHER_API_BASE_URL ?? 'http://localhost:8082/api',
+  registryApiBaseUrl:
+    import.meta.env.VITE_REGISTRY_API_BASE_URL ??
+    (import.meta.env.DEV ? '/api/registry' : 'http://localhost:8081/api'),
+  publisherApiBaseUrl:
+    import.meta.env.VITE_PUBLISHER_API_BASE_URL ??
+    (import.meta.env.DEV ? '/api/publisher' : 'http://localhost:8082/api'),
   cheBaseUrl: import.meta.env.VITE_CHE_BASE_URL ?? '',
   nexus: {
     /** Ricerca npm: default via gateway per evitare CORS con Nexus. */

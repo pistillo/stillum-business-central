@@ -69,7 +69,7 @@
     "title": "Select Tenant",
     "description": "Choose the organisation you want to work with.",
     "noTenantFound": "No tenant found in the token. Enter a tenant ID manually:",
-    "manualPlaceholder": "00000000-0000-0000-0000-000000000001"
+    "manualPlaceholder": "501384f2-f659-4f85-8ad0-4e24c1789473"
   },
 
   "home": {

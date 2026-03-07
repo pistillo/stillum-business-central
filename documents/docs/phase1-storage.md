@@ -7,34 +7,34 @@ L’**object storage** è la componente che ospita i file reali degli artefatti 
 
 ## Motivazioni
 
-* Separare i metadati dai file migliora la scalabilità: il database memorizza solo riferimenti (`payloadRef` o `bundleRef`), mentre i file vengono gestiti da uno storage oggetti che può crescere indipendentemente.
+* Separare i metadati dai file migliora la scalabilità: il database memorizza solo i metadati e i riferimenti di pubblicazione (es. `bundleRef` e, per MODULE/COMPONENT, `npmPackageRef`), mentre i contenuti vengono gestiti da uno storage oggetti che può crescere indipendentemente.
 * Sia **MinIO** (per ambienti self‑host) che **Amazon S3** (per ambienti cloud) espongono un’API compatibile S3.  Ciò consente di mantenere il codice di accesso uguale e di passare da un backend all’altro semplicemente modificando endpoint e credenziali.
 * Ogni file viene conservato in maniera immutabile: non esiste operazione di aggiornamento, ma solo di creazione.  Eventuali nuove versioni generano un nuovo percorso.
 
 ## Struttura dei percorsi
 
-Per garantire l’isolamento tra tenant e facilitare la gestione, si propone una **nomenclatura standard** per i percorsi all’interno del bucket:
+Nel worktree corrente i contenuti sono salvati con una **nomenclatura standard** che non richiede un `payloadRef` persistito nel DB: la chiave è deterministica e dipende da `tenantId`, `artifactType`, `artifactId`, `versionId` e dal path del file.
 
 ```
-<bucket>/
+<artifacts-bucket>/
   └── tenant-<tenantId>/
-        ├── artifacts/
-        │     └── <artifactType>/<artifactId>/<versionId>.xml|json|yaml
-        └── bundles/
-              └── <artifactType>/<artifactId>/<versionId>.zip
+        └── <artifactType>/<artifactId>/<versionId>/<filePath>
+
+<bundles-bucket>/
+  └── tenant-<tenantId>/bundles/<artifactType>/<artifactId>/<versionId>.zip
 ```
 
-* `tenant-<tenantId>`: directory radice del tenant.  Permette di applicare policy di accesso a livello di cartella.
-* `artifacts/<artifactType>/<artifactId>/<versionId>`: contiene il file originale dell’artefatto.  L’estensione dipende dal tipo (XML per BPMN e DMN, JSON per form e request).
-* `bundles/<artifactType>/<artifactId>/<versionId>.zip`: contiene il pacchetto generato dal publisher, comprensivo del manifest e dei payload delle dipendenze.
+* `tenant-<tenantId>`: prefisso radice del tenant.
+* `<artifactType>/<artifactId>/<versionId>/<filePath>`: contiene uno o più file della versione. Per PROCESS/RULE/FORM/REQUEST il file di default è rispettivamente `process.bpmn`, `rule.dmn`, `form.json`, `request.json`. Per MODULE/COMPONENT contiene anche `src/index.tsx`, `package.json`, ecc.
+* `bundles/<artifactType>/<artifactId>/<versionId>.zip`: contiene il pacchetto generato dal Publisher, comprensivo del manifest e dei file root/dipendenze.
 
 ## Operazioni di base
 
 ### Upload del payload
 
 1. Il client (frontend o API) effettua una richiesta di upload al servizio storage del portale.
-2. Il servizio genera un **URL presignato** o un token temporaneo per caricare il file direttamente su MinIO/S3.  Il percorso include `tenantId`, `artifactType`, `artifactId` e `versionId`.
-3. Una volta completato l’upload, il servizio registra nel database il `payloadRef` per quella versione.
+2. Il servizio genera un **URL presignato** per caricare il file direttamente su MinIO/S3. La risposta include anche la chiave oggetto (deterministica) che verrà usata poi per il download.
+3. Nel worktree corrente non è necessario registrare alcun `payloadRef` nel database: la chiave è già deducibile dalla convenzione.
 
 ### Download del payload
 
@@ -43,7 +43,7 @@ Per garantire l’isolamento tra tenant e facilitare la gestione, si propone una
 
 ### Upload del bundle
 
-Durante la pubblicazione il publisher carica il file zip nella cartella `bundles/` seguendo la stessa convenzione.  Viene restituito un `bundleRef` che viene salvato nella tabella `Publication`.
+Durante la pubblicazione il Publisher carica il file zip nel bucket bundles seguendo la convenzione `tenant-<tenantId>/bundles/...`. La chiave (`bundleRef`) viene salvata nella tabella `Publication`.
 
 ## Sicurezza e controllo accessi
 

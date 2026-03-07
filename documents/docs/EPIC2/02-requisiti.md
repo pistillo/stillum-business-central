@@ -33,8 +33,8 @@ sidebar_label: Requisiti
 
 - È possibile creare un nuovo artefatto dal portale e creare la prima versione in bozza.
 - L’editor v0 deve consentire:
-  - caricamento del payload via presigned download URL (se `payloadRef` è presente),
-  - salvataggio tramite presigned upload URL e aggiornamento `payloadRef`.
+  - caricamento del payload via presigned download URL (file di default per tipo),
+  - salvataggio tramite presigned upload URL (nessun `payloadRef` da registrare in DB nel worktree corrente).
 
 ### Pubblicazione
 

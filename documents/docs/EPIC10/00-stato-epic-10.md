@@ -39,8 +39,8 @@ sidebar_label: Stato EPIC 10
 | Task | Stato | Evidenza |
 |------|-------|----------|
 | T-10.1.1.1 Aggiungere valori MODULE e COMPONENT all'enum ArtifactType | 🟢 | Enum presente in `ArtifactType.java` |
-| T-10.1.1.2 Creare migrazione DB: campi `source_code`, `npm_dependencies`, `npm_package_ref` su `artifact_version` | 🟢 | Migrazione V10 creata e applicata |
-| T-10.1.1.3 Aggiornare entity JPA `ArtifactVersion` con i nuovi campi | 🟢 | Entity aggiornata con sourceCode, npmDependencies, npmPackageRef |
+| T-10.1.1.2 Definire persistenza sorgenti su MinIO/S3 (no colonne sorgente in DB) | 🟢 | `FileStorageService` + migrazioni V17/V19 (rimozione campi legacy) |
+| T-10.1.1.3 Esporre i sorgenti via API come `files` su ArtifactVersion | 🟢 | `ArtifactVersionResponse(files)` + updateVersion(files) |
 | T-10.1.1.4 Implementare API CRUD specifiche per MODULE e COMPONENT | 🟢 | Endpoint POST /modules e /components implementati |
 | T-10.1.1.5 Gestire relazione Modulo→Componenti (workspace) | 🟢 | `artifact.parent_module_id` + endpoint `GET /artifacts/{moduleId}/workspace` |
 | T-10.1.1.6 Scrivere test unitari e di integrazione per i nuovi endpoint | 🟢 | Test ArtifactResourceTest estesi (13 test, tutti passanti) |
@@ -120,7 +120,7 @@ sidebar_label: Stato EPIC 10
 
 | Deliverable | Dove si trova |
 |-------------|---------------|
-| Migrazione DB per campi MODULE/COMPONENT | `registry-api/src/main/resources/db/migration/V10__*.sql` |
+| Migrazioni DB MODULE/COMPONENT + relazione parent module | `registry-api/src/main/resources/db/migration/V8__*.sql`, `V11__*.sql` (con cleanup campi legacy in `V17__*.sql`, `V19__*.sql`) |
 | API CRUD per MODULE/COMPONENT | `registry-api/src/main/java/.../service/ArtifactService.java` |
 | Editor React (Theia) + dipendenze npm | `portal-ui/src/components/TheiaEditor.tsx` e `portal-ui/src/components/DependenciesPanel.tsx` |
 | NPM Build Service | `npm-build-service/` (Fastify + esbuild) |

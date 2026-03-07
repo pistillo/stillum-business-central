@@ -111,7 +111,7 @@ export function PublishPage() {
               className="input font-mono text-sm"
               value={environmentId}
               onChange={(e) => setEnvironmentId(e.target.value)}
-              placeholder="00000000-0000-0000-0000-000000000020"
+              placeholder="95f0e5b6-4bcc-4d4b-bb0c-911f450135ac"
             />
           )}
           {envs.isLoading && (

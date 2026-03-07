@@ -66,14 +66,14 @@ Metadati dell’artefatto (process/rule/form/request).
 
 ### artifact_version
 
-Versione concreta di un artefatto; punta al payload su storage via `payload_ref`.
+Versione concreta di un artefatto. Nel worktree corrente il payload non è referenziato da un campo `payload_ref` in DB: i file sono salvati su storage con chiavi convenzionali derivate da tenant/type/artifact/version.
 
 - `id` (uuid)
 - `artifact_id` (uuid)
 - `version` (text)
 - `state` (enum: `DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`)
-- `payload_ref` (text, opzionale)
 - `metadata` (jsonb, opzionale)
+- `npm_package_ref` (text, opzionale)
 - `created_by` (uuid, opzionale)
 - `created_at` (timestamptz)
 

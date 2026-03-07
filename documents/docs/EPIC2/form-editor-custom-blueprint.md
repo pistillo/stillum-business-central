@@ -118,7 +118,7 @@ La scelta dipende da dove gli utenti devono editare i form (solo in portal-ui vs
 - Reorder e spostamento tra pool nell’albero (se il tree component lo supporta).
 
 ### Fase 4 – Persistenza
-- Salva: FormDefinition → YAML/JSON string; in portal-ui chiamata a API (payloadRef / versione).
+- Salva: FormDefinition → YAML/JSON string; in portal-ui upload via presigned URL della Registry (file `form.json`, chiave convenzionale) e versioning su `ArtifactVersion`.
 - Load: come già in stillum-modeler (YAML/JSON → FormDefinition).
 - Undo/redo (history stack).
 

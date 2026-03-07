@@ -55,13 +55,12 @@ Rappresenta un artefatto generico (processo BPMN, regola DMN, modulo, request). 
 
 ### ArtifactVersion
 
-Versione concreta di un artefatto. Ogni versione fa riferimento al payload memorizzato nello storage oggetti.
+Versione concreta di un artefatto. Nel worktree corrente i contenuti sono memorizzati nello storage oggetti con chiavi convenzionali e non sono referenziati da un campo `payload_ref` in DB.
 
 - `id` (uuid).
 - `artifact_id` (uuid) → **Artifact**.
 - `version` (string): numero di versione (es. semver).
 - `state` (enum): {`DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`}.
-- `payload_ref` (string): puntatore al file in MinIO/S3.
 - `created_by` (uuid) → **User**.
 - `created_at` (datetime).
 - `metadata` (json): eventuali informazioni aggiuntive.

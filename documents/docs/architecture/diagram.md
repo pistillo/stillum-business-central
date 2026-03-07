@@ -22,7 +22,7 @@ graph TD
 
     subgraph "Infrastructure"
         DB[("PostgreSQL<br/>(RLS multi-tenant)")]
-        S3[("MinIO/S3<br/>(payload + bundle + source bundle)")]
+        S3[("MinIO/S3<br/>(payload/sorgenti + bundle)")]
         KC[("Keycloak<br/>(OIDC)")]
         NX[("Nexus<br/>(npm registry)")]
         TEMP[("Temporal<br/>(planned)")]
@@ -43,7 +43,7 @@ graph TD
 
     %% Persistence
     REG -- "metadata" --> DB
-    REG -- "payloadRef + sourceRef" --> S3
+    REG -- "file con chiavi convenzionali" --> S3
     PUB -- "read/write state" --> DB
     PUB -- "download payload / upload bundle" --> S3
 

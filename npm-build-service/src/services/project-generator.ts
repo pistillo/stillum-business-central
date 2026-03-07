@@ -31,7 +31,7 @@ export async function generateProject(
     // 3. .npmrc pointing to Nexus (richiesto per publish)
     if (!config.nexus.password) {
       throw new BuildError(
-        'CONFIG',
+        'SETUP',
         'NEXUS_PASSWORD is required to build and publish. Set it in the environment (e.g. .env).',
       );
     }
