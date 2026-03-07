@@ -83,6 +83,7 @@ services:
       start_period: 45s
 
   # ─── Nexus Repository Manager ──────────────────────────────────────────────
+  # backup/nexus è una cartella locale (bind mount) committabile per backup/restore
   nexus:
     image: sonatype/nexus3:latest
     container_name: stillum-nexus
@@ -90,6 +91,7 @@ services:
       - "8070:8081"
     volumes:
       - nexus-data:/nexus-data
+      - ./backup/nexus:/nexus-backup
     networks:
       - stillum-net
     healthcheck:
