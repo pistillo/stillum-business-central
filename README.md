@@ -7,14 +7,13 @@ Piattaforma per la gestione di artefatti (processi BPMN, regole DMN, moduli, req
 - **portal-ui/** – frontend React (Vite, TypeScript)
 - **registry-api/** – API artefatti e versioni (Java Quarkus)
 - **publisher/** – servizio di pubblicazione (Java Quarkus)
-- **runtime-gateway/** – interfaccia con Temporal (Java Quarkus)
 - **documents/** – documentazione (Docusaurus)
 - **charts/** – Helm chart per deploy su Kubernetes
 - **scripts/** – script di inizializzazione (DB, MinIO)
 
 ## Avvio ambiente locale
 
-Servizi base (PostgreSQL, MinIO, Temporal):
+Servizi base (PostgreSQL, MinIO, Keycloak, Nexus, APISIX):
 
 ```bash
 docker compose up -d
@@ -24,11 +23,15 @@ Verificare i servizi con `docker compose ps`. Credenziali e porte in [.env.examp
 
 ## Full stack locale (con servizi applicativi)
 
-Per avviare anche i servizi applicativi (registry-api, publisher, runtime-gateway, portal-ui, npm-build-service):
+Per avviare anche i servizi applicativi (registry-api, publisher, portal-ui, npm-build-service, stillum-theia):
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.full.yml up --build
+docker compose up
 ```
+
+Punto di accesso unico API/OIDC tramite APISIX: `http://localhost:9080`
+Portal UI in dev mode: `http://localhost:9080/`
+Stillum Theia in dev mode: `http://localhost:9080/theia`
 
 ### Configurazione Nexus (per npm-build-service)
 
@@ -48,7 +51,7 @@ Impostare poi la variabile d'ambiente e riavviare `npm-build-service`:
 
 ```bash
 export NEXUS_PASSWORD=<password_copiata>
-docker compose -f docker-compose.yml -f docker-compose.full.yml up -d npm-build-service
+docker compose up -d npm-build-service
 ```
 
 ### Backup e ripristino Nexus

@@ -15,7 +15,7 @@ La piattaforma è composta da diversi componenti interconnessi. Ogni componente 
 ### Stillum Theia (IDE)
 
 - Distribuzione Theia con estensioni custom per Stillum (workspace generato dal Registry, salvataggio via portal bridge).
-- Integrato nel Portal UI tramite iframe (`VITE_THEIA_BASE_URL`) e protocollo `postMessage` (`stillum:init`, `stillum:save-request`, `stillum:save-response`, `stillum:theme-change`, `stillum:token-refresh`).
+- Integrato nel Portal UI tramite iframe su path `/theia` (instradato via APISIX) e protocollo `postMessage` (`stillum:init`, `stillum:save-request`, `stillum:save-response`, `stillum:theme-change`, `stillum:token-refresh`).
 - Usato per l’editing di artefatti `MODULE`/`COMPONENT` (TypeScript/React) con workspace materializzato (snapshot progetto + sorgenti).
 
 ### Registry API

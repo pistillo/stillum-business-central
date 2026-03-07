@@ -9,8 +9,9 @@ La piattaforma è distribuita come soluzione containerizzata. Nel worktree corre
 ## Packaging
 
 - **Docker Compose (worktree)**:
-  - `docker-compose.yml`: PostgreSQL, MinIO, Keycloak, Nexus
-  - `docker-compose.full.yml`: overlay con `registry-api`, `publisher`, `runtime-gateway`, `npm-build-service`, `portal-ui`
+  - `docker-compose.yml`: PostgreSQL, MinIO, Keycloak, Nexus, APISIX
+  - `docker-compose.full.yml`: overlay con `registry-api`, `publisher`, `npm-build-service`, `portal-ui`
+  - `apisix/apisix.yaml`: routing statico verso servizi API (`/api/registry`, `/api/publisher`, `/api/nexus`, `/auth`)
 - **Helm charts (scaffold)**: chart `charts/stillum-platform/` presente come base; la parametrizzazione completa e i chart per ciascun componente sono ancora da consolidare.
 - **Configurazione ambienti (pianificata)**: DEV/QA/PROD con parametri separati (DB, bucket, runtime).
 - **Configurazione multi-tenant (parziale)**: isolamento dati via RLS su PostgreSQL; provisioning tenant/ambienti via seed/migrazioni e API.

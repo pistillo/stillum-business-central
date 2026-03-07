@@ -24,10 +24,3 @@ publisher:
     repository: publisher
     tag: latest
     pullPolicy: IfNotPresent
-
-runtimeGateway:
-  replicaCount: 1
-  image:
-    repository: runtime-gateway
-    tag: latest
-    pullPolicy: IfNotPresent

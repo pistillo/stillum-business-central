@@ -77,17 +77,11 @@ Per la prima versione dell’UI si prevede una **single sign‑on** tramite Keyc
 
 #### Configurazione runtime (env)
 
-La Portal UI v0 usa variabili `VITE_*`:
+La Portal UI v0 usa path relativi instradati via APISIX per API e Theia (`/api/*`, `/theia`).
+Le variabili `VITE_*` attive sono:
 
-* `VITE_REGISTRY_API_BASE_URL` (default `http://localhost:8081/api`)
-* `VITE_PUBLISHER_API_BASE_URL` (default `http://localhost:8082/api`)
-* `VITE_GATEWAY_API_BASE_URL` (default `http://localhost:8083/api`) per proxy Nexus (dipendenze npm)
-* `VITE_THEIA_BASE_URL` (URL dell’istanza Stillum Theia da embeddare)
-* `VITE_OIDC_AUTHORITY` (issuer/realm Keycloak)
 * `VITE_OIDC_CLIENT_ID`
 * `VITE_OIDC_SCOPE` (default `openid profile email`)
-* `VITE_OIDC_REDIRECT_URI` (default `${window.location.origin}/oidc/callback`)
-* `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (default `${window.location.origin}/login`)
 
 Nota: l’estrazione dei tenant dal token è implementata in modo “tollerante” (supporta claim array come `tenants/tenantIds` o pattern in `groups`), con fallback a inserimento manuale del tenantId se assente. Il `defaultTenantId` (se presente) viene usato come selezione automatica quando l’utente ha più tenant.
 

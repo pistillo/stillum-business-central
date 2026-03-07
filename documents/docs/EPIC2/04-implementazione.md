@@ -43,11 +43,8 @@ Route guards:
 
 Variabili `VITE_*` rilevanti:
 
-- `VITE_OIDC_AUTHORITY`
 - `VITE_OIDC_CLIENT_ID`
 - `VITE_OIDC_SCOPE`
-- `VITE_OIDC_REDIRECT_URI`
-- `VITE_OIDC_POST_LOGOUT_REDIRECT_URI`
 
 ---
 

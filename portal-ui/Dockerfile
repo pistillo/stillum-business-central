@@ -9,10 +9,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Variabili iniettate a build-time (baked nel bundle JS)
-ARG VITE_OIDC_AUTHORITY=http://localhost:8080/realms/stillum
 ARG VITE_OIDC_CLIENT_ID=portal-ui
-ARG VITE_REGISTRY_API_BASE_URL=http://localhost:8081/api
-ARG VITE_PUBLISHER_API_BASE_URL=http://localhost:8082/api
 
 RUN pnpm run build
 

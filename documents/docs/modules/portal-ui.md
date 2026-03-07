@@ -17,7 +17,7 @@ Il **Portale UI** rappresenta il punto di accesso per gli utenti. Nel worktree c
   - JSON/YAML (REQUEST): Monaco editor.
   - FORM: tab visuale StillumForms + tab JSON/YAML.
   - MODULE/COMPONENT: editor avanzato via **Stillum Theia** (iframe) con salvataggio mediato dal portale.
-- **Dipendenze npm (MODULE/COMPONENT)**: pannello dipendenze con ricerca su Nexus tramite `runtime-gateway` (proxy anti-CORS).
+- **Dipendenze npm (MODULE/COMPONENT)**: pannello dipendenze con ricerca su Nexus tramite APISIX (proxy anti-CORS).
 - **Pubblicazione (v0)**: form singolo step con selezione ambiente e vincolo PROD (solo versioni `APPROVED`).
 - **i18n + tema**: localizzazione it/en (i18next) e toggle light/dark.
 
@@ -29,8 +29,5 @@ Il **Portale UI** rappresenta il punto di accesso per gli utenti. Nel worktree c
 
 ## Configurazione (worktree)
 
-- `VITE_OIDC_AUTHORITY`, `VITE_OIDC_CLIENT_ID`
-- `VITE_REGISTRY_API_BASE_URL` (default `http://localhost:8081/api`)
-- `VITE_PUBLISHER_API_BASE_URL` (default `http://localhost:8082/api`)
-- `VITE_GATEWAY_API_BASE_URL` (default `http://localhost:8083/api`)
-- `VITE_THEIA_BASE_URL` (URL dell’istanza Stillum Theia da embeddare nel portale)
+- `VITE_OIDC_CLIENT_ID`
+- API e Theia usano path relativi instradati da APISIX (`/api/*`, `/theia`)

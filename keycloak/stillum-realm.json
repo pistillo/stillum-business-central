@@ -32,12 +32,14 @@
       "redirectUris": [
         "http://localhost:5173/oidc/callback",
         "http://localhost:3000/oidc/callback",
+        "http://localhost:9080/oidc/callback",
         "http://127.0.0.1:5173/oidc/callback",
         "http://127.0.0.1:3000/oidc/callback"
       ],
       "webOrigins": [
         "http://localhost:5173",
         "http://localhost:3000",
+        "http://localhost:9080",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000"
       ],
@@ -88,7 +90,7 @@
       "lastName": "User",
       "groups": [
         "/tenant/501384f2-f659-4f85-8ad0-4e24c1789473",
-        "/tenant/1e35dd51-1655-4275-a371-10cf126e209c"
+        "/tenant/36b3985b-481a-4565-a73c-356d3a138f5b"
       ],
       "attributes": {
         "defaultTenantId": ["501384f2-f659-4f85-8ad0-4e24c1789473"]
