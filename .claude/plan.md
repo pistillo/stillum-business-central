@@ -1,134 +1,99 @@
-# Piano: Publisher MinIO + Rimozione npm_dependencies
+# Dev Preview: webpack dev server in Theia
 
-## Contesto
+## Obiettivo
+Permettere al developer di eseguire `npm install && npm run serve:mf` nel terminale Theia
+per ottenere un preview live dei componenti con HMR, senza dover pubblicare.
 
-1. **Publisher legge sourceCode dal DB** — ma il `SourceDataMigrator` svuota quelle colonne dopo la migrazione a MinIO. Il publisher va aggiornato per leggere da MinIO via `source_ref`.
-2. **`npm_dependencies` è un campo generico** nella tabella `artifact_version` — le dipendenze npm appartengono al `package.json` del progetto (nel buildSnapshot), non a un campo DB separato.
-3. **`npm_package_ref`** — rimandato a discussione futura.
+## Stato attuale
+Il template ha già il 90% dell'infrastruttura:
+- `webpack.config.js.tpl`: Module Federation + HtmlWebpackPlugin + devServer con CORS
+- `public/index.html.tpl`: shell HTML con `<div id="root">`
+- `src/bootstrap.tsx.tpl` → render App a #root
+- `src/App.tsx.tpl` → placeholder statico (inutile per preview)
+- `package.json.tpl` → ha script `serve:mf` MA **mancano i devDependencies**
 
----
+## Cosa manca
 
-## Fase 1: Publisher legge da MinIO
+### 1. devDependencies in `package.json.tpl`
+Senza webpack, ts-loader, etc., `npm run serve:mf` fallisce subito.
 
-Il publisher ha già `S3StorageClient` con accesso al bucket `stillum-artifacts`. Serve aggiungere il supporto per deserializzare il `SourceBundle` JSON da MinIO.
+**File:** `registry-api/.../templates/module-project/files/package.json.tpl`
 
-### 1.1 Aggiungere `SourceBundle` e `BuildSnapshot` al publisher
+Aggiungere:
+```json
+"devDependencies": {
+  "webpack": "^5.97.0",
+  "webpack-cli": "^6.0.0",
+  "webpack-dev-server": "^5.2.0",
+  "html-webpack-plugin": "^5.6.0",
+  "ts-loader": "^9.5.0",
+  "style-loader": "^4.0.0",
+  "css-loader": "^7.1.0",
+  "typescript": "~5.6.2",
+  "react": "^19.2.0",
+  "react-dom": "^19.2.0",
+  "@types/react": "^19.0.0",
+  "@types/react-dom": "^19.0.0"
+}
+```
 
-Creare nel publisher i record per deserializzare il JSON da MinIO:
+### 2. `App.tsx.tpl` → dev harness che importa i componenti
 
-- **Nuovo** `publisher/.../storage/SourceBundle.java`
-- **Nuovo** `publisher/.../storage/BuildSnapshot.java`
+Attualmente è un placeholder statico. Va migliorato per importare e renderizzare
+i componenti dal barrel `./components`, così il dev server mostra qualcosa di utile.
 
-### 1.2 Aggiungere `SourceStorageService` al publisher
+**File:** `registry-api/.../templates/module-project/files/src/App.tsx.tpl`
 
-Servizio minimale che usa `S3StorageClient` + `ObjectMapper`:
+Importare da `./components` e renderizzare una gallery/showcase dei componenti.
 
-- **Nuovo** `publisher/.../storage/SourceStorageService.java`
-  - `load(String sourceRef) → SourceBundle`
-  - Restituisce `SourceBundle.EMPTY` se sourceRef è null/blank
+### 3. Barrel exports rigenerati durante materializzazione del workspace
 
-### 1.3 Aggiungere `sourceKey()` a `StoragePathBuilder` del publisher
+Problema: i barrel files (`src/components/droplets/index.ts`, ecc.) vengono dal
+buildSnapshot e contengono `export {};`. Quando si aggiungono componenti, i barrel
+non vengono aggiornati.
 
-- **Modifica** `publisher/.../storage/StoragePathBuilder.java`
+**File:** `stillum-theia/.../stillum-workspace-manager-impl.ts`
 
-### 1.4 Aggiungere `sourceRef` all'entity ArtifactVersion del publisher
+Dopo aver scritto i file dei componenti, rigenerare i barrel per ogni area:
+```typescript
+// Per ogni area (droplets, pools, triggers), generare:
+// export { default as Button } from './Button/Button';
+// export { default as Input } from './Input/Input';
+```
 
-- **Modifica** `publisher/.../entity/ArtifactVersion.java` — aggiungere campo `source_ref`
+### 4. `.npmrc.tpl` per accesso al registry Azure DevOps
 
-### 1.5 Aggiornare `PublishService.java`
+I package `@tecnosys/stillum-forms-core` e `@tecnosys/stillum-forms-react` sono
+sul registry Azure DevOps. Serve un `.npmrc` che punti al registry corretto.
 
-- **Modifica** `publisher/.../service/PublishService.java`
+**File:** `registry-api/.../templates/module-project/files/.npmrc.tpl` (nuovo)
 
-Punti da cambiare:
+```
+registry=https://pkgs.dev.azure.com/tecnosysitaliasrl/_packaging/npm-tecnosys/npm/registry/
+always-auth=true
+```
 
-| Riga attuale | Cosa fa ora | Cosa farà |
-|---|---|---|
-| 105-107 | `version.sourceCode == null` check | Caricare `SourceBundle` da `version.sourceRef`, controllare `bundle.sourceCode()` |
-| 119 | `version.sourceCode.getBytes()` | `bundle.sourceCode().getBytes()` |
-| 179-180 | `depVersion.sourceCode` per dependency | Caricare SourceBundle della dependency da `depVersion.sourceRef` |
-| 207-211 | `depVersion.sourceCode` per ComponentSource | Usare `depBundle.sourceCode()` |
-| 215-217 | `version.npmDependencies` | Estrarre dal package.json nel buildSnapshot (vedi Fase 2) |
-| 226 | `version.sourceCode` passato a NpmBuildRequest | `bundle.sourceCode()` |
+Nota: il token di autenticazione va configurato dal developer nella propria
+configurazione npm globale (`~/.npmrc`), non nel template per motivi di sicurezza.
 
----
+## Riepilogo modifiche
 
-## Fase 2: Spostare npm_dependencies nel package.json
+| File | Azione |
+|------|--------|
+| `package.json.tpl` | Aggiungere devDependencies per webpack toolchain |
+| `App.tsx.tpl` | Importare componenti e renderizzare un dev showcase |
+| `.npmrc.tpl` | Nuovo file per registry Azure DevOps |
+| `template.json` | Aggiungere `.npmrc` alla lista dei file (se necessario) |
+| `ProjectTemplateService.java` | Nessuna modifica (già processa tutti i .tpl) |
+| `stillum-workspace-manager-impl.ts` | Rigenerare barrel exports dopo materializzazione componenti |
 
-Le dipendenze npm devono vivere nel `package.json` del progetto (dentro il buildSnapshot), non in un campo DB separato.
+## Flusso risultante
 
-### 2.1 Aggiornare il template package.json del buildSnapshot
-
-- **Modifica** `registry-api/.../templates/module-project/files/package.json.tpl`
-- Aggiungere `"dependencies": {}` (vuoto, verrà popolato via DependenciesPanel)
-
-### 2.2 Modificare DependenciesPanel per operare sul buildSnapshot
-
-- **Modifica** `portal-ui/src/components/DependenciesPanel.tsx`
-
-Invece di leggere `version.npmDependencies` e salvare via `updateVersion({ npmDependencies })`:
-- Leggere dal `buildSnapshot.files["package.json"]` → parsare JSON → `dependencies`
-- Scrivere aggiornando il package.json nel buildSnapshot e salvare via `updateVersion({ buildSnapshot })`
-
-### 2.3 Aggiornare il publisher per estrarre deps dal package.json
-
-- **Modifica** `publisher/.../service/PublishService.java`
-- Nuovo metodo privato `extractDependenciesFromPackageJson(SourceBundle)` che:
-  - Legge `bundle.buildSnapshot().files().get("package.json")`
-  - Parsa il JSON, estrae il campo `dependencies`
-  - Restituisce `Map<String, String>`
-
-### 2.4 Aggiornare npm-build-service (impatto minimo)
-
-Il publisher continua a passare le dependencies al build service, ma le estrae dal package.json invece che dal campo DB. Il `NpmBuildRequest` e `package-json.ts` restano invariati per ora — il refactoring del build service può avvenire in un secondo momento.
-
-### 2.5 Rimuovere `npmDependencies` (cleanup)
-
-**registry-api:**
-- Rimuovere da `CreateVersionRequest`, `UpdateVersionRequest`, `ArtifactVersionResponse`
-- Rimuovere dall'entity `ArtifactVersion`
-- Rimuovere logica in `ArtifactVersionService` (set/get npmDependencies)
-- Nuova migrazione SQL: `ALTER TABLE artifact_version DROP COLUMN npm_dependencies;`
-
-**publisher:**
-- Rimuovere dall'entity `ArtifactVersion`
-- Rimuovere dal manifest del bundle (linee 330-332 di PublishService)
-
-**portal-ui:**
-- Rimuovere `npmDependencies` dal tipo `ArtifactVersion`
-- Rimuovere dai parametri di `createVersion()` e `updateVersion()`
-
----
-
-## Ordine di esecuzione
-
-1. **Fase 1** prima (publisher → MinIO): nessun breaking change, il publisher legge da MinIO
-2. **Fase 2** dopo (npm_dependencies → package.json): richiede coordinamento tra 4 moduli
-
-All'interno di ogni fase, l'ordine è sequenziale come numerato.
-
----
-
-## File coinvolti — riepilogo
-
-### Fase 1 — Nuovi file
-- `publisher/.../storage/SourceBundle.java`
-- `publisher/.../storage/BuildSnapshot.java`
-- `publisher/.../storage/SourceStorageService.java`
-
-### Fase 1 — Modifiche
-- `publisher/.../storage/StoragePathBuilder.java`
-- `publisher/.../entity/ArtifactVersion.java`
-- `publisher/.../service/PublishService.java`
-
-### Fase 2 — Modifiche
-- `registry-api/.../templates/.../package.json.tpl`
-- `portal-ui/src/components/DependenciesPanel.tsx`
-- `publisher/.../service/PublishService.java`
-- `registry-api/.../dto/request/CreateVersionRequest.java`
-- `registry-api/.../dto/request/UpdateVersionRequest.java`
-- `registry-api/.../dto/response/ArtifactVersionResponse.java`
-- `registry-api/.../entity/ArtifactVersion.java`
-- `registry-api/.../service/ArtifactVersionService.java`
-- `portal-ui/src/api/types.ts`
-- `portal-ui/src/api/registry.ts`
-- Nuova migrazione SQL
+1. Developer apre modulo in Theia
+2. Workspace materializzato con tutti i file + barrel exports aggiornati
+3. Developer apre terminale in Theia
+4. `npm install` → installa webpack, react, dipendenze private
+5. `npm run serve:mf` → webpack dev server su `http://localhost:{port}`
+6. Browser apre la URL → vede i componenti renderizzati in App.tsx
+7. Modifica codice → HMR aggiorna il preview in tempo reale
+8. Debug con Chrome DevTools (sourcemaps incluse da ts-loader)

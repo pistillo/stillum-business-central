@@ -121,17 +121,15 @@ export function TheiaEditor({
 
         case 'stillum:save-request': {
           // Proxy the save through the portal to avoid CORS
-          const { requestId, artifactId, versionId, sourceCode, sourceFiles } = data;
-          console.log('[TheiaEditor] 📥 Received save-request:', {
+          const { requestId, artifactId, versionId, files } = data;
+          console.log('[TheiaEditor] Received save-request:', {
             requestId,
             artifactId,
             versionId,
-            hasSourceCode: !!sourceCode,
-            hasSourceFiles: !!sourceFiles,
-            sourceFileKeys: sourceFiles ? Object.keys(sourceFiles) : [],
+            fileKeys: files ? Object.keys(files) : [],
           });
           if (!tenantId) {
-            console.error('[TheiaEditor] ❌ No tenantId, cannot save');
+            console.error('[TheiaEditor] No tenantId, cannot save');
             break;
           }
 
@@ -140,8 +138,7 @@ export function TheiaEditor({
             tenantId,
             artifactId,
             versionId,
-            sourceCode,
-            sourceFiles,
+            files,
           })
             .then(() => {
               console.log('[TheiaEditor] ✅ Save successful:', {

@@ -13,13 +13,12 @@ import com.stillum.registry.entity.Artifact;
 import com.stillum.registry.entity.ArtifactVersion;
 import com.stillum.registry.entity.enums.ArtifactStatus;
 import com.stillum.registry.entity.enums.ArtifactType;
-import com.stillum.registry.entity.enums.ComponentType;
 import com.stillum.registry.entity.enums.VersionState;
 import com.stillum.registry.exception.ArtifactNotFoundException;
 import com.stillum.registry.filter.EnforceTenantRls;
 import com.stillum.registry.repository.ArtifactRepository;
 import com.stillum.registry.repository.ArtifactVersionRepository;
-import com.stillum.registry.storage.SourceStorageService;
+import com.stillum.registry.storage.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -41,7 +40,7 @@ public class ArtifactService {
     ProjectTemplateService templateService;
 
     @Inject
-    SourceStorageService sourceStorage;
+    FileStorageService fileStorage;
 
     @Transactional
     public ArtifactResponse create(UUID tenantId, CreateArtifactRequest req) {
@@ -84,7 +83,8 @@ public class ArtifactService {
                 .orElseThrow(() -> new ArtifactNotFoundException(artifactId));
         List<ArtifactVersion> versions = versionRepo.findByArtifact(artifactId);
         List<ArtifactVersionResponse> versionResponses = versions.stream()
-                .map(v -> ArtifactVersionResponse.from(v, sourceStorage.load(v.sourceRef)))
+                .map(v -> ArtifactVersionResponse.from(v,
+                        fileStorage.loadFiles(tenantId, artifact.type.name(), artifactId, v.id)))
                 .toList();
         return ArtifactDetailResponse.from(artifact, versionResponses);
     }
@@ -122,7 +122,8 @@ public class ArtifactService {
                 ? null
                 : ArtifactVersionResponse.from(
                         moduleVersions.get(0),
-                        sourceStorage.load(moduleVersions.get(0).sourceRef));
+                        fileStorage.loadFiles(tenantId, "MODULE", moduleId,
+                                moduleVersions.get(0).id));
 
         List<Artifact> components = repo.findByParentModule(tenantId, moduleId);
         List<WorkspaceResponse.ComponentEntry> entries = components.stream()
@@ -132,7 +133,8 @@ public class ArtifactService {
                             ? null
                             : ArtifactVersionResponse.from(
                                     compVersions.get(0),
-                                    sourceStorage.load(compVersions.get(0).sourceRef));
+                                    fileStorage.loadFiles(tenantId, "COMPONENT", comp.id,
+                                            compVersions.get(0).id));
                     return new WorkspaceResponse.ComponentEntry(
                             ArtifactResponse.from(comp), compVersion);
                 })
@@ -156,7 +158,7 @@ public class ArtifactService {
         artifact.status = ArtifactStatus.DRAFT;
         repo.persist(artifact);
 
-        var snapshot = templateService.generateSnapshot(
+        Map<String, String> projectFiles = templateService.generateProjectFiles(
                 req.title(), req.description(), req.port(), req.keywords());
 
         ArtifactVersion version = new ArtifactVersion();
@@ -165,11 +167,9 @@ public class ArtifactService {
         version.state = VersionState.DRAFT;
         versionRepo.persist(version);
 
-        // Save build snapshot to MinIO
-        String sourceRef = sourceStorage.save(
-                tenantId, artifact.id, version.id,
-                null, null, snapshot);
-        version.sourceRef = sourceRef;
+        // Save template files as individual S3 objects
+        fileStorage.saveFiles(tenantId, "MODULE", artifact.id, version.id,
+                projectFiles);
 
         return ArtifactResponse.from(artifact);
     }
@@ -187,13 +187,7 @@ public class ArtifactService {
         component.type = ArtifactType.COMPONENT;
         component.title = req.title();
         component.description = req.description();
-        component.componentType = req.componentType();
-        // Derive area from componentType for workspace folder structure
-        component.area = switch (req.componentType()) {
-            case DROPLET -> "droplets";
-            case POOL -> "pools";
-            case TRIGGER -> "triggers";
-        };
+        component.area = req.area();
         if (req.tags() != null) {
             component.tags = req.tags().toArray(new String[0]);
         }
@@ -201,7 +195,7 @@ public class ArtifactService {
         component.parentModuleId = parentModule.id;
         repo.persist(component);
 
-        Map<String, String> templateFiles = generateComponentTemplate(req.title(), req.componentType());
+        Map<String, String> templateFiles = generateComponentTemplate(req.title(), req.area());
 
         ArtifactVersion version = new ArtifactVersion();
         version.artifactId = component.id;
@@ -209,22 +203,20 @@ public class ArtifactService {
         version.state = VersionState.DRAFT;
         versionRepo.persist(version);
 
-        // Save component template to MinIO
-        String sourceRef = sourceStorage.save(
-                component.tenantId, component.id, version.id,
-                null, templateFiles, null);
-        version.sourceRef = sourceRef;
+        // Save component template files as individual S3 objects
+        fileStorage.saveFiles(tenantId, "COMPONENT", component.id, version.id,
+                templateFiles);
 
         return ArtifactResponse.from(component);
     }
 
     /**
-     * Generate a starter source file for a new component based on its type.
+     * Generate a starter source file for a new component based on its area.
      */
-    private Map<String, String> generateComponentTemplate(String title, ComponentType componentType) {
+    private Map<String, String> generateComponentTemplate(String title, String area) {
         String fileName = title + ".tsx";
-        String content = switch (componentType) {
-            case DROPLET -> """
+        String content = switch (area != null ? area.toLowerCase() : "") {
+            case "droplets" -> """
                     import React from 'react';
 
                     export interface %sProps {
@@ -241,7 +233,7 @@ public class ArtifactService {
 
                     export default %s;
                     """.formatted(title, title, title, title);
-            case POOL -> """
+            case "pools" -> """
                     import { createContext, useContext, useState, ReactNode } from 'react';
 
                     interface %sState {
@@ -268,7 +260,7 @@ public class ArtifactService {
                       return context;
                     }
                     """.formatted(title, title, title, title, title, title, title, title, title, title, title);
-            case TRIGGER -> """
+            case "triggers" -> """
                     /**
                      * %s trigger — handles events and dispatches actions.
                      */
@@ -285,6 +277,15 @@ public class ArtifactService {
 
                     export default on%s;
                     """.formatted(title, title, title, title, title, title);
+            default -> """
+                    import React from 'react';
+
+                    export const %s: React.FC = () => {
+                      return <div>%s</div>;
+                    };
+
+                    export default %s;
+                    """.formatted(title, title, title);
         };
 
         return Map.of(fileName, content);

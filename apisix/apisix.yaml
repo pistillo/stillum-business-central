@@ -1,0 +1,242 @@
+routes:
+  - id: registry-api
+    priority: 100
+    uri: /api/registry/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    plugins:
+      proxy-rewrite:
+        regex_uri:
+          - "^/api/registry(.*)"
+          - "/api$1"
+      cors:
+        allow_origins: "*"
+        allow_methods: "*"
+        allow_headers: "*"
+    upstream:
+      type: roundrobin
+      nodes:
+        registry-api:8081: 1
+
+  - id: publisher
+    priority: 100
+    uri: /api/publisher/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    plugins:
+      proxy-rewrite:
+        regex_uri:
+          - "^/api/publisher(.*)"
+          - "/api$1"
+      cors:
+        allow_origins: "*"
+        allow_methods: "*"
+        allow_headers: "*"
+    upstream:
+      type: roundrobin
+      nodes:
+        publisher:8082: 1
+
+  - id: npm-build-service
+    priority: 100
+    uri: /api/build
+    methods:
+      - POST
+      - OPTIONS
+    plugins:
+      cors:
+        allow_origins: "*"
+        allow_methods: "*"
+        allow_headers: "*"
+    upstream:
+      type: roundrobin
+      nodes:
+        npm-build-service:8090: 1
+
+  - id: nexus-search
+    priority: 100
+    uri: /api/nexus/search
+    methods:
+      - GET
+      - OPTIONS
+    plugins:
+      proxy-rewrite:
+        uri: /repository/npm-group/-/v1/search
+      cors:
+        allow_origins: "*"
+        allow_methods: "*"
+        allow_headers: "*"
+    upstream:
+      type: roundrobin
+      nodes:
+        nexus:8081: 1
+
+  - id: nexus-package
+    priority: 100
+    uri: /api/nexus/package/*
+    methods:
+      - GET
+      - OPTIONS
+    plugins:
+      proxy-rewrite:
+        regex_uri:
+          - "^/api/nexus/package/(.*)"
+          - "/repository/npm-group/$1"
+      cors:
+        allow_origins: "*"
+        allow_methods: "*"
+        allow_headers: "*"
+    upstream:
+      type: roundrobin
+      nodes:
+        nexus:8081: 1
+
+  - id: keycloak
+    priority: 100
+    uri: /auth/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    plugins:
+      proxy-rewrite:
+        regex_uri:
+          - "^/auth(.*)"
+          - "$1"
+    upstream:
+      type: roundrobin
+      nodes:
+        keycloak:8080: 1
+
+  - id: keycloak-realms
+    priority: 100
+    uri: /realms/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    upstream:
+      type: roundrobin
+      nodes:
+        keycloak:8080: 1
+
+  - id: keycloak-resources
+    priority: 100
+    uri: /resources/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    upstream:
+      type: roundrobin
+      nodes:
+        keycloak:8080: 1
+
+  - id: minio-artifacts
+    priority: 100
+    uri: /stillum-artifacts/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - HEAD
+      - OPTIONS
+    upstream:
+      type: roundrobin
+      nodes:
+        minio:9000: 1
+
+  - id: minio-bundles
+    priority: 100
+    uri: /stillum-bundles/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - HEAD
+      - OPTIONS
+    upstream:
+      type: roundrobin
+      nodes:
+        minio:9000: 1
+
+  - id: theia-root
+    priority: 90
+    uri: /theia
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    enable_websocket: true
+    plugins:
+      proxy-rewrite:
+        uri: /
+    upstream:
+      type: roundrobin
+      nodes:
+        stillum-theia:3001: 1
+
+  - id: theia
+    priority: 90
+    uri: /theia/*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    enable_websocket: true
+    plugins:
+      proxy-rewrite:
+        regex_uri:
+          - "^/theia(.*)"
+          - "$1"
+    upstream:
+      type: roundrobin
+      nodes:
+        stillum-theia:3001: 1
+
+  - id: portal-ui
+    priority: 1
+    uri: /*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    enable_websocket: true
+    upstream:
+      type: roundrobin
+      nodes:
+        portal-ui:5173: 1
+
+#END

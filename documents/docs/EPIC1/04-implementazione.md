@@ -140,7 +140,7 @@ Il servizio `publisher/` implementa il flusso MVP di pubblicazione e gestisce la
 1. Verifica `Environment` per tenant
 2. Lettura `Artifact` + `ArtifactVersion` e verifica `state != PUBLISHED`
    - guard-rail: se `Environment.name == PROD` allora `ArtifactVersion.state` deve essere `APPROVED`
-3. Download payload da S3 usando `payloadRef` (bucket artifacts) e validazione base
+3. Download file da S3 usando chiave convenzionale (bucket artifacts) e validazione base (per MODULE/COMPONENT usa i file sorgente della versione)
 4. Verifica dipendenze: tutte le versioni dipendenti devono essere `PUBLISHED`
 5. Creazione bundle zip con:
    - `manifest.json` (metadati + SHA-256 file)
@@ -163,7 +163,7 @@ Il servizio `publisher/` implementa il flusso MVP di pubblicazione e gestisce la
 ## CI e sviluppo locale
 
 - CI: workflow principale in `.github/workflows/ci.yml`.
-- Stack locale: `docker-compose.yml` include PostgreSQL, MinIO e Temporal.
+- Stack locale: `docker-compose.yml` include PostgreSQL, MinIO, Keycloak e Nexus.
 - In CI e in locale, i test backend assumono la disponibilità di PostgreSQL e MinIO (avviabili con `docker compose up -d postgres minio minio-init`).
 
 ### Sequenza (request → DB) per enforcement RLS

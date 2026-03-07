@@ -1,1 +1,0 @@
-ALTER TABLE artifact_version ADD COLUMN source_files JSONB;

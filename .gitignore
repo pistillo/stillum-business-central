@@ -31,6 +31,9 @@ coverage/
 *.lcov
 .nyc_output/
 
+# Archivi backup (cartella backup/nexus è committabile, i .tar.gz possono essere ignorati se troppo grandi)
+backup/nexus/*.tar.gz
+
 # Misc
 *.bak
 *.tmp

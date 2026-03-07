@@ -9,6 +9,28 @@ import { config } from '../config';
 
 type NpmDependencies = Record<string, string>;
 
+/** Extract dependencies from version files' package.json. */
+function extractDependencies(version: ArtifactVersion | null): NpmDependencies {
+  const raw = version?.files?.['package.json'];
+  if (!raw) return {};
+  try {
+    const pkg = JSON.parse(raw) as { dependencies?: NpmDependencies };
+    return pkg.dependencies ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/** Return an updated package.json string with new dependencies. */
+function buildUpdatedPackageJson(
+  currentPackageJson: string | undefined,
+  deps: NpmDependencies
+): string {
+  const pkg = currentPackageJson ? JSON.parse(currentPackageJson) : {};
+  pkg.dependencies = deps;
+  return JSON.stringify(pkg, null, 2);
+}
+
 /** Confronto semplice per ordinare versioni (major.minor.patch). */
 function compareVersions(a: string, b: string): number {
   const partsA = a.split('.').map(Number);
@@ -46,7 +68,7 @@ export function DependenciesPanel({
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const dependencies: NpmDependencies = version?.npmDependencies ?? {};
+  const dependencies: NpmDependencies = extractDependencies(version);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -99,12 +121,13 @@ export function DependenciesPanel({
 
   const updateDependenciesMutation = useMutation({
     mutationFn: async (newDeps: NpmDependencies) => {
+      const updatedPkgJson = buildUpdatedPackageJson(version?.files?.['package.json'], newDeps);
       return updateVersion({
         token: getAccessToken(),
         tenantId,
         artifactId,
         versionId,
-        npmDependencies: newDeps,
+        files: { 'package.json': updatedPkgJson },
       });
     },
     retry: 2,

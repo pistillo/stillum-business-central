@@ -43,11 +43,8 @@ Route guards:
 
 Variabili `VITE_*` rilevanti:
 
-- `VITE_OIDC_AUTHORITY`
 - `VITE_OIDC_CLIENT_ID`
 - `VITE_OIDC_SCOPE`
-- `VITE_OIDC_REDIRECT_URI`
-- `VITE_OIDC_POST_LOGOUT_REDIRECT_URI`
 
 ---
 
@@ -71,7 +68,7 @@ Client HTTP:
 
 Registry API:
 
-- query catalogo, dettaglio, versioni, presigned URL e `payloadRef`: [registry.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/api/registry.ts)
+- query catalogo, dettaglio, versioni e presigned URL (chiavi convenzionali): [registry.ts](file:///Users/spistillo/Documents/DEV/stillum-business-central/portal-ui/src/api/registry.ts)
 
 Publisher:
 
@@ -90,9 +87,9 @@ Hooks (TanStack Query):
 L’editor v0 implementa un flusso minimale:
 
 1. carica `Artifact` e `ArtifactVersion`,
-2. se `payloadRef` è presente, ottiene presigned download URL e scarica il contenuto,
-3. al salvataggio, ottiene presigned upload URL e carica il payload,
-4. aggiorna `payloadRef` della versione.
+2. per PROCESS/RULE/FORM/REQUEST, ottiene un presigned download URL e scarica il contenuto (file di default per tipo),
+3. al salvataggio, ottiene un presigned upload URL e carica il payload,
+4. non è necessario aggiornare alcun `payloadRef` nel DB (la chiave è deterministica per convenzione).
 
 ### Editor Monaco (per payload testuali)
 

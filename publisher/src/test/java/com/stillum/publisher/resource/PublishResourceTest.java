@@ -1,6 +1,7 @@
 package com.stillum.publisher.resource;
 
 import com.stillum.publisher.storage.S3StorageClient;
+import com.stillum.publisher.storage.StoragePathBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
@@ -32,9 +33,11 @@ class PublishResourceTest {
     void publish_happyPath_createsBundlePublicationAndAudit() {
         UUID artifactId = UUID.randomUUID();
         UUID versionId = UUID.randomUUID();
-        String payloadKey = "tenant-" + TENANT_ID + "/artifacts/process/" + artifactId + "/" + versionId + ".xml";
+        // Convention-based path: tenant-{tid}/process/{aid}/{vid}/process.bpmn
+        String payloadKey = StoragePathBuilder.fileKey(TENANT_ID, "PROCESS", artifactId, versionId,
+                StoragePathBuilder.defaultFileName("PROCESS"));
 
-        seedArtifactWithVersion(artifactId, versionId, payloadKey, "DRAFT");
+        seedArtifactWithVersion(artifactId, versionId, "DRAFT");
         s3.uploadBytes(s3.getArtifactsBucket(), payloadKey, "<definitions/>".getBytes(), "application/xml");
 
         long auditBefore = ((Number) em.createNativeQuery(
@@ -92,9 +95,10 @@ class PublishResourceTest {
 
         UUID artifactId = UUID.randomUUID();
         UUID versionId = UUID.randomUUID();
-        String payloadKey = "tenant-" + TENANT_ID + "/artifacts/process/" + artifactId + "/" + versionId + ".xml";
+        String payloadKey = StoragePathBuilder.fileKey(TENANT_ID, "PROCESS", artifactId, versionId,
+                StoragePathBuilder.defaultFileName("PROCESS"));
 
-        seedArtifactWithVersion(artifactId, versionId, payloadKey, "DRAFT");
+        seedArtifactWithVersion(artifactId, versionId, "DRAFT");
         s3.uploadBytes(s3.getArtifactsBucket(), payloadKey, "<definitions/>".getBytes(), "application/xml");
 
         String publicationId = given()
@@ -117,14 +121,16 @@ class PublishResourceTest {
     void publish_failsWhenDependencyNotPublished_writesFailureAudit() {
         UUID rootArtifactId = UUID.randomUUID();
         UUID rootVersionId = UUID.randomUUID();
-        String rootPayloadKey = "tenant-" + TENANT_ID + "/artifacts/process/" + rootArtifactId + "/" + rootVersionId + ".xml";
+        String rootPayloadKey = StoragePathBuilder.fileKey(TENANT_ID, "PROCESS", rootArtifactId, rootVersionId,
+                StoragePathBuilder.defaultFileName("PROCESS"));
 
         UUID depArtifactId = UUID.randomUUID();
         UUID depVersionId = UUID.randomUUID();
-        String depPayloadKey = "tenant-" + TENANT_ID + "/artifacts/process/" + depArtifactId + "/" + depVersionId + ".xml";
+        String depPayloadKey = StoragePathBuilder.fileKey(TENANT_ID, "PROCESS", depArtifactId, depVersionId,
+                StoragePathBuilder.defaultFileName("PROCESS"));
 
-        seedArtifactWithVersion(rootArtifactId, rootVersionId, rootPayloadKey, "DRAFT");
-        seedArtifactWithVersion(depArtifactId, depVersionId, depPayloadKey, "DRAFT");
+        seedArtifactWithVersion(rootArtifactId, rootVersionId, "DRAFT");
+        seedArtifactWithVersion(depArtifactId, depVersionId, "DRAFT");
         seedDependency(rootVersionId, depArtifactId, depVersionId);
 
         s3.uploadBytes(s3.getArtifactsBucket(), rootPayloadKey, "<definitions/>".getBytes(), "application/xml");
@@ -187,7 +193,7 @@ class PublishResourceTest {
     }
 
     @Transactional
-    void seedArtifactWithVersion(UUID artifactId, UUID versionId, String payloadRef, String state) {
+    void seedArtifactWithVersion(UUID artifactId, UUID versionId, String state) {
         em.createNativeQuery("SELECT set_config('app.current_tenant', :tid, true)")
             .setParameter("tid", TENANT_ID.toString())
             .getSingleResult();
@@ -199,11 +205,10 @@ class PublishResourceTest {
             .executeUpdate();
 
         em.createNativeQuery(
-                "INSERT INTO artifact_version (id, artifact_id, version, state, payload_ref) VALUES (:vid, :aid, '1.0.0', :state, :pref)")
+                "INSERT INTO artifact_version (id, artifact_id, version, state) VALUES (:vid, :aid, '1.0.0', :state)")
             .setParameter("vid", versionId)
             .setParameter("aid", artifactId)
             .setParameter("state", state)
-            .setParameter("pref", payloadRef)
             .executeUpdate();
     }
 

@@ -7,8 +7,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stillum123}
       POSTGRES_DB: ${POSTGRES_DB:-stillumdb}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8"
-    ports:
-      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -26,9 +24,6 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     command: minio server /data --console-address ":9001"
     volumes:
       - minio-data:/data
@@ -69,8 +64,6 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
     command: start-dev --import-realm
-    ports:
-      - "8080:8080"
     volumes:
       - ./keycloak:/opt/keycloak/data/import
     networks:
@@ -83,13 +76,13 @@ services:
       start_period: 45s
 
   # ─── Nexus Repository Manager ──────────────────────────────────────────────
+  # backup/nexus è una cartella locale (bind mount) committabile per backup/restore
   nexus:
     image: sonatype/nexus3:latest
     container_name: stillum-nexus
-    ports:
-      - "8070:8081"
     volumes:
       - nexus-data:/nexus-data
+      - ./backup/nexus:/nexus-backup
     networks:
       - stillum-net
     healthcheck:
@@ -99,6 +92,143 @@ services:
       retries: 10
       start_period: 90s
 
+  # ─── APISIX Gateway ────────────────────────────────────────────────────────
+  apisix:
+    image: apache/apisix:3.9.1-debian
+    container_name: stillum-apisix
+    ports:
+      - "9080:9080"
+    volumes:
+      - ./apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      nexus:
+        condition: service_healthy
+    networks:
+      - stillum-net
+    healthcheck:
+      test: ["CMD-SHELL", "apisix version >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  registry-api:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: stillum-registry-api
+    working_dir: /workspace
+    command: /bin/sh -lc "mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8081"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-stillum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stillum123}
+      POSTGRES_DB: ${POSTGRES_DB:-stillumdb}
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      STILLUM_STORAGE_PUBLIC_S3_ENDPOINT: http://localhost:9080
+    volumes:
+      - ./registry-api:/workspace
+      - maven-cache:/root/.m2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - stillum-net
+
+  publisher:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: stillum-publisher
+    working_dir: /workspace
+    command: /bin/sh -lc "mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8082"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-stillum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stillum123}
+      POSTGRES_DB: ${POSTGRES_DB:-stillumdb}
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      NPM_BUILD_SERVICE_HOST: apisix
+      NPM_BUILD_SERVICE_PORT: "9080"
+    volumes:
+      - ./publisher:/workspace
+      - maven-cache:/root/.m2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      registry-api:
+        condition: service_started
+      apisix:
+        condition: service_started
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      npm-build-service:
+        condition: service_started
+    networks:
+      - stillum-net
+
+  npm-build-service:
+    image: node:20-bookworm
+    container_name: stillum-npm-build-service
+    working_dir: /workspace
+    command: /bin/sh -lc "npm install && npm run dev"
+    environment:
+      PORT: "8090"
+      NEXUS_URL: http://nexus:8081
+      NEXUS_NPM_REGISTRY_URL: http://nexus:8081/repository/npm-hosted/
+      NEXUS_NPM_GROUP_URL: http://nexus:8081/repository/npm-group/
+      NEXUS_USERNAME: ${NEXUS_USERNAME:-admin}
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:?Set NEXUS_PASSWORD (docker exec stillum-nexus cat /nexus-data/admin.password)}
+      BUILD_TEMP_DIR: /tmp/stillum-builds
+      BUILD_TIMEOUT_MS: "120000"
+      BUILD_MAX_CONCURRENT: "4"
+    volumes:
+      - ./npm-build-service:/workspace
+      - npm-build-node-modules:/workspace/node_modules
+    depends_on:
+      nexus:
+        condition: service_healthy
+    networks:
+      - stillum-net
+
+
+
+  portal-ui:
+    image: node:20-bookworm
+    container_name: stillum-portal-ui
+    working_dir: /workspace
+    command: /bin/sh -lc "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      NPM_TOKEN: ${NPM_TOKEN}
+      VITE_OIDC_CLIENT_ID: portal-ui
+    volumes:
+      - ./portal-ui:/workspace
+      - portal-ui-node-modules:/workspace/node_modules
+    depends_on:
+      apisix:
+        condition: service_healthy
+      registry-api:
+        condition: service_started
+      publisher:
+        condition: service_started
+      stillum-theia:
+        condition: service_started
+    networks:
+      - stillum-net
+
 networks:
   stillum-net:
     driver: bridge
@@ -107,3 +237,6 @@ volumes:
   postgres-data:
   minio-data:
   nexus-data:
+  maven-cache:
+  npm-build-node-modules:
+  portal-ui-node-modules:

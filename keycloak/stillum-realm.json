@@ -10,12 +10,12 @@
       "path": "/tenant",
       "subGroups": [
         {
-          "name": "00000000-0000-0000-0000-000000000001",
-          "path": "/tenant/00000000-0000-0000-0000-000000000001"
+          "name": "501384f2-f659-4f85-8ad0-4e24c1789473",
+          "path": "/tenant/501384f2-f659-4f85-8ad0-4e24c1789473"
         },
         {
-          "name": "00000000-0000-0000-0000-000000000002",
-          "path": "/tenant/00000000-0000-0000-0000-000000000002"
+          "name": "36b3985b-481a-4565-a73c-356d3a138f5b",
+          "path": "/tenant/36b3985b-481a-4565-a73c-356d3a138f5b"
         }
       ]
     }
@@ -32,12 +32,14 @@
       "redirectUris": [
         "http://localhost:5173/oidc/callback",
         "http://localhost:3000/oidc/callback",
+        "http://localhost:9080/oidc/callback",
         "http://127.0.0.1:5173/oidc/callback",
         "http://127.0.0.1:3000/oidc/callback"
       ],
       "webOrigins": [
         "http://localhost:5173",
         "http://localhost:3000",
+        "http://localhost:9080",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000"
       ],
@@ -87,11 +89,11 @@
       "firstName": "Dev",
       "lastName": "User",
       "groups": [
-        "/tenant/00000000-0000-0000-0000-000000000001",
-        "/tenant/00000000-0000-0000-0000-000000000002"
+        "/tenant/501384f2-f659-4f85-8ad0-4e24c1789473",
+        "/tenant/36b3985b-481a-4565-a73c-356d3a138f5b"
       ],
       "attributes": {
-        "defaultTenantId": ["00000000-0000-0000-0000-000000000001"]
+        "defaultTenantId": ["501384f2-f659-4f85-8ad0-4e24c1789473"]
       },
       "credentials": [
         {

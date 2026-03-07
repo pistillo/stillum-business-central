@@ -15,8 +15,8 @@ Il **Publisher Service** è responsabile della transizione delle versioni di ar
 
 ## Flusso di pubblicazione
 
-1. **Invocazione**: un utente (solitamente un Process Owner) invia una richiesta al publisher tramite l’endpoint `POST /tenants/{tenantId}/publish` specificando `artifactId`, `versionId` e `environmentId`.  Opzionalmente può includere note di release.
-2. **Recupero e controllo**: il servizio legge dai metadati la versione richiesta, verifica che non sia già `Published` e recupera il payload dall’object storage usando `payloadRef`.
+1. **Invocazione**: un utente (solitamente un Process Owner) invia una richiesta al publisher tramite l’endpoint `POST /api/tenants/{tenantId}/publish` specificando `artifactId`, `versionId` e `environmentId`. Opzionalmente può includere note di release.
+2. **Recupero e controllo**: il servizio legge dai metadati la versione richiesta, verifica che non sia già `Published` e recupera i file dall’object storage usando chiavi convenzionali (file di default per PROCESS/RULE/FORM/REQUEST; file sorgente per MODULE/COMPONENT).
 3. **Validazione schema**:
    - **BPMN**: eseguire una validazione sintattica del file XML e verificare la correttezza dei riferimenti a variabili e task.
    - **DMN**: assicurarsi che le tabelle decisionali siano corrette e seguano lo standard DMN.
@@ -31,8 +31,8 @@ Il **Publisher Service** è responsabile della transizione delle versioni di ar
 
 | Metodo e percorso | Descrizione |
 |------------------|-------------|
-| **`POST /tenants/{tenantId}/publish`** | Avvia la procedura di pubblicazione. Nel corpo della richiesta sono richiesti `artifactId`, `versionId` e `environmentId`.  Restituisce l’esito della validazione e, in caso positivo, i dettagli della `Publication`. |
-| **`GET /tenants/{tenantId}/publish/{publicationId}`** | Recupera i dettagli di una pubblicazione (stato, bundleRef, note, data, autore). |
+| **`POST /api/tenants/{tenantId}/publish`** | Avvia la procedura di pubblicazione. Nel corpo della richiesta sono richiesti `artifactId`, `versionId` e `environmentId`. Restituisce i dettagli della `Publication` o un errore (validazione, dipendenze, vincoli ambiente). |
+| **`GET /api/tenants/{tenantId}/publish/{publicationId}`** | Recupera i dettagli di una pubblicazione (bundleRef, note, data). |
 
 ## Gestione degli ambienti
 

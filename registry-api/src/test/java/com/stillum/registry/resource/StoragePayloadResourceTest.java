@@ -1,8 +1,13 @@
 package com.stillum.registry.resource;
 
+import com.stillum.registry.storage.S3StorageClient;
+import com.stillum.registry.storage.StoragePathBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -17,8 +22,11 @@ class StoragePayloadResourceTest {
     static final String ARTIFACTS_BASE = "/api/tenants/" + TENANT_ID + "/artifacts";
     static final String STORAGE_BASE = "/api/tenants/" + TENANT_ID + "/storage";
 
+    @Inject
+    S3StorageClient s3;
+
     @Test
-    void uploadUrl_returnsKeyWithTenantAndTypeAndExtension() {
+    void uploadUrl_returnsKeyWithConventionBasedPath() {
         String artifactId = given()
             .contentType(ContentType.JSON)
             .body("{\"type\":\"PROCESS\",\"title\":\"P\"}")
@@ -37,6 +45,7 @@ class StoragePayloadResourceTest {
             .statusCode(201)
             .extract().path("id");
 
+        // Convention path: tenant-{tid}/process/{aid}/{vid}/process.bpmn
         given()
             .queryParam("artifactId", artifactId)
             .queryParam("versionId", versionId)
@@ -46,12 +55,12 @@ class StoragePayloadResourceTest {
             .then()
             .statusCode(200)
             .body("url", notNullValue())
-            .body("key", containsString("tenant-" + TENANT_ID + "/artifacts/process/" + artifactId + "/" + versionId + ".xml"))
+            .body("key", containsString("tenant-" + TENANT_ID + "/process/" + artifactId + "/" + versionId + "/process.bpmn"))
             .body("expiresInSeconds", is(300));
     }
 
     @Test
-    void downloadUrl_withoutPayloadRef_returns400() {
+    void downloadUrl_withoutUploadedFile_returns400() {
         String artifactId = given()
             .contentType(ContentType.JSON)
             .body("{\"type\":\"FORM\",\"title\":\"F\"}")
@@ -77,11 +86,11 @@ class StoragePayloadResourceTest {
             .get(STORAGE_BASE + "/download-url")
             .then()
             .statusCode(400)
-            .body("error", containsString("has no payload"));
+            .body("error", containsString("has no source reference"));
     }
 
     @Test
-    void downloadUrl_afterPayloadRefUpdate_returnsPresignedUrl() {
+    void downloadUrl_afterFileUploaded_returnsPresignedUrl() {
         String artifactId = given()
             .contentType(ContentType.JSON)
             .body("{\"type\":\"PROCESS\",\"title\":\"P\"}")
@@ -100,24 +109,14 @@ class StoragePayloadResourceTest {
             .statusCode(201)
             .extract().path("id");
 
-        String key = given()
-            .queryParam("artifactId", artifactId)
-            .queryParam("versionId", versionId)
-            .queryParam("contentType", "application/xml")
-            .when()
-            .get(STORAGE_BASE + "/upload-url")
-            .then()
-            .statusCode(200)
-            .extract().path("key");
-
-        given()
-            .contentType(ContentType.JSON)
-            .body("{\"payloadRef\":\"" + key + "\"}")
-            .when()
-            .put(ARTIFACTS_BASE + "/" + artifactId + "/versions/" + versionId + "/payload-ref")
-            .then()
-            .statusCode(200)
-            .body("payloadRef", equalTo(key));
+        // Simulate file upload by placing the file at the convention-based path
+        UUID tid = UUID.fromString(TENANT_ID);
+        UUID aid = UUID.fromString(artifactId);
+        UUID vid = UUID.fromString(versionId);
+        String key = StoragePathBuilder.fileKey(tid, "PROCESS", aid, vid,
+                StoragePathBuilder.defaultFileName("PROCESS"));
+        s3.uploadBytes(s3.getArtifactsBucket(), key,
+                "<definitions/>".getBytes(), "application/xml");
 
         given()
             .queryParam("artifactId", artifactId)
@@ -142,4 +141,3 @@ class StoragePayloadResourceTest {
             .body("error", containsString("artifactId is required"));
     }
 }
-

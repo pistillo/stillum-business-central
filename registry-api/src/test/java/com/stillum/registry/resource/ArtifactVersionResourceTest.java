@@ -48,7 +48,7 @@ class ArtifactVersionResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body("{\"version\":\"1.0.0\",\"payloadRef\":\"tenant-x/artifacts/process/a/v.xml\"}")
+            .body("{\"version\":\"1.0.0\"}")
             .when()
             .post(ARTIFACTS_PATH + "/" + artifactId + "/versions")
             .then()
@@ -98,36 +98,6 @@ class ArtifactVersionResourceTest {
     }
 
     @Test
-    void updatePayloadRef_draftVersion_returns200() {
-        String artifactId = createArtifact("PROCESS", "Artifact Update PayloadRef");
-        String versionId = createVersion(artifactId, "1.0.0");
-
-        given()
-            .contentType(ContentType.JSON)
-            .body("{\"payloadRef\":\"tenant-x/artifacts/process/a/v2.xml\"}")
-            .when()
-            .put(ARTIFACTS_PATH + "/" + artifactId + "/versions/" + versionId + "/payload-ref")
-            .then()
-            .statusCode(200)
-            .body("payloadRef", is("tenant-x/artifacts/process/a/v2.xml"));
-    }
-
-    @Test
-    void updatePayloadRef_publishedVersion_returns409() {
-        String artifactId = createArtifact("PROCESS", "Artifact Update PayloadRef Published");
-        String versionId = createVersion(artifactId, "1.0.0");
-        markVersionPublished(versionId);
-
-        given()
-            .contentType(ContentType.JSON)
-            .body("{\"payloadRef\":\"tenant-x/artifacts/process/a/v2.xml\"}")
-            .when()
-            .put(ARTIFACTS_PATH + "/" + artifactId + "/versions/" + versionId + "/payload-ref")
-            .then()
-            .statusCode(409);
-    }
-
-    @Test
     void updateVersion_publishedVersion_returns409() {
         String artifactId = createArtifact("PROCESS", "Artifact Update Version Published");
         String versionId = createVersion(artifactId, "1.0.0");
@@ -135,7 +105,7 @@ class ArtifactVersionResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body("{\"payloadRef\":\"tenant-x/artifacts/process/a/v2.xml\"}")
+            .body("{\"metadata\":\"{\\\"test\\\": true}\"}")
             .when()
             .put(ARTIFACTS_PATH + "/" + artifactId + "/versions/" + versionId)
             .then()

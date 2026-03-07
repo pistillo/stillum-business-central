@@ -2,15 +2,19 @@ package com.stillum.publisher.storage;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 @ApplicationScoped
 public class S3StorageClient {
@@ -41,6 +45,15 @@ public class S3StorageClient {
                         .contentType(contentType)
                         .build(),
                 RequestBody.fromBytes(data));
+    }
+
+    /** List all object keys under the given prefix. */
+    public List<String> listKeys(String bucket, String prefix) {
+        ListObjectsV2Request req = ListObjectsV2Request.builder()
+                .bucket(bucket).prefix(prefix).build();
+        ListObjectsV2Response resp = s3Client.listObjectsV2(req);
+        return resp.contents().stream()
+                .map(S3Object::key).toList();
     }
 
     public boolean exists(String bucket, String key) {

@@ -7,6 +7,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/registry': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/registry/, '/api'),
+      },
+      '/api/publisher': {
+        target: 'http://localhost:8082',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/publisher/, '/api'),
+      },
+    },
+  },
   resolve: {
     alias: {
       // Shim i18n: il modulo stillum-forms-core/i18n è CJS e in bundle .default può non essere

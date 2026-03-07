@@ -18,24 +18,22 @@ I valori `MODULE` e `COMPONENT` sono gia presenti nel codice (`ArtifactType.java
 
 ### Nuovi campi su ArtifactVersion
 
+Nel worktree corrente non viene salvato il sorgente React nel database. I file di una versione (payload e sorgenti) sono persistiti su MinIO/S3 con chiavi convenzionali e resi disponibili dall’API come mappa `files` (path → contenuto).
+
+L’unico campo “nuovo” che rimane su `artifact_version` per EPIC 10 è:
+
 | Campo | Tipo | Obbligatorio | Descrizione |
 |-------|------|:---:|-------------|
-| `source_code` | text | No | Codice sorgente React/TypeScript. Pertinente solo per `MODULE` e `COMPONENT`. |
-| `npm_dependencies` | json | No | Mappa `{ "nome-lib": "^versione" }` delle dipendenze npm. Pertinente solo per `MODULE` e `COMPONENT`. |
-| `npm_package_ref` | string | No | Puntatore al pacchetto npm generato dalla build (es. `@stillum/tenant-abc/my-module@1.0.0`). Valorizzato dopo la pubblicazione. |
+| `npm_package_ref` | string | No | Puntatore al pacchetto npm generato dalla build (es. `@stillum/<scope>/<pkg>@<version>` o URL/path su Nexus). Valorizzato dopo la pubblicazione. |
 
-### Relazione Modulo → Componenti (tabella dependency)
+### Relazione Modulo → Componenti
 
-La tabella `dependency` esistente viene riutilizzata per rappresentare la relazione Modulo→Componenti:
+Nel worktree corrente la relazione strutturale Modulo→Componenti è rappresentata su `artifact.parent_module_id`:
 
-```
-dependency
-├── artifact_version_id   → ArtifactVersion (il COMPONENT)
-├── depends_on_artifact_id → Artifact (il MODULE padre)
-└── depends_on_version_id  → ArtifactVersion (la versione del MODULE padre, opzionale)
-```
+- Un `COMPONENT` ha `parent_module_id` valorizzato al `MODULE` padre.
+- Il Registry usa questa relazione per comporre il workspace editor (modulo + componenti).
 
-Un `COMPONENT` dichiara una dipendenza verso il `MODULE` padre. Il Registry risolve il grafo per restituire l'elenco completo dei componenti di un modulo.
+La tabella `dependency` resta disponibile per modellare dipendenze tra versioni (es. un `MODULE` che usa `COMPONENT` specifici da includere nella build/publish).
 
 ## Diagramma ER (estensione)
 
@@ -47,6 +45,7 @@ erDiagram
         uuid tenant_id
         enum type "process | rule | form | request | module | component"
         string title
+        uuid parent_module_id "solo component"
     }
 
     ARTIFACT_VERSION ||--o{ DEPENDENCY : "1:n ha dipendenze"
@@ -55,9 +54,6 @@ erDiagram
         uuid artifact_id
         string version
         enum state
-        string payload_ref
-        text source_code "solo module/component"
-        json npm_dependencies "solo module/component"
         string npm_package_ref "solo module/component"
     }
 
@@ -73,18 +69,17 @@ erDiagram
 ## Migrazione DB implementata
 
 ```sql
--- V10__add_module_component_fields.sql
-ALTER TABLE artifact_version
-    ADD COLUMN source_code TEXT;
+-- V1__schema.sql
+-- Schema completo (tabelle, indici, RLS) con:
+-- - ArtifactType che include MODULE/COMPONENT (constraint su artifact.type)
+-- - artifact.parent_module_id per la relazione COMPONENT → MODULE
+-- - artifact_version.npm_package_ref
 
-ALTER TABLE artifact_version
-    ADD COLUMN npm_dependencies JSONB;
-
-ALTER TABLE artifact_version
-    ADD COLUMN npm_package_ref VARCHAR(500);
+-- V2__seed_data.sql
+-- Seed dev/demo (tenant, ruoli, utente demo, environments) con UUID espliciti e idempotenza
 ```
 
-La migrazione è stata creata in `registry-api/src/main/resources/db/migration/V10__add_module_component_fields.sql` e applicata al database.
+Nel worktree corrente lo schema è stato consolidato: le migrazioni storiche intermedie non sono più rilevanti e lo stato finale coincide con `V1__schema.sql` + `V2__seed_data.sql`.
 
 ## API implementate
 

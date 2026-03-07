@@ -76,15 +76,15 @@ La scelta sara determinata durante l'implementazione in base ai vincoli di compa
 ### Dettaglio tecnico
 
 #### Entity aggiornate
-- `ArtifactVersion`: campi `npmDependencies`, `npmPackageRef` e `sourceRef` (bundle sorgenti su MinIO)
-- Campi DB principali: `npm_dependencies` (JSONB), `npm_package_ref`, `source_ref` (S3 key)
-- Colonne `source_code`, `build_snapshot`, `source_files` restano mappate per compatibilità/migrazione
+- `Artifact`: campo `parentModuleId` per legare `COMPONENT` → `MODULE`
+- `ArtifactVersion`: campo `npmPackageRef` (valorizzato dopo publish npm); i contenuti non sono in DB ma su MinIO/S3
+- `ArtifactVersionResponse`: espone `files` (path → contenuto) caricati dallo storage
 
 #### DTOs creati/modificati
 - `CreateModuleRequest`: per creazione artefatti MODULE
 - `CreateComponentRequest`: per creazione artefatti COMPONENT con `parentModuleId`
-- `ArtifactVersionResponse`: esteso con i nuovi campi
-- `CreateVersionRequest` e `UpdateVersionRequest`: estesi per supportare i nuovi campi
+- `ArtifactVersionResponse`: include `npmPackageRef` e `files`
+- `CreateVersionRequest` e `UpdateVersionRequest`: supportano `files` (merge di file)
 
 #### Services
 - `ArtifactService.createModule()`: crea MODULE con versione iniziale "0.1.0"
@@ -103,12 +103,13 @@ La scelta sara determinata durante l'implementazione in base ai vincoli di compa
 #### Test
 - Test unitari estesi in `ArtifactResourceTest`: 4 nuovi test
 - Tutti i 13 test passano
-- Migrazione DB V10 applicata con successo
+- Test workspace/snapshot: `ModuleBuildSnapshotTest`
 
 ### File di riferimento
-- Migrazione: `registry-api/src/main/resources/db/migration/V10__add_module_component_fields.sql`
+- Migrazioni: `registry-api/src/main/resources/db/migration/V1__schema.sql`, `V2__seed_data.sql`
 - Entity: `registry-api/src/main/java/com/stillum/registry/entity/ArtifactVersion.java`
 - DTOs: `registry-api/src/main/java/com/stillum/registry/dto/request/`
 - Services: `registry-api/src/main/java/com/stillum/registry/service/`
+- Storage files: `registry-api/src/main/java/com/stillum/registry/storage/FileStorageService.java`
 - Resources: `registry-api/src/main/java/com/stillum/registry/resource/ArtifactResource.java`
 - Test: `registry-api/src/test/java/com/stillum/registry/resource/ArtifactResourceTest.java`

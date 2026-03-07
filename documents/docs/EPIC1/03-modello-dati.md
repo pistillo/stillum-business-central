@@ -14,7 +14,7 @@ Questo documento descrive il modello dati effettivo usato dalla Fase 1 (EPIC 1 �
 - ambienti e pubblicazioni,
 - audit log per la tracciabilità.
 
-Il modello è implementato tramite migrazioni Flyway in `registry-api/src/main/resources/db/migration/` (e replicate in `publisher/src/main/resources/db/migration/`).
+Il modello è implementato tramite migrazioni Flyway in `registry-api/src/main/resources/db/migration/`.
 
 ---
 
@@ -66,14 +66,14 @@ Metadati dell’artefatto (process/rule/form/request).
 
 ### artifact_version
 
-Versione concreta di un artefatto; punta al payload su storage via `payload_ref`.
+Versione concreta di un artefatto. Nel worktree corrente il payload non è referenziato da un campo `payload_ref` in DB: i file sono salvati su storage con chiavi convenzionali derivate da tenant/type/artifact/version.
 
 - `id` (uuid)
 - `artifact_id` (uuid)
 - `version` (text)
 - `state` (enum: `DRAFT`, `REVIEW`, `APPROVED`, `PUBLISHED`, `RETIRED`)
-- `payload_ref` (text, opzionale)
 - `metadata` (jsonb, opzionale)
+- `npm_package_ref` (text, opzionale)
 - `created_by` (uuid, opzionale)
 - `created_at` (timestamptz)
 
@@ -152,7 +152,7 @@ Il modello prevede indici per:
 - tags tramite indice GIN su array;
 - ricerca full-text su `title` e `description` tramite indice GIN su `to_tsvector(...)`.
 
-Implementazione: `V3__create_indexes.sql`.
+Implementazione: `V1__schema.sql`.
 
 ---
 
@@ -164,6 +164,6 @@ Le tabelle multi-tenant hanno RLS abilitata e policy basate su:
 
 Per tabelle che non hanno `tenant_id` diretto (es. `artifact_version`, `publication`, `dependency`) la policy risale al tenant tramite join/IN su `artifact`.
 
-Implementazione: `V4__create_rls_policies.sql`.
+Implementazione: `V1__schema.sql`.
 
 Nota operativa: l’RLS richiede che il servizio imposti `app.current_tenant` per request/transazione (es. via `set_config('app.current_tenant', ..., true)`).

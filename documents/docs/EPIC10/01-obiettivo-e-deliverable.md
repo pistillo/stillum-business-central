@@ -18,7 +18,7 @@ Introdurre due nuovi tipi di artefatti, **MODULE** e **COMPONENT**, che consenta
 
 ## Deliverable principali
 
-1. **Migrazioni DB** – Supporto `MODULE/COMPONENT`, `parent_module_id`, `component_type`, `npm_dependencies`, `npm_package_ref`, `source_ref` (bundle sorgenti su MinIO).
+1. **Migrazioni DB** – Supporto `MODULE/COMPONENT`, `parent_module_id` e `npm_package_ref` (con persistenza sorgenti su MinIO/S3 come file con chiavi convenzionali, senza `source_ref` e senza `npm_dependencies` in DB).
 2. **API CRUD** – Endpoint per creare, leggere, aggiornare e pubblicare artefatti MODULE e COMPONENT.
 3. **Editor React** – Integrazione Stillum Theia (iframe) per TypeScript/React + gestione dipendenze npm.
 4. **Wizard** – Wizard di creazione per pool, droplet e trigger con template iniziali.

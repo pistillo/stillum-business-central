@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.UUID;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -39,9 +38,6 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(nullable = false)
     public VersionState state;
 
-    @Column(name = "payload_ref")
-    public String payloadRef;
-
     @Column(name = "created_by")
     public UUID createdBy;
 
@@ -52,29 +48,8 @@ public class ArtifactVersion extends PanacheEntityBase {
     @Column(columnDefinition = "jsonb")
     public String metadata;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "npm_dependencies", columnDefinition = "jsonb")
-    public Map<String, String> npmDependencies;
-
     @Column(name = "npm_package_ref")
     public String npmPackageRef;
-
-    /** S3 object key pointing to the JSON source bundle in MinIO. */
-    @Column(name = "source_ref")
-    public String sourceRef;
-
-    // ── Legacy columns — kept mapped for the data migrator, cleared after migration ──
-
-    @Column(name = "source_code")
-    public String sourceCode;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "build_snapshot", columnDefinition = "jsonb")
-    public BuildSnapshot buildSnapshot;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "source_files", columnDefinition = "jsonb")
-    public Map<String, String> sourceFiles;
 
     @PrePersist
     void prePersist() {

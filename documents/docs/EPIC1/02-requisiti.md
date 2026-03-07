@@ -63,9 +63,9 @@ Questo documento esplicita i requisiti funzionali e non-funzionali necessari a c
 ### Storage (payload)
 
 - Generazione presigned URL upload/download per payload (BPMN/DMN XML, Form/Request JSON) con path strutturato che includa il tenant:
-  - `tenant-<tenantId>/artifacts/<type>/<artifactId>/<versionId>.<ext>`
-- Registrazione `payloadRef` nel DB dopo upload completato (endpoint esplicito).
-- Mapping estensioni (implementazione corrente): `PROCESS/RULE -> .xml`, `FORM/REQUEST -> .json` (default `.bin`).
+  - `tenant-<tenantId>/<type>/<artifactId>/<versionId>/<defaultFileName>`
+- Nel worktree corrente non è prevista registrazione `payloadRef` nel DB: la chiave è deterministica per convenzione.
+- Mapping file di default (implementazione corrente): `PROCESS -> process.bpmn`, `RULE -> rule.dmn`, `FORM -> form.json`, `REQUEST -> request.json`.
 
 ### Publisher (pubblicazione)
 

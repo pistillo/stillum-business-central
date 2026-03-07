@@ -34,7 +34,7 @@ EPIC 2 non introduce nuove tabelle DB: la UI consuma i modelli esposti da Regist
 La UI usa tipizzazioni TypeScript allineate ai DTO REST:
 
 - `Artifact` (metadati)
-- `ArtifactVersion` (versioni e `payloadRef`)
+- `ArtifactVersion` (versioni, `files` e `npmPackageRef`)
 - `PresignedUrlResponse` (`url`, `key/objectKey`)
 - `Publication` (esito publish)
 - `ArtifactStatus` e `VersionState` includono più stati oltre `DRAFT/PUBLISHED` (es. `REVIEW`, `APPROVED`, `RETIRED`), anche se la v0 ne usa solo una parte.

@@ -1,39 +1,32 @@
 {
   "name": "@tecnosys/{{kebabName}}",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "{{description}}",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "webpack --mode production",
-    "build:dev": "tsup",
-    "serve:mf": "webpack serve --mode development",
-    "test": "vitest run --environment jsdom",
-    "test:watch": "vitest --environment jsdom",
-    "lint": "eslint src --ext .tsx,.ts",
-    "format": "prettier --write src",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "generate-registry": "npx tsx scripts/generate-registry-functions.ts"
+    "dev": "webpack serve --mode development"
   },
   "keywords": [{{keywordsJson}}],
-  "author": "Salvo Pistillo",
+  "author": "Tecnosys Italia",
   "license": "UNLICENSED",
   "peerDependencies": {
     "react": ">=19",
     "react-dom": ">=19"
   },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
-  },
-  "publishConfig": {
-    "registry": "https://pkgs.dev.azure.com/tecnosysitaliasrl/_packaging/npm-tecnosys/npm/registry/",
-    "access": "restricted"
+  "dependencies": {},
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "css-loader": "^7.1.0",
+    "html-webpack-plugin": "^5.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.3.0",
+    "webpack": "^5.97.0",
+    "webpack-cli": "^6.0.0",
+    "webpack-dev-server": "^5.2.0"
   }
 }

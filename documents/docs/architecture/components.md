@@ -15,14 +15,14 @@ La piattaforma è composta da diversi componenti interconnessi. Ogni componente 
 ### Stillum Theia (IDE)
 
 - Distribuzione Theia con estensioni custom per Stillum (workspace generato dal Registry, salvataggio via portal bridge).
-- Integrato nel Portal UI tramite iframe (`VITE_THEIA_BASE_URL`) e protocollo `postMessage` (`stillum:init`, `stillum:save-request`, `stillum:save-response`, `stillum:theme-change`, `stillum:token-refresh`).
+- Integrato nel Portal UI tramite iframe su path `/theia` (instradato via APISIX) e protocollo `postMessage` (`stillum:init`, `stillum:save-request`, `stillum:save-response`, `stillum:theme-change`, `stillum:token-refresh`).
 - Usato per l’editing di artefatti `MODULE`/`COMPONENT` (TypeScript/React) con workspace materializzato (snapshot progetto + sorgenti).
 
 ### Registry API
 
 - Fornisce CRUD per artefatti (processi BPMN, regole DMN, form StillumForms, request, moduli UI React, componenti UI React).
 - Mantiene lo **storico delle versioni**, lo stato (bozza, pubblicato, ritirato) e le dipendenze tra artefatti.
-- Per gli artefatti `MODULE` e `COMPONENT`, gestisce anche codice sorgente e file progetto (bundle JSON su MinIO referenziato da `artifact_version.source_ref`), dipendenze npm e riferimento al pacchetto npm generato.
+- Per gli artefatti `MODULE` e `COMPONENT`, gestisce anche codice sorgente e file progetto come file su MinIO/S3 (chiavi convenzionali). Le dipendenze npm sono rappresentate nel `package.json` della versione; il riferimento al pacchetto npm generato è salvato come `artifact_version.npm_package_ref`.
 - Espone endpoint per la gestione del ciclo di vita e la ricerca nel catalogo.
 - Protegge gli accessi per tenant e ruolo.
 

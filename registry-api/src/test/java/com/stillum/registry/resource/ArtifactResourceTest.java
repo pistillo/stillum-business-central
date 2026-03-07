@@ -14,6 +14,8 @@ class ArtifactResourceTest {
     static final String TENANT_ID = "00000000-0000-0000-0000-000000000001";
     static final String BASE_PATH = "/api/tenants/" + TENANT_ID + "/artifacts";
 
+    // ── Generic artifact CRUD ──
+
     @Test
     void createArtifact_validRequest_returns201() {
         given()
@@ -59,17 +61,14 @@ class ArtifactResourceTest {
 
     @Test
     void listArtifacts_withTypeFilter_onlyMatchingReturned() {
-        // Seed PROCESS artifact
-        String id = given()
+        given()
             .contentType(ContentType.JSON)
             .body("{\"type\":\"PROCESS\",\"title\":\"P1\"}")
             .when()
             .post(BASE_PATH)
             .then()
-            .statusCode(201)
-            .extract().path("id");
+            .statusCode(201);
 
-        // Filter by RULE – should not contain the PROCESS artifact
         given()
             .queryParam("type", "RULE")
             .when()
@@ -154,7 +153,6 @@ class ArtifactResourceTest {
             .then()
             .statusCode(204);
 
-        // Verify soft-delete: artifact still exists with RETIRED status
         given()
             .when()
             .get(BASE_PATH + "/" + id)
@@ -162,6 +160,8 @@ class ArtifactResourceTest {
             .statusCode(200)
             .body("status", is("RETIRED"));
     }
+
+    // ── MODULE tests ──
 
     @Test
     void createModule_validRequest_returns201() {
@@ -183,6 +183,48 @@ class ArtifactResourceTest {
     }
 
     @Test
+    void createModule_autoCreatesVersionWithFiles() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Module AutoVer\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        // The module should have auto-created version 0.1.0 with files
+        given()
+            .when()
+            .get(BASE_PATH + "/" + moduleId + "/versions")
+            .then()
+            .statusCode(200)
+            .body("size()", is(1))
+            .body("[0].version", is("0.1.0"))
+            .body("[0].state", is("DRAFT"))
+            .body("[0].files", notNullValue());
+    }
+
+    @Test
+    void createModule_versionHasTemplateFiles() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Module Snapshot\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .when()
+            .get(BASE_PATH + "/" + moduleId + "/versions")
+            .then()
+            .statusCode(200)
+            .body("[0].files", notNullValue());
+    }
+
+    @Test
     void createModule_missingTitle_returns400() {
         given()
             .contentType(ContentType.JSON)
@@ -193,11 +235,106 @@ class ArtifactResourceTest {
             .statusCode(400);
     }
 
+    // ── COMPONENT tests ──
+
     @Test
-    void createComponent_validRequest_returns201() {
+    void createComponent_droplets_returns201() {
         String moduleId = given()
             .contentType(ContentType.JSON)
-            .body("{\"title\":\"Parent Module\"}")
+            .body("{\"title\":\"Parent Droplets\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"TestDroplet\","
+                + "\"description\":\"A droplet component\","
+                + "\"area\":\"droplets\","
+                + "\"tags\":[\"react\"],"
+                + "\"parentModuleId\":\"" + moduleId + "\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(201)
+            .body("id", notNullValue())
+            .body("title", is("TestDroplet"))
+            .body("type", is("COMPONENT"))
+            .body("area", is("droplets"))
+            .body("status", is("DRAFT"))
+            .body("tenantId", is(TENANT_ID));
+    }
+
+    @Test
+    void createComponent_autoCreatesVersionWithFiles() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Parent CompVer\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String componentId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"CompWithVersion\","
+                + "\"area\":\"pools\","
+                + "\"parentModuleId\":\"" + moduleId + "\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .when()
+            .get(BASE_PATH + "/" + componentId + "/versions")
+            .then()
+            .statusCode(200)
+            .body("size()", is(1))
+            .body("[0].version", is("0.1.0"))
+            .body("[0].state", is("DRAFT"))
+            .body("[0].files", notNullValue());
+    }
+
+    @Test
+    void createComponent_versionHasFiles() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Parent CompFiles\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        String componentId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"CompFiles\","
+                + "\"area\":\"droplets\","
+                + "\"parentModuleId\":\"" + moduleId + "\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .when()
+            .get(BASE_PATH + "/" + componentId + "/versions")
+            .then()
+            .statusCode(200)
+            .body("[0].files", notNullValue());
+    }
+
+    @Test
+    void createComponent_missingArea_returns400() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Parent NoArea\"}")
             .when()
             .post(BASE_PATH + "/modules")
             .then()
@@ -207,26 +344,19 @@ class ArtifactResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body("{\"title\":\"Test Component\","
-                + "\"description\":\"Component for testing\","
-                + "\"area\":\"UI\","
-                + "\"tags\":[\"react\",\"test\"],"
                 + "\"parentModuleId\":\"" + moduleId + "\"}")
             .when()
             .post(BASE_PATH + "/components")
             .then()
-            .statusCode(201)
-            .body("id", notNullValue())
-            .body("title", is("Test Component"))
-            .body("type", is("COMPONENT"))
-            .body("status", is("DRAFT"))
-            .body("tenantId", is(TENANT_ID));
+            .statusCode(400);
     }
 
     @Test
     void createComponent_missingParentModuleId_returns400() {
         given()
             .contentType(ContentType.JSON)
-            .body("{\"title\":\"Test Component\"}")
+            .body("{\"title\":\"Test Component\","
+                + "\"area\":\"droplets\"}")
             .when()
             .post(BASE_PATH + "/components")
             .then()
@@ -238,10 +368,52 @@ class ArtifactResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body("{\"title\":\"Test Component\","
+                + "\"area\":\"droplets\","
                 + "\"parentModuleId\":\"00000000-9999-0000-0000-000000000000\"}")
             .when()
             .post(BASE_PATH + "/components")
             .then()
             .statusCode(400);
+    }
+
+    // ── WORKSPACE test ──
+
+    @Test
+    void getWorkspace_returnsModuleAndComponents() {
+        String moduleId = given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"Workspace Module\"}")
+            .when()
+            .post(BASE_PATH + "/modules")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"title\":\"WsDroplet\","
+                + "\"area\":\"droplets\","
+                + "\"parentModuleId\":\"" + moduleId + "\"}")
+            .when()
+            .post(BASE_PATH + "/components")
+            .then()
+            .statusCode(201);
+
+        given()
+            .when()
+            .get(BASE_PATH + "/" + moduleId + "/workspace")
+            .then()
+            .statusCode(200)
+            .body("module", notNullValue())
+            .body("module.id", is(moduleId))
+            .body("module.type", is("MODULE"))
+            .body("moduleVersion", notNullValue())
+            .body("moduleVersion.version", is("0.1.0"))
+            .body("moduleVersion.files", notNullValue())
+            .body("components.size()", is(1))
+            .body("components[0].artifact.type", is("COMPONENT"))
+            .body("components[0].artifact.area", is("droplets"))
+            .body("components[0].version.version", is("0.1.0"))
+            .body("components[0].version.files", notNullValue());
     }
 }

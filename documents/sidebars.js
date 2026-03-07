@@ -139,7 +139,6 @@ module.exports = {
         'modules/modules-portal-ui',
         'modules/modules-registry',
         'modules/modules-publisher',
-        'modules/modules-runtime-gateway',
         'modules/modules-authentication',
         'modules/modules-lifecycle',
         'modules/modules-multi-tenancy',

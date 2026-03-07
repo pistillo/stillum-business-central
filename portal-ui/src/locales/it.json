@@ -69,7 +69,7 @@
     "title": "Seleziona Tenant",
     "description": "Scegli l'organizzazione con cui vuoi operare.",
     "noTenantFound": "Nessun tenant trovato nel token. Inserisci manualmente un tenant ID:",
-    "manualPlaceholder": "00000000-0000-0000-0000-000000000001"
+    "manualPlaceholder": "501384f2-f659-4f85-8ad0-4e24c1789473"
   },
 
   "home": {
@@ -140,10 +140,6 @@
     "parentModuleLabel": "Modulo padre",
     "parentModuleNone": "— Nessun modulo padre —",
     "parentModuleHint": "Collega opzionalmente questo componente a un modulo.",
-    "componentTypeLabel": "Tipo di Componente",
-    "componentTypeDropletDesc": "Elemento UI riutilizzabile (bottone, input, card, ecc.)",
-    "componentTypePoolDesc": "Gestione dati e stato condiviso",
-    "componentTypeTriggerDesc": "Gestore eventi e trigger di azioni",
     "titleLabel": "Titolo",
     "titlePlaceholder": "es. Processo approvazione ordini",
     "areaLabel": "Area",

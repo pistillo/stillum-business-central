@@ -14,7 +14,6 @@ Il file `stillum-realm.json` viene importato automaticamente all’avvio di Keyc
 
 Imposta in `.env` (o variabili d’ambiente) per il login OIDC:
 
-- `VITE_OIDC_AUTHORITY=http://localhost:8080/realms/stillum`
 - `VITE_OIDC_CLIENT_ID=portal-ui`
 
 ## Modifiche al realm

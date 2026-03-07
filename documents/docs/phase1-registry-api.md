@@ -15,10 +15,10 @@ Nella Fase 0 sono state definite le entità `Tenant`, `Artifact`, `ArtifactVers
 
 ## Principi API
 
-* Tutti gli endpoint sono sotto il prefisso `/tenants/{tenantId}` per garantire il **scope multi‑tenant**.
+* Nel worktree corrente gli endpoint applicativi sono sotto prefisso `/api` e poi `/tenants/{tenantId}` per garantire lo **scope multi‑tenant**.
 * L’autenticazione restituisce un `tenantId` che viene usato per limitare la visibilità dei dati.
-* Le operazioni di modifica si applicano solo alle bozze (`Draft`).  Una volta pubblicata una versione non può più essere modificata o cancellata.
-* I payload (file BPMN/DMN/JSON) non vengono salvati nel database ma nello storage oggetti. L’API restituisce e accetta un `payloadRef` che rappresenta il percorso nel bucket.
+* Le operazioni di modifica si applicano solo alle versioni mutabili. Una versione `PUBLISHED` non può più essere modificata o cancellata.
+* I contenuti (payload e sorgenti) non vengono salvati nel database ma nello storage oggetti con chiavi convenzionali. Le API versioni espongono una mappa `files` (path → contenuto) caricata dallo storage; per upload/download “payload-based” è disponibile anche un set di endpoint presigned.
 
 ## Endpoint principali
 
@@ -26,34 +26,47 @@ Nella Fase 0 sono state definite le entità `Tenant`, `Artifact`, `ArtifactVers
 
 | Metodo e percorso | Descrizione |
 |------------------|-------------|
-| **`POST /tenants/{tenantId}/artifacts`** | Crea un nuovo artefatto. Richiede il tipo (`process`, `rule`, `form`, `request`), titolo, descrizione opzionale, tag e area. Restituisce `artifactId`. |
-| **`GET /tenants/{tenantId}/artifacts`** | Restituisce la lista degli artefatti del tenant con filtri per tipo, stato, tag, area e ricerca testuale su titolo/descrizione. Supporta paginazione. |
-| **`GET /tenants/{tenantId}/artifacts/{artifactId}`** | Ritorna i metadati dell’artefatto e l’elenco delle sue versioni. |
-| **`PUT /tenants/{tenantId}/artifacts/{artifactId}`** | Aggiorna i metadati di un artefatto (titolo, descrizione, tag, area). Non modifica le versioni. |
-| **`DELETE /tenants/{tenantId}/artifacts/{artifactId}`** | Marca un artefatto come ritirato. Non cancella le versioni esistenti. |
+| **`POST /api/tenants/{tenantId}/artifacts`** | Crea un nuovo artefatto (PROCESS/RULE/FORM/REQUEST/MODULE/COMPONENT). Restituisce `artifactId`. |
+| **`GET /api/tenants/{tenantId}/artifacts`** | Lista artefatti con filtri (`type`, `status`, `area`, `tag`, `parentModuleId`) e paginazione (`page`, `size`). |
+| **`GET /api/tenants/{tenantId}/artifacts/{artifactId}`** | Dettaglio artefatto con elenco versioni. |
+| **`PUT /api/tenants/{tenantId}/artifacts/{artifactId}`** | Aggiorna metadati artefatto. |
+| **`DELETE /api/tenants/{tenantId}/artifacts/{artifactId}`** | Soft delete/ritiro artefatto. |
+| **`POST /api/tenants/{tenantId}/artifacts/modules`** | Crea un artefatto `MODULE` e la prima versione `0.1.0` con template files. |
+| **`POST /api/tenants/{tenantId}/artifacts/components`** | Crea un artefatto `COMPONENT` legato a `parentModuleId` e la prima versione `0.1.0`. |
+| **`GET /api/tenants/{tenantId}/artifacts/{moduleId}/workspace`** | Ritorna workspace modulo + componenti (per integrazione editor Theia). |
 
 ### Gestione delle versioni
 
 | Metodo e percorso | Descrizione |
 |------------------|-------------|
-| **`POST /tenants/{tenantId}/artifacts/{artifactId}/versions`** | Crea una nuova versione in bozza. Accetta metadati e un riferimento al payload (file caricato su storage) e restituisce l’identificativo della versione. |
-| **`GET /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}`** | Restituisce i dettagli della versione, incluso stato, payloadRef e dipendenze. |
-| **`PUT /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}`** | Aggiorna una bozza: modifica metadati, aggiorna il payloadRef o aggiunge note. |
-| **`DELETE /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}`** | Elimina una versione in bozza. Non è permesso cancellare versioni pubblicate. |
-| **`POST /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies`** | Registra le dipendenze della bozza verso altre versioni (`artifactId` e `versionId` dei dipendenti). |
-| **`GET /tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies`** | Elenca le dipendenze di una versione. |
+| **`POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions`** | Crea una versione (default `DRAFT`). Può includere `files` per creare subito contenuti nello storage. |
+| **`GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions`** | Elenca le versioni dell’artefatto (include `files`). |
+| **`GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}`** | Dettaglio versione (stato, metadata, `npmPackageRef`, `files`). |
+| **`PUT /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}`** | Aggiorna una versione mutabile: `metadata`, `npmPackageRef` e/o file (merge per singolo file). |
+| **`DELETE /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}`** | Elimina una versione mutabile. |
+| **`POST /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies`** | Registra dipendenze verso altre versioni. |
+| **`GET /api/tenants/{tenantId}/artifacts/{artifactId}/versions/{versionId}/dependencies`** | Elenca dipendenze. |
 
 ### Ricerca e discovery
 
 | Metodo e percorso | Descrizione |
 |------------------|-------------|
-| **`GET /tenants/{tenantId}/search/artifacts`** | Esegue una ricerca full‑text sugli artefatti del tenant utilizzando titolo, descrizione e tag. Accetta parametri di tipo, tag, area e stato. |
+| **`GET /api/tenants/{tenantId}/search/artifacts`** | Ricerca per testo (`q`) e filtri (`type`, `status`, `area`, `tag`) con paginazione. |
+
+### Storage presigned (payload/bundle)
+
+| Metodo e percorso | Descrizione |
+|------------------|-------------|
+| **`GET /api/tenants/{tenantId}/storage/upload-url`** | URL presignato upload verso bucket artifacts (chiave convenzionale). |
+| **`GET /api/tenants/{tenantId}/storage/download-url`** | URL presignato download da bucket artifacts. |
+| **`GET /api/tenants/{tenantId}/storage/bundle-upload-url`** | URL presignato upload bundle verso bucket bundles. |
+| **`GET /api/tenants/{tenantId}/storage/bundle-download-url`** | URL presignato download bundle da bucket bundles. |
 
 ## Considerazioni di sicurezza
 
 * L’API implementa **policy di row‑level security** a livello di database per garantire che un tenant non possa accedere ai dati di un altro.  Tutte le query devono filtrare per `tenantId`.
 * Le operazioni di aggiornamento e cancellazione devono verificare che l’utente abbia il **ruolo appropriato** (es. solo gli Analyst o i Process Owner possono creare e modificare bozze; solo i Process Owner possono ritirare artefatti pubblicati).
-* I payload devono essere caricati tramite un endpoint dedicato allo storage, che restituisce un `payloadRef` sicuro da salvare nel DB.  L’API non espone mai direttamente il contenuto del file, ma fornisce un URL presignato o un token temporaneo per il download.
+* I payload possono essere caricati tramite endpoint presigned dello storage. Nel worktree corrente non è previsto salvare un `payloadRef` in DB: l’API espone direttamente la chiave oggetto convenzionale e un URL presignato a scadenza breve.
 
 ## Evoluzioni future
 

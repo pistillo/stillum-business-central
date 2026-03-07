@@ -31,6 +31,7 @@ services:
       QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
       QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      STILLUM_STORAGE_PUBLIC_S3_ENDPOINT: http://localhost:9080
     ports:
       - "8081:8081"
     depends_on:
@@ -72,6 +73,8 @@ services:
       - "8082:8082"
     depends_on:
       postgres:
+        condition: service_healthy
+      registry-api:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -124,27 +127,6 @@ services:
           memory: 2G
           cpus: '2.0'
 
-  # ─── Runtime Gateway ─────────────────────────────────────────────────────
-  runtime-gateway:
-    build:
-      context: ./runtime-gateway
-      dockerfile: Dockerfile
-    image: stillum/runtime-gateway:local
-    container_name: stillum-runtime-gateway
-    # Porta interna Quarkus default (8080) → host 8083 per evitare conflitto con Keycloak
-    environment:
-      QUARKUS_HTTP_PORT: "8080"
-    ports:
-      - "8083:8080"
-    networks:
-      - stillum-net
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
   # ─── Portal UI ───────────────────────────────────────────────────────────
   portal-ui:
     build:
@@ -155,10 +137,7 @@ services:
         NPM_TOKEN: ${NPM_TOKEN}
         # Le VITE_* vengono baked nel bundle JS a build-time.
         # Keycloak e le API sono raggiunte dal browser (localhost), non dal container.
-        VITE_OIDC_AUTHORITY: http://localhost:8080/realms/stillum
         VITE_OIDC_CLIENT_ID: portal-ui
-        VITE_REGISTRY_API_BASE_URL: http://localhost:8081/api
-        VITE_PUBLISHER_API_BASE_URL: http://localhost:8082/api
     image: stillum/portal-ui:local
     container_name: stillum-portal-ui
     ports:
@@ -168,7 +147,7 @@ services:
         condition: service_healthy
       publisher:
         condition: service_healthy
-      keycloak:
+      apisix:
         condition: service_healthy
     networks:
       - stillum-net

@@ -1,0 +1,27 @@
+# Overlay per ripristinare Nexus da backup (cartella locale backup/nexus, stessa montata in compose).
+# Uso (Nexus deve essere fermo):
+#   docker compose -f docker-compose.yml -f docker-compose.nexus-restore.yml run --rm nexus-restore
+# Poi avviare Nexus:
+#   docker compose up -d nexus
+#
+# In alternativa: ./scripts/restore-nexus-from-backup.sh
+
+services:
+  nexus-restore:
+    image: alpine
+    volumes:
+      - nexus-data:/data
+      - ./backup/nexus:/backup:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        LATEST=$$(ls -t /backup/nexus-data-*.tar.gz 2>/dev/null | head -1)
+        if [ -z "$$LATEST" ]; then
+          echo "Nessun backup in backup/nexus/"
+          exit 1
+        fi
+        echo "Ripristino da $$LATEST"
+        rm -rf /data/* /data/..?* /data/.[!.]* 2>/dev/null || true
+        tar xzf "$$LATEST" -C /data
+        echo "Ripristino completato. Avvia Nexus con: docker compose up -d nexus"

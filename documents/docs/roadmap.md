@@ -40,7 +40,7 @@ La seguente roadmap delinea le fasi di sviluppo per arrivare a una piattaforma *
    - Creazione o modifica delle bozze con salvataggio nel registry.
 3. **Designer integrati**
    - Incorporare editor: Monaco per XML/JSON/YAML, StillumForms per FORM, Stillum Theia (iframe) per `MODULE`/`COMPONENT` (TypeScript/React).
-   - Consentire salvataggio bozze via Registry API (payloadRef per payload-based; source bundle per TypeScript-based).
+   - Consentire salvataggio bozze via Registry API (presigned URL su storage con chiavi convenzionali per payload-based; updateVersion(files) per TypeScript-based).
 
 ## 🚀 Fase 3 – Pubblicazione e ciclo di vita
 

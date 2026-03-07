@@ -53,19 +53,16 @@ Rappresenta un artefatto generico (processo BPMN, regola DMN, modulo StillumForm
 - `status` (enum): stato corrente (bozza, in revisione, approvato, pubblicato, ritirato).
 - `created_at`, `updated_at` (datetime).
 
-> **Nota sui tipi MODULE e COMPONENT:** gli artefatti `form` restano dedicati alla definizione di interfacce StillumForms basate su JSON Schema. I nuovi tipi `module` e `component` consentono di definire pools, droplets e triggers tramite codice React effettivo. Un `module` rappresenta un modulo UI complesso composto da uno o più componenti; un `component` è un singolo elemento UI (pool, droplet o trigger) collegabile a un modulo padre tramite la tabella **Dependency**.
+> **Nota sui tipi MODULE e COMPONENT:** gli artefatti `form` restano dedicati alla definizione di interfacce StillumForms basate su JSON Schema. I nuovi tipi `module` e `component` consentono di definire pools, droplets e triggers tramite codice React effettivo. Un `module` rappresenta un modulo UI complesso composto da uno o più componenti; un `component` è un singolo elemento UI (pool, droplet o trigger) collegabile a un modulo padre tramite `artifact.parent_module_id`.
 
 ### ArtifactVersion
 
-Versione concreta di un artefatto. Ogni versione fa riferimento al payload memorizzato nello storage oggetti.
+Versione concreta di un artefatto. Nel worktree corrente i contenuti (payload e sorgenti) sono memorizzati nello storage oggetti con chiavi convenzionali e non sono referenziati da un campo `payload_ref` in DB.
 
 - `id` (uuid).
 - `artifact_id` (uuid) → **Artifact**.
 - `version` (string): numero di versione (es. semver).
 - `state` (enum): {`draft`, `review`, `approved`, `published`, `retired`}.
-- `payload_ref` (string): puntatore al file in MinIO/S3.
-- `source_code` (text, opzionale): codice sorgente React per artefatti di tipo `module` e `component`.
-- `npm_dependencies` (json, opzionale): mappa delle dipendenze npm (nome→versione) per artefatti `module`/`component`.
 - `npm_package_ref` (string, opzionale): puntatore al pacchetto npm generato dopo la build (per artefatti `module`/`component`).
 - `created_by` (uuid) → **User**.
 - `created_at` (datetime).
@@ -168,9 +165,6 @@ erDiagram
         uuid artifact_id
         string version
         enum state
-        string payload_ref
-        text source_code "solo module/component"
-        json npm_dependencies "solo module/component"
         string npm_package_ref "solo module/component"
         json metadata
     }
@@ -199,7 +193,7 @@ erDiagram
     }
 ```
 
-> **Relazione Modulo→Componenti:** un artefatto di tipo `module` può avere N artefatti `component` collegati tramite la tabella `dependency`. Ogni `component` dichiara una dipendenza verso il `module` padre. Il grafo delle dipendenze permette al Publisher di risolvere l'intero albero di componenti per generare il pacchetto npm finale.
+> **Relazione Modulo→Componenti (worktree):** un artefatto di tipo `component` è collegato al `module` padre tramite `artifact.parent_module_id`. La tabella `dependency` resta dedicata alle dipendenze tra versioni (es. PROCESS → RULE, MODULE → COMPONENT come dipendenza di build/publish).
 
 ## Note sul modello
 
@@ -207,7 +201,7 @@ erDiagram
 - I campi `created_at` e `updated_at` permettono di tracciare le modifiche nel tempo.
 - Il campo `metadata` su **ArtifactVersion** consente di estendere il modello senza modificare lo schema.
 - Il modello è pensato per essere implementato in PostgreSQL con politiche di row‑level security basate sul `tenant_id`.
-- I campi `source_code`, `npm_dependencies` e `npm_package_ref` su **ArtifactVersion** sono opzionali e pertinenti solo per artefatti di tipo `module` e `component`. Consentono di memorizzare il codice sorgente React, le dipendenze npm necessarie e il riferimento al pacchetto npm generato dalla pipeline di build.
-- La tabella **Dependency** gestisce sia le dipendenze tradizionali (es. processo → regola DMN) sia la relazione Modulo→Componenti per gli artefatti React UI.
+- Il campo `npm_package_ref` su **ArtifactVersion** è opzionale e pertinente solo per artefatti di tipo `module` e `component` (valorizzato dopo la pubblicazione npm).
+- La tabella **Dependency** gestisce le dipendenze tra versioni (es. processo → regola DMN; modulo → componente per includere sorgenti nel bundle e nella build npm).
 
 Questo modello dati costituirà la base per la definizione delle tabelle, delle API REST/gRPC e per il mapping negli ORM utilizzati dalle applicazioni backend.

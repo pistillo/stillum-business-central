@@ -40,7 +40,7 @@ Nel repository è presente una prima implementazione operativa (v0) che copre:
 | **`/catalogue`** | Lista paginata degli artefatti del tenant.  Possibilità di filtrare per tipo (processo, regola, modulo, request), stato (bozza, pubblicato), area e tag. |
 | **`/catalogue/new`** | Pagina per la creazione di una nuova bozza di artefatto, con form iniziale (tipo, titolo, area, tag) che reindirizza poi all’editor. |
 | **`/artifact/:id`** | Pagina dettaglio dell’artefatto con metadati, elenco versioni (bozze e pubblicate), pulsanti per modificare la bozza o avviare la pubblicazione. |
-| **`/editor/:id/:version`** | Vista editor per una specifica versione. Per artefatti “payload-based” usa `payloadRef` (upload/download su MinIO via presigned URL). Per `MODULE`/`COMPONENT` integra Stillum Theia e salva `sourceCode`/`sourceFiles` su Registry API. |
+| **`/editor/:id/:version`** | Vista editor per una specifica versione. Per PROCESS/RULE/FORM/REQUEST usa presigned URL della Registry per upload/download su MinIO/S3 (chiavi convenzionali, senza `payloadRef` in DB). Per `MODULE`/`COMPONENT` integra Stillum Theia e salva i file via Registry API (`updateVersion(files)`), mediando il salvataggio tramite il portale (postMessage). |
 | **`/publish/:id/:version`** | Form di pubblicazione che consente di selezionare l’ambiente (lista dal Registry) e invoca il Publisher. A successo, torna automaticamente al dettaglio dell’artefatto. |
 
 Le rotte devono essere protette: solo utenti autenticati possono accedervi.  L’assenza di un `tenantId` nell’applicazione reindirizza l’utente alla selezione del tenant.
@@ -55,8 +55,8 @@ Le rotte devono essere protette: solo utenti autenticati possono accedervi.  L�
 
 1. **Nuovo artefatto**: dalla dashboard o dal catalogo l’utente clicca “Nuovo Artefatto”.  Si apre un form modale dove seleziona il tipo (processo/regola/modulo/request), inserisce titolo, area e tag.  Al submit viene invocato `POST /artifacts` e si viene reindirizzati all’editor (`/editor/<id>/<version>`).
 2. **Modifica bozza**:
-   * PROCESS/RULE/FORM/REQUEST: upload/download via presigned URL su MinIO e aggiornamento `payloadRef` su Registry.
-   * MODULE/COMPONENT: salvataggio `sourceCode` (e opzionalmente `sourceFiles`) su Registry; le dipendenze npm vengono gestite come mappa `npmDependencies` e validate/buildate in fase di publish.
+   * PROCESS/RULE/FORM/REQUEST: upload/download via presigned URL su MinIO/S3 usando convenzioni di naming (file di default `process.bpmn`, `rule.dmn`, `form.json`, `request.json`).
+   * MODULE/COMPONENT: editing in Theia; salvataggio dei file via `updateVersion(files)` su Registry. Le dipendenze npm vengono gestite aggiornando `package.json` nel pannello dipendenze e usate dal Publisher in fase di publish.
 3. **Gestione dipendenze**: la UI può registrare dipendenze tra versioni con `POST /dependencies` (usate dal Publisher per includere dipendenze nel bundle e per raccogliere sorgenti componenti durante il build npm dei moduli).
 4. **Pubblicazione**: dalla pagina del dettaglio o dall’editor, l’utente può avviare la pubblicazione. Dopo selezione ambiente, viene chiamato `POST /publish` e mostrato l’esito.
 
@@ -77,17 +77,11 @@ Per la prima versione dell’UI si prevede una **single sign‑on** tramite Keyc
 
 #### Configurazione runtime (env)
 
-La Portal UI v0 usa variabili `VITE_*`:
+La Portal UI v0 usa path relativi instradati via APISIX per API e Theia (`/api/*`, `/theia`).
+Le variabili `VITE_*` attive sono:
 
-* `VITE_REGISTRY_API_BASE_URL` (default `http://localhost:8081/api`)
-* `VITE_PUBLISHER_API_BASE_URL` (default `http://localhost:8082/api`)
-* `VITE_GATEWAY_API_BASE_URL` (default `http://localhost:8083/api`) per proxy Nexus (dipendenze npm)
-* `VITE_THEIA_BASE_URL` (URL dell’istanza Stillum Theia da embeddare)
-* `VITE_OIDC_AUTHORITY` (issuer/realm Keycloak)
 * `VITE_OIDC_CLIENT_ID`
 * `VITE_OIDC_SCOPE` (default `openid profile email`)
-* `VITE_OIDC_REDIRECT_URI` (default `${window.location.origin}/oidc/callback`)
-* `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (default `${window.location.origin}/login`)
 
 Nota: l’estrazione dei tenant dal token è implementata in modo “tollerante” (supporta claim array come `tenants/tenantIds` o pattern in `groups`), con fallback a inserimento manuale del tenantId se assente. Il `defaultTenantId` (se presente) viene usato come selezione automatica quando l’utente ha più tenant.
 

@@ -34,7 +34,7 @@ Servizio REST per:
 - Gestione dipendenze tra versioni.
 - Ricerca (discovery).
 - Presigned URL upload/download payload.
-- Registrazione `payloadRef` per le versioni.
+- Upload/download su storage con chiavi convenzionali (nessun `payloadRef` persistito in DB).
 - Gestione ambienti (`environments`) per tenant.
 
 ### Publisher
@@ -88,7 +88,7 @@ flowchart LR
    - Endpoint CRUD artefatti/versioni e vincoli di immutabilità per versioni pubblicate.
    - Endpoint dipendenze + rilevamento cicli.
    - Endpoint search + filtri e paginazione.
-   - Presigned URL payload e meccanismo per registrare `payloadRef`.
+   - Presigned URL payload/bundle (chiavi convenzionali; nessun meccanismo di registrazione `payloadRef` nel worktree corrente).
 3. **Publisher operativo**:
    - Flusso publish completo con validazione, bundle, storage, publication e audit.
 4. **Test e CI**:

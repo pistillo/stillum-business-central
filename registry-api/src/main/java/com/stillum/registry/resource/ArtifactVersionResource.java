@@ -1,7 +1,6 @@
 package com.stillum.registry.resource;
 
 import com.stillum.registry.dto.request.CreateVersionRequest;
-import com.stillum.registry.dto.request.UpdatePayloadRefRequest;
 import com.stillum.registry.dto.request.UpdateVersionRequest;
 import com.stillum.registry.dto.response.ArtifactVersionResponse;
 import com.stillum.registry.service.ArtifactVersionService;
@@ -72,15 +71,5 @@ public class ArtifactVersionResource {
             @PathParam("versionId") UUID versionId) {
         service.delete(tenantId, artifactId, versionId);
         return Response.noContent().build();
-    }
-
-    @PUT
-    @Path("/{versionId}/payload-ref")
-    public Response updatePayloadRef(
-            @PathParam("tenantId") UUID tenantId,
-            @PathParam("artifactId") UUID artifactId,
-            @PathParam("versionId") UUID versionId,
-            @Valid UpdatePayloadRefRequest req) {
-        return Response.ok(service.updatePayloadRef(tenantId, artifactId, versionId, req)).build();
     }
 }
