@@ -200,7 +200,7 @@ routes:
     upstream:
       type: roundrobin
       nodes:
-        stillum-theia:3001: 1
+        host.docker.internal:3000: 1
 
   - id: theia
     priority: 90
@@ -221,7 +221,27 @@ routes:
     upstream:
       type: roundrobin
       nodes:
-        stillum-theia:3001: 1
+        host.docker.internal:3000: 1
+
+  - id: theia-assets
+    priority: 95
+    uri: /*
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    enable_websocket: true
+    vars:
+      - - http_referer
+        - "~~"
+        - "/theia"
+    upstream:
+      type: roundrobin
+      nodes:
+        host.docker.internal:3000: 1
 
   - id: portal-ui
     priority: 1

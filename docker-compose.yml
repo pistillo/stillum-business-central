@@ -106,6 +106,8 @@ services:
         condition: service_healthy
       nexus:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - stillum-net
     healthcheck:
@@ -204,18 +206,20 @@ services:
     networks:
       - stillum-net
 
-  stillum-theia:
-    image: node:22-bookworm
-    container_name: stillum-theia
-    working_dir: /workspace
-    command: /bin/sh -lc "npm install && npm run build:browser && npm run start:browser -- --hostname 0.0.0.0 --port 3001"
-    environment:
-      NODE_OPTIONS: "--max_old_space_size=4096"
-    volumes:
-      - ./stillum-theia:/workspace
-      - theia-node-modules:/workspace/node_modules
-    networks:
-      - stillum-net
+  # stillum-theia:
+  #   build:
+  #     context: ./stillum-theia
+  #     dockerfile: Dockerfile
+  #   container_name: stillum-theia
+  #   working_dir: /workspace
+  #   command: /bin/sh -lc "npm install && npm run build:browser && npm run start:browser -- --hostname 0.0.0.0 --port 3001"
+  #   environment:
+  #     NODE_OPTIONS: "--max_old_space_size=4096"
+  #   volumes:
+  #     - ./stillum-theia:/workspace
+  #     - theia-node-modules:/workspace/node_modules
+  #   networks:
+  #     - stillum-net
 
 
 
@@ -236,8 +240,6 @@ services:
       registry-api:
         condition: service_started
       publisher:
-        condition: service_started
-      stillum-theia:
         condition: service_started
     networks:
       - stillum-net
