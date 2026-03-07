@@ -1,6 +1,5 @@
 package com.stillum.registry.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stillum.registry.dto.request.CreateArtifactRequest;
 import com.stillum.registry.dto.request.CreateComponentRequest;
 import com.stillum.registry.dto.request.CreateModuleRequest;
@@ -23,7 +22,6 @@ import com.stillum.registry.storage.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,9 +41,6 @@ public class ArtifactService {
 
     @Inject
     FileStorageService fileStorage;
-
-    @Inject
-    ObjectMapper objectMapper;
 
     @Transactional
     public ArtifactResponse create(UUID tenantId, CreateArtifactRequest req) {
@@ -163,7 +158,7 @@ public class ArtifactService {
         artifact.status = ArtifactStatus.DRAFT;
         repo.persist(artifact);
 
-        var snapshot = templateService.generateSnapshot(
+        Map<String, String> projectFiles = templateService.generateProjectFiles(
                 req.title(), req.description(), req.port(), req.keywords());
 
         ArtifactVersion version = new ArtifactVersion();
@@ -173,21 +168,8 @@ public class ArtifactService {
         versionRepo.persist(version);
 
         // Save template files as individual S3 objects
-        if (snapshot.files() != null) {
-            fileStorage.saveFiles(tenantId, "MODULE", artifact.id, version.id,
-                    snapshot.files());
-        }
-
-        // Save template metadata in version.metadata JSONB
-        try {
-            Map<String, Object> meta = new HashMap<>();
-            meta.put("templateVersion", snapshot.templateVersion());
-            meta.put("templateInputs", snapshot.inputs());
-            meta.put("generatedAt", snapshot.generatedAt());
-            version.metadata = objectMapper.writeValueAsString(meta);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize template metadata", e);
-        }
+        fileStorage.saveFiles(tenantId, "MODULE", artifact.id, version.id,
+                projectFiles);
 
         return ArtifactResponse.from(artifact);
     }

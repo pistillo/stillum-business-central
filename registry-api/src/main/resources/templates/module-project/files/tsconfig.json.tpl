@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-   "outDir": "dist",
+    "outDir": "dist",
     "jsx": "react-jsx",
     "target": "es2020",
     "module": "esnext",
@@ -12,5 +12,5 @@
     "declaration": true,
     "baseUrl": "."
   },
-  "include": ["src", ".storybook"]
+  "include": ["src"]
 }

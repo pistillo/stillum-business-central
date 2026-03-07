@@ -22,8 +22,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "dist-mf",
-    "**/*.test.*",
-    "**/*.stories.*"
+    "dist-mf"
   ]
 }

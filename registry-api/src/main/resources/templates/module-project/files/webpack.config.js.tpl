@@ -1,6 +1,5 @@
 import ModuleFederationPlugin from 'webpack/lib/container/ModuleFederationPlugin.js';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import path from 'path';
 
 export default {
   mode: 'development',
@@ -43,28 +42,11 @@ export default {
       shared: {
         react: {
           singleton: true,
-          requiredVersion: '^19.2.0',
+          requiredVersion: '^19.0.0',
         },
         'react-dom': {
           singleton: true,
-          requiredVersion: '^19.2.0',
-        },
-        '@emotion/react': {
-          singleton: true,
-        },
-        '@emotion/styled': {
-          singleton: true,
-        },
-        'framer-motion': {
-          singleton: true,
-        },
-        '@tecnosys/stillum-forms-core': {
-          singleton: true,
-          requiredVersion: '^1.0.11',
-        },
-        '@tecnosys/stillum-forms-react': {
-          singleton: true,
-          requiredVersion: '^1.0.11',
+          requiredVersion: '^19.0.0',
         },
       },
     }),

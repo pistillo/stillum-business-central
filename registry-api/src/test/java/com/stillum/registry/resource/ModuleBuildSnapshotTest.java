@@ -59,7 +59,7 @@ class ModuleBuildSnapshotTest {
             .body("moduleVersion.files",
                     hasKey("webpack.config.js"))
             .body("moduleVersion.files",
-                    hasKey(".storybook/main.ts"))
+                    hasKey("src/App.tsx"))
             .body("moduleVersion.files",
                     hasKey("src/index.tsx"))
             // Verify placeholder resolution in file content

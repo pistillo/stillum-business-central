@@ -459,6 +459,7 @@ export function EditorPage() {
           {/* TypeScript artifacts (MODULE/COMPONENT): Theia IDE in iframe */}
           {isTypeScriptBased && artifact && (
             <TheiaEditor
+              key={artifactId}
               moduleArtifactId={
                 artifact.type === 'MODULE' ? artifactId : (artifact.parentModuleId ?? artifactId)
               }

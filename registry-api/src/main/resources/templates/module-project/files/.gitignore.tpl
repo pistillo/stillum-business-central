@@ -35,11 +35,5 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
-
-# Storybook build outputs
-storybook-static/
-
 # Module Federation outputs
 remoteEntry.js
