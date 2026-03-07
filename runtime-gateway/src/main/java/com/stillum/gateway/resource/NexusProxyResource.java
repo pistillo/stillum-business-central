@@ -47,7 +47,7 @@ public class NexusProxyResource {
             return Response.status(400).entity("name required").build();
         }
         String encoded = URLEncoder.encode(name.trim(), StandardCharsets.UTF_8).replace("+", "%20");
-        return forwardGet("/repository/npmjs-proxy/" + encoded);
+        return forwardGet("/repository/npm-group/" + encoded);
     }
 
     private Response forwardGet(String path) {
