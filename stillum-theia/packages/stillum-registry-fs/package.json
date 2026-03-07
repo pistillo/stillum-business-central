@@ -1,0 +1,37 @@
+{
+  "name": "@stillum/registry-fs",
+  "version": "1.0.0",
+  "description": "Theia extension providing a virtual filesystem backed by the Stillum Registry API",
+  "dependencies": {
+    "@theia/core": "1.69.0",
+    "@theia/editor": "1.69.0",
+    "@theia/filesystem": "1.69.0",
+    "@theia/workspace": "1.69.0",
+    "tslib": "^2.6.2"
+  },
+  "main": "lib/browser",
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/stillum-registry-fs-frontend-module",
+      "backend": "lib/node/stillum-registry-fs-backend-module"
+    }
+  ],
+  "keywords": [
+    "theia-extension"
+  ],
+  "license": "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "build": "npx theiaext build",
+    "clean": "npx theiaext clean",
+    "compile": "npx theiaext compile",
+    "lint": "npx theiaext lint",
+    "watch": "npx theiaext watch"
+  },
+  "devDependencies": {
+    "@theia/ext-scripts": "1.69.0"
+  }
+}
