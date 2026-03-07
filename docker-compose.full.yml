@@ -104,7 +104,7 @@ services:
       NEXUS_NPM_REGISTRY_URL: http://nexus:8081/repository/npm-hosted/
       NEXUS_NPM_GROUP_URL: http://nexus:8081/repository/npm-group/
       NEXUS_USERNAME: ${NEXUS_USERNAME:-admin}
-      NEXUS_PASSWORD: ${NEXUS_PASSWORD:?Set NEXUS_PASSWORD (docker exec stillum-nexus cat /nexus-data/admin.password)}
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:-admin123}
       BUILD_TEMP_DIR: /tmp/stillum-builds
       BUILD_TIMEOUT_MS: "120000"
       BUILD_MAX_CONCURRENT: "4"
